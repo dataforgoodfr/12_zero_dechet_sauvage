@@ -131,6 +131,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+venv*
 
 # Spyder project settings
 .spyderproject
@@ -138,6 +139,7 @@ venv.bak/
 
 # VS Code
 .vscode
+12_zero_dechet_sauvage.code-workspace
 
 # Rope project settings
 .ropeproject
@@ -161,3 +163,7 @@ cython_debug/
 
 # Precommit hooks: ruff cache
 .ruff_cache
+
+# Files too bigs
+COMMUNE.shp
+**/COMMUNE.shp
