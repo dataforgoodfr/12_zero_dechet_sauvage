@@ -116,13 +116,16 @@ for c in col_dechets_non_oblig_niveau_2:
     full_table.loc[full_table.NIVEAU_CARAC==2, c] = full_table.loc[full_table.NIVEAU_CARAC==2, c].apply(lambda x: np.nan if x==0 else x)
 
 
-col_dechets_non_oblig_niveau_3 = ['NB_DECHET_GROUPE_'+ c for c in liste_nom_dechets if c not in dechets_oblig_niveau_3]
+col_dechets_non_oblig_niveau_3 = ['NB_DECHET_GROUPE_'+ c 
+                                  for c in liste_nom_dechets 
+                                  if c not in dechets_oblig_niveau_3 and 
+                                  c not in dechets_oblig_niveau_2]
 
 for c in col_dechets_non_oblig_niveau_3:
     full_table.loc[full_table.NIVEAU_CARAC==3, c] = full_table.loc[full_table.NIVEAU_CARAC==3, c].apply(lambda x: np.nan if x==0 else x)
 
 for c in liste_columns_dechets:
-    full_table.loc[full_table.NIVEAU_CARAC==1, c] = full_table.loc[full_table.NIVEAU_CARAC==1, c].apply(lambda x: np.nan if x==0 else x)
+    full_table.loc[full_table.NIVEAU_CARAC.isin([0, 1]), c] = full_table.loc[full_table.NIVEAU_CARAC.isin([0, 1]), c].apply(lambda x: np.nan if x==0 else x)
 
 # La colonne étiquette de bouteille n'existait pas avant la version 2. 
 # Les 0 doivent donc être remplacés par des Nan
