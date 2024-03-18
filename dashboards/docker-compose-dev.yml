@@ -1,0 +1,22 @@
+version : "4"
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    container_name: dev-zerodechetsauvage
+    restart: always
+    ports:
+      - 8050:8050
+    networks:
+      - zds_network
+    volumes:
+      - ./app:/zds
+
+networks:
+  zds_network:
+    driver: bridge
+    
+volumes:
+  zds:
