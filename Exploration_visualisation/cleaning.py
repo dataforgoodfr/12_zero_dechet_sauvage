@@ -5,20 +5,19 @@ from shapely.geometry import Point
 import numpy as np
 
 
+
 # Import des données zero déchets sauvages
-data_zds = pd.read_excel('./data/data_zds_20231218_CorrigéWOTO.xlsx')
+data_zds = pd.read_excel('./data/data_zds_20240315_Corrigé.xlsx')
 #On ne garde que les lignes non nulles et dont le pays est la France
 data_zds = data_zds[~data_zds['ID_RELEVE'].isna()]
-data_zds = data_zds[data_zds.LIEU_PAYS=='France']
-#On supprime la colonne protoxyde qui est vide est non expliquée
-data_zds.drop(columns=['protoxyde'], inplace=True)
+data_zds = data_zds[(data_zds.LIEU_PAYS=='France') | (data_zds.LIEU_PAYS.isna())]
 
 
 ##### A) Complétion des champs géographique 
         # et rajout des aggrégations géographiques epci et bassin de vie
 
 # Chemin vers le fichier Shapefile
-shapefile_path = "./data/open_data/commune.shp"
+shapefile_path = "./data/open_data/COMMUNE.shp"
 
 # Importer le fichier Shapefile
 gdf = gpd.read_file(shapefile_path)
@@ -35,15 +34,21 @@ gdf_data_zds = gpd.GeoDataFrame(data_zds, geometry=geometry, crs= gdf_wgs84.crs)
 # Vérifier si les points GPS se trouvent à l'intérieur des géométries
 full_table = gpd.sjoin_nearest(gdf_data_zds, 
                                        gdf_wgs84, 
+                                       distance_col= 'distance',
                                        how="left")
 full_table['ID'].isna().sum()
 # on a bien une commune par ligne
+# On va ne considérer que valide les matchs dont la distance est inférieure à 0.1 
+# (il s'agit de degré de latitude longitude ce qui n'est pas transposable facilement en mètres)
+# il s'agit de 99 lignes soit en dehors de la france soit dans les DOM-TOM que nous n'avons pour le moment pas
+full_table = full_table[full_table['distance']<0.1]
 
-# On a 194 lignes pour lesquelles le nom de la ville identifiée 
+# On a 122 lignes pour lesquelles le nom de la ville identifiée 
 # n'est pas le même que celui initialement complété
 # lorsque l'on regarde quelques lignes les communes sont voisines
-verif = full_table[full_table.LIEU_VILLE != full_table.NOM]
-villes_diff = verif[['LIEU_PAYS','LIEU_VILLE', 'NOM']]
+verif = full_table[(full_table.LIEU_VILLE != full_table.NOM) & (~full_table.LIEU_VILLE.isna())]
+villes_diff = verif[['ID_RELEVE', 'LIEU_PAYS','LIEU_VILLE', 'NOM', 'LIEU_COORD_GPS_X', 'LIEU_COORD_GPS_Y']]
+villes_diff.to_excel('./data/verif_villes.xlsx', index = False)
 
 columns_to_keep = list(data_zds.columns) + ['NOM', 'INSEE_COM']
 
@@ -136,29 +141,64 @@ full_table['NB_DECHET_GROUPE_ETIQUETTES DE BOUTEILLE'] = np.where((full_table['N
 
 # Les colonnes DCSMM ne sont complétées que pour les relevés de niveau 4. 
 # Les 0 doivent donc être remplacés par des nan dans toutes ces colonnes.
-# Exception : les colonnes NB_DECHET_DCSMM_EMBALLAGES SUCRERIES ET CHIPS et NB_DECHET_DCSMM_EMBALLAGES ALIMENTAIRES AUTRES
-#           sont obligatoires pour le niveau 3 depuis la version 2 du protocole
 
 liste_columns_dcsmm = [c for c in full_table.columns if 'NB_DECHET_DCSMM_' in c and 'GENERIQUE' not in c and 'SPECIFIQUE' not in c]
-dechets_dcsmm_niveau_3 = ['NB_DECHET_DCSMM_EMBALLAGES SUCRERIES ET CHIPS', 'NB_DECHET_DCSMM_EMBALLAGES ALIMENTAIRES AUTRES']
 for c in liste_columns_dcsmm:
-    if c not in dechets_dcsmm_niveau_3:
-        full_table[c] = np.where((full_table[c]==0)&
+     full_table[c] = np.where((full_table[c]==0)&
                                  (full_table['NIVEAU_CARAC']<4),
                                  np.nan,
                                  full_table[c])
 
-for c in dechets_dcsmm_niveau_3:
-    full_table[c] = np.where((full_table[c]==0)&
-                                 ((full_table['NIVEAU_CARAC']<3)|
-                                    (
-                                        (full_table['NIVEAU_CARAC']==3) &
-                                        (full_table['VERSION_PROTOCOLE']==1)
-                                    )
-                                 ),
-                                 np.nan,
-                                 full_table[c])
 
-full_table.to_excel('./data/data_zds_enriched.xlsx', index=False)
+# On reformatte la table wide -> long
+table_reshape = full_table[['ID_RELEVE','NIVEAU_CARAC']+[c for c in full_table.columns if 'NB_DECHET_' in c]]
+table_dechet = pd.melt(table_reshape, 
+        id_vars = ['ID_RELEVE','NIVEAU_CARAC'], 
+        value_vars = [c for c in full_table.columns if 'NB_DECHET_' in c],
+        value_name = 'nb_dechet')
+table_dechet = table_dechet[~table_dechet.nb_dechet.isna()]
+
+def type_regroupement_from_variable(var):
+    if '_GROUPE_' in var : 
+        return 'GROUPE'
+    elif '_MARQUE_' in var : 
+        return 'MARQUE'
+    elif '_DCSMM_GENERIQUE_' in var : 
+        return 'DCSMM_GENERIQUE'
+    elif '_DCSMM_SPECIFIQUE_' in var : 
+        return 'DCSMM_SPECIFIQUE'
+    elif '_DCSMM_' in var : 
+        return 'DCSMM'
+    elif '_SECTEUR_' in var : 
+        return 'SECTEUR'
+    elif '_REP_' in var : 
+        return 'REP'
+
+
+def clean_variable_name(var):
+    prefix = ['NB_DECHET_GROUPE_',
+            'NB_DECHET_DCSMM_GENERIQUE_',
+            'NB_DECHET_DCSMM_SPECIFIQUE_',
+            'NB_DECHET_DCSMM_',
+            'NB_DECHET_MARQUE_',
+            'NB_DECHET_REP_',
+            'NB_DECHET_SECTEUR_']
+    for p in prefix : 
+        var = var.replace(p, '')
+    return var  
+
+table_dechet['type_regroupement'] = table_dechet['variable'].apply(type_regroupement_from_variable)
+table_dechet['categorie'] = table_dechet['variable'].apply(clean_variable_name)
+
+# On retire toutes les lignes contenant des 0 qui correspondent au type de regroupement MARQUE
+table_dechet = table_dechet.loc[(table_dechet.type_regroupement != 'MARQUE') | (table_dechet.nb_dechet!=0)]
+# On retire toutes les lignes contenant des 0 pour les type de regroupement SECTEUR et REP si le niveau de protocole n'est pas 4
+table_dechet = table_dechet.loc[~((table_dechet.nb_dechet==0) &
+                                (table_dechet.type_regroupement.isin(['SECTEUR', 'REP'])) &
+                                 (table_dechet.NIVEAU_CARAC < 4))]
+
+table_dechet[['ID_RELEVE', 'type_regroupement', 'categorie', 'nb_dechet']].to_csv('./data/data_releve_nb_dechet.csv', index = False)
+
+full_table[[c for c in full_table.columns if 'NB_DECHET_' not in c]].to_csv('./data/data_zds_enriched.csv', index=False)
 
 
