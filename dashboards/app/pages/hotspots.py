@@ -36,5 +36,5 @@ res_aggCategory_filGroup = duckdb.query(
 fig = px.bar(res_aggCategory_filGroup, x="total_dechet", y="categorie", orientation='h', height=1000)
 
 layout = html.Div(
-    [html.H1("ACTIONS"), dcc.Graph(id="template", figure=fig)]
+        [html.H1("HOTSPOTS"), dcc.Graph(id="template", figure=fig)]
 )
