@@ -7,7 +7,7 @@ services:
     container_name: zerodechetsauvage
     restart: always
     ports:
-      - 8050:8050
+      - 80:80
     networks:
       - zds_network
 

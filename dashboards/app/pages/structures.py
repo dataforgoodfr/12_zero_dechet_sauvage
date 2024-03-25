@@ -1,10 +1,13 @@
-import dash
-from dash import html, dcc, callback, Input, Output
-import plotly.express as px
-import pandas as pd
+import streamlit as st
+import altair as alt
 import duckdb
+import pandas as pd
 
-dash.register_page(__name__)
+st.markdown(
+    """# 🔭 Structures
+*Quels sont les acteurs impliqués sur mon territoire ?*
+"""
+)
 
 df_nb_dechet = pd.read_csv(
     (
@@ -29,16 +32,18 @@ res_aggCategory_filGroup = duckdb.query(
         "WHERE type_regroupement = 'GROUPE' "
         "GROUP BY categorie "
         "HAVING sum(nb_dechet) > 10000 "
-        "ORDER BY total_dechet ASC;"
+        "ORDER BY total_dechet DESC;"
     )
 ).to_df()
 
-fig = px.bar(
-    res_aggCategory_filGroup,
-    x="total_dechet",
-    y="categorie",
-    orientation="h",
-    height=1000,
-)
+# st.bar_chart(data=res_aggCategory_filGroup, x="categorie", y="total_dechet")
 
-layout = html.Div([html.H1("STRUCTURES"), dcc.Graph(id="template", figure=fig)])
+st.altair_chart(
+    alt.Chart(res_aggCategory_filGroup)
+    .mark_bar()
+    .encode(
+        x=alt.X("categorie", sort=None, title=""),
+        y=alt.Y("total_dechet", title="Total de déchet"),
+    ),
+    use_container_width=True,
+)

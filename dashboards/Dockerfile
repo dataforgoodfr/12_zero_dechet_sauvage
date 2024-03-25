@@ -11,4 +11,4 @@ WORKDIR zds
 COPY app/ ./
 RUN pip install -r requirements.txt
 
-CMD ["python3", "app.py"]
+CMD ["streamlit", "run", "home.py", "--server.port=80"]
