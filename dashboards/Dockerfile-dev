@@ -1,0 +1,14 @@
+FROM python:3.11
+MAINTAINER Data4Good
+LABEL version="0.1.0"
+LABEL description="Dashboard de l'application de visualisation \
+de données du projet Zéro Dechet Sauvage de l'association MerTerre"
+
+RUN apt-get update
+RUN mkdir zds
+WORKDIR zds
+
+COPY app/requirements.txt .
+RUN pip install -r requirements.txt
+
+CMD ["streamlit", "run", "home.py", "--server.port=80"]

@@ -1,0 +1,16 @@
+version : "4"
+
+services:
+  dashboard:
+    build:
+      context: ./
+    container_name: zerodechetsauvage
+    restart: always
+    ports:
+      - 80:80
+    networks:
+      - zds_network
+
+networks:
+  zds_network:
+    driver: bridge
