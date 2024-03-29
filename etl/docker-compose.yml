@@ -1,0 +1,14 @@
+version: '4'
+services:
+  mage:
+    container_name: zds-mage
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - 6789:6789
+    restart: always
+    volumes:
+      - ./zds:/home/merterre/zds
