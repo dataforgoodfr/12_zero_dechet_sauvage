@@ -126,6 +126,7 @@ celerybeat.pid
 .env
 .env.test
 .venv
+env_zds/
 env/
 venv/
 ENV/
