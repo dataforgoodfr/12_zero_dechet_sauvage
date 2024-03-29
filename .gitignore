@@ -168,4 +168,4 @@ cython_debug/
 COMMUNE.shp
 **/COMMUNE.shp
 
-zds/.file_versions/
+etl/zds/.file_versions/
