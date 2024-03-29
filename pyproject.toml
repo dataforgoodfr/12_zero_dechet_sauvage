@@ -112,7 +112,8 @@ exclude = [
     "dist",
     "venv",
     "pages",
-    "tests"
+    "tests",
+    "etl/zds"
 ]
 
 line-length = 96
