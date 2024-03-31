@@ -167,3 +167,5 @@ cython_debug/
 # Files too bigs
 COMMUNE.shp
 **/COMMUNE.shp
+
+etl/zds/.file_versions/
