@@ -3,6 +3,8 @@ import altair as alt
 import pandas as pd
 import duckdb
 import plotly.express as px
+import folium
+from folium import IFrame
 
 
 # Page setting : wide layout
@@ -228,6 +230,17 @@ with tab1:
 
 
 # Onglet 2 : Top Déchets
+        
+# Préparation des datas pour l'onglet 2
+df_top = df_nb_dechet.copy()
+df_top_data_releves = df_other.copy()
+# Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
+df_top_dechet_milieu = df_top[df_top["type_regroupement"].isin(['GROUPE'])]
+#Ajout du type milieu et lieu
+
+
+
+
 with tab2:
     st.markdown(
         """## Quels sont les types de déchets les plus présents sur votre territoire ?
