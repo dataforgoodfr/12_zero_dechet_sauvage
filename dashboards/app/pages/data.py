@@ -46,6 +46,17 @@ tab1, tab2, tab3 = st.tabs(
     ]
 )
 
+# Creation des dictionnaires pour filtration des graphiques:
+collectivites_dict = {
+    "REGION": df_other["REGION"].unique().tolist(),
+    "DEPARTEMENT": df_other["DEPARTEMENT"].unique().tolist(),
+    "EPCI": df_other["EPCI"].unique().tolist(),
+    "Commune": df_other["INSEE_COM"].unique().tolist(),  # Assuming 'Commune' refers to the 'INSEE_COM' column
+    "Bassin de vie": df_other["BASSIN_DE_VIE"].unique().tolist()
+}
+
+milieu_lieu_dict = {}
+
 # Onglet 1 : Matériaux
 with tab1:
 
@@ -236,8 +247,10 @@ df_top = df_nb_dechet.copy()
 df_top_data_releves = df_other.copy()
 # Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
 df_top_dechet_milieu = df_top[df_top["type_regroupement"].isin(['GROUPE'])]
-#Ajout du type milieu et lieu
-
+# Group by 'categorie', sum 'nb_dechet', et top 10
+df_top10_dechets = df_dechets_groupe.groupby("categorie").agg({"nb_dechet": "sum"}).sort_values(by="nb_dechet", ascending=False).head(10)
+# recuperation de ces 10 dechets dans une liste pour filtration bubble map
+noms_top10_dechets = df_top10_dechets.index.tolist()
 
 
 
