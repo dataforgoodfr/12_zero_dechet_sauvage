@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    env_file:
-      - .env
+      args:
+        ADMINEXPRESSURL: ${ADMINEXPRESSURL}
     ports:
       - 6789:6789
     restart: always
