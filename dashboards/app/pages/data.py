@@ -51,11 +51,15 @@ collectivites_dict = {
     "REGION": df_other["REGION"].unique().tolist(),
     "DEPARTEMENT": df_other["DEPARTEMENT"].unique().tolist(),
     "EPCI": df_other["EPCI"].unique().tolist(),
-    "Commune": df_other["INSEE_COM"].unique().tolist(),  # Assuming 'Commune' refers to the 'INSEE_COM' column
-    "Bassin de vie": df_other["BASSIN_DE_VIE"].unique().tolist()
+    "Commune": df_other["commune"].unique().tolist(),
+    "Bassin de vie": df_other["BASSIN_DE_VIE"].unique().tolist(),
+    "LIB EPCI": df_other["LIBEPCI"].unique().tolist(),
+    "NATURE EPCI": df_other["NATURE_EPCI"].unique().tolist()
 }
 
-milieu_lieu_dict = {}
+milieu_lieu_dict = df_other.groupby('TYPE_MILIEU')['TYPE_LIEU'].unique().apply(lambda x: x.tolist()).to_dict()
+
+annee_liste = sorted(df_other["ANNEE"].unique().tolist(), reverse=True)
 
 # Onglet 1 : Matériaux
 with tab1:
@@ -117,7 +121,7 @@ with tab1:
     # Ligne 0 : Filtres géographiques
     l0_col1, l0_col2 = st.columns(2)
     filtre_niveaugeo = l0_col1.selectbox(
-        "Niveau géo", ["Région", "Département", "EPCI", "Commune", "Bassin de vie"]
+        "Niveau géo", ["Région", "Département", "EPCI", "Commune", "Bassin de vie", "LIB EPCI", "NATURE EPCI"]
     )
     filtre_lieu = l0_col2.selectbox("Territoire", ["Ter1", "Ter2"])
 
@@ -246,11 +250,26 @@ with tab1:
 df_top = df_nb_dechet.copy()
 df_top_data_releves = df_other.copy()
 # Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
-df_top_dechet_milieu = df_top[df_top["type_regroupement"].isin(['GROUPE'])]
+df_dechets_groupe = df_top[df_top["type_regroupement"].isin(['GROUPE'])]
 # Group by 'categorie', sum 'nb_dechet', et top 10
 df_top10_dechets = df_dechets_groupe.groupby("categorie").agg({"nb_dechet": "sum"}).sort_values(by="nb_dechet", ascending=False).head(10)
 # recuperation de ces 10 dechets dans une liste pour filtration bubble map
 noms_top10_dechets = df_top10_dechets.index.tolist()
+# Preparation de la figure barplot
+df_top10_dechets.reset_index(inplace=True)
+# Création du graphique en barres avec Plotly Express
+fig = px.bar(df_top10_dechets, 
+             x='categorie', 
+             y='nb_dechet',
+             labels={'categorie': 'Dechet', 'nb_dechet': 'Nombre total'},
+             title='Top 10 dechets ramassés')
+
+# Amélioration du graphique pour le rendre plus agréable à regarder
+fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+fig.update_layout(
+     width=1400,
+     height=900,
+     uniformtext_minsize=8, uniformtext_mode='hide', xaxis_tickangle=90)
 
 
 
@@ -259,28 +278,84 @@ with tab2:
         """## Quels sont les types de déchets les plus présents sur votre territoire ?
     """
     )
-    res_aggCategory_filGroup = duckdb.query(
-        (
-            "SELECT categorie, sum(nb_dechet) AS total_dechet "
-            "FROM df_nb_dechet "
-            "WHERE type_regroupement = 'GROUPE' "
-            "GROUP BY categorie "
-            "HAVING sum(nb_dechet) > 10000 "
-            "ORDER BY total_dechet DESC;"
-        )
-    ).to_df()
+#    res_aggCategory_filGroup = duckdb.query(
+#        (
+#            "SELECT categorie, sum(nb_dechet) AS total_dechet "
+#            "FROM df_nb_dechet "
+#            "WHERE type_regroupement = 'GROUPE' "
+#            "GROUP BY categorie "
+#            "HAVING sum(nb_dechet) > 10000 "
+#            "ORDER BY total_dechet DESC;"
+#        )
+#    ).to_df()
 
     # st.bar_chart(data=res_aggCategory_filGroup, x="categorie", y="total_dechet")
 
-    st.altair_chart(
-        alt.Chart(res_aggCategory_filGroup)
-        .mark_bar()
-        .encode(
-            x=alt.X("categorie", sort=None, title=""),
-            y=alt.Y("total_dechet", title="Total de déchet"),
-        ),
-        use_container_width=True,
-    )
+#    st.altair_chart(
+#        alt.Chart(res_aggCategory_filGroup)
+#        .mark_bar()
+#        .encode(
+#            x=alt.X("categorie", sort=None, title=""),
+#            y=alt.Y("total_dechet", title="Total de déchet"),
+#        ),
+#        use_container_width=True,
+#    )
+
+with st.container():
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        st.plotly_chart(fig)
+    
+    with col2:
+        st.write("Métriques des déchets")  # Titre pour les cartes
+        for index, row in df_top10_dechets.iterrows():
+            st.metric(label=row['categorie'], value=row['nb_dechet'])
+
+with st.container():
+    # Ajout de la selectbox
+    selected_dechet = st.selectbox("Choisir un type de déchet :", noms_top10_dechets, index=0)
+    
+    # Filtration sur le dechet top 10 sélectionné
+    df_top_map = df_top[df_top["categorie"] == selected_dechet]
+    
+    # Création du DataFrame de travail pour la carte
+    df_map_data = pd.merge(df_top_map, df_top_data_releves, on='ID_RELEVE', how='inner')
+    
+    # Création de la carte centrée autour d'une localisation
+    # Calcul des limites à partir de vos données
+    min_lat = df_map_data["LIEU_COORD_GPS_Y"].min()
+    max_lat = df_map_data["LIEU_COORD_GPS_Y"].max()
+    min_lon = df_map_data["LIEU_COORD_GPS_X"].min()
+    max_lon = df_map_data["LIEU_COORD_GPS_X"].max()
+
+    map_paca = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8, tiles='OpenStreetMap')
+    
+    # Facteur de normalisation pour ajuster la taille des bulles
+    normalisation_facteur = 1000
+    
+    for index, row in df_map_data.iterrows():
+        # Application de la normalisation
+        radius = row['nb_dechet'] / normalisation_facteur
+        
+        # Application d'une limite minimale pour le rayon si nécessaire
+        radius = max(radius, 1)
+        
+        folium.CircleMarker(
+            location=(row['LIEU_COORD_GPS_Y'], row['LIEU_COORD_GPS_X']),
+            radius=radius,  # Utilisation du rayon ajusté
+            popup=f"{row['NOM_ZONE']}, {row['LIEU_VILLE']}, {row['DATE']} : {row['nb_dechet']} {selected_dechet}",
+            color='#3186cc',
+            fill=True,
+            fill_color='#3186cc'
+        ).add_to(map_paca)
+    
+    # Affichage de la carte Folium dans Streamlit
+    st_folium = st.components.v1.html
+    st_folium(folium.Figure().add_child(map_paca).render()
+              #, width=1400
+              , height=1000
+              )
 
 
 # Onglet 3 : Secteurs et marques
