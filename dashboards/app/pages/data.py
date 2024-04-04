@@ -270,9 +270,11 @@ with tab1:
 with tab2:
     # Préparation des datas pour l'onglet 2
     df_top = df_nb_dechet.copy()
-    df_top_data_releves = df_other.copy()
+    df_top_data_releves = df_other_filtre.copy()
+    # Filtration des données pour nb_dechets
+    df_top10 = pd.merge(df_top, df_top_data_releves, on="ID_RELEVE", how="inner")
     # Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
-    df_dechets_groupe = df_top[df_top["type_regroupement"].isin(["GROUPE"])]
+    df_dechets_groupe = df_top10[df_top10["type_regroupement"].isin(["GROUPE"])]
     # Group by 'categorie', sum 'nb_dechet', et top 10
     df_top10_dechets = (
         df_dechets_groupe.groupby("categorie")
@@ -293,8 +295,10 @@ with tab2:
         title="Top 10 dechets ramassés",
     )
 
-    # Amélioration du graphique pour le rendre plus agréable à regarder
-    fig.update_traces(texttemplate="%{text:.2s}", textposition="outside")
+    # Amélioration du visuel du graphique
+    fig.update_traces(
+        #texttemplate="%{text:.2f}",
+         textposition="outside")
     fig.update_layout(
         width=1400,
         height=900,
