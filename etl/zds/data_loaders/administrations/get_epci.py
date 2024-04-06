@@ -11,10 +11,10 @@ if "test" not in globals():
 
 
 @data_loader
-def load_data_from_api(*args, **kwargs):
+def load_data_from_api(data, *args, **kwargs):
     """Get EPCI from INSEE"""
 
-    year = "2023"
+    year = data["year"]
     path_epci = (
         f"/home/merterre/open_data/Intercommunalite_Metropole_au_01-01-{year}.xlsx"
     )
