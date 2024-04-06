@@ -1,0 +1,9 @@
+version: 0.1.1
+default:
+  # MySQL
+  MSSQL_DRIVER: "ODBC Driver 18 for SQL Server"
+  MYSQL_HOST: "{{ env_var('ZDS_HOST') }}"
+  MYSQL_PORT: 20569
+  MYSQL_DATABASE: "{{ env_var('ZDS_DB') }}"
+  MYSQL_USER: "{{ env_var('ZDS_DB_USER') }}"
+  MYSQL_PASSWORD: "{{ mage_secret_var('ZDS_DB_PWD') }}"

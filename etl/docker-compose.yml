@@ -12,3 +12,5 @@ services:
     restart: always
     volumes:
       - ./zds:/home/merterre/zds
+    env_file:
+      - path: ./.env_mage
