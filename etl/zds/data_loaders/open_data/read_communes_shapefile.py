@@ -11,7 +11,7 @@ if "test" not in globals():
 def load_data(*args, **kwargs):
     """Read the Shapefile that contains cities data"""
 
-    # logging.getLogger('fiona').setLevel(logging.ERROR)
+    logging.getLogger("fiona").setLevel(logging.ERROR)
 
     shapefile_path = "/home/merterre/open_data/COMMUNE.shp"
 

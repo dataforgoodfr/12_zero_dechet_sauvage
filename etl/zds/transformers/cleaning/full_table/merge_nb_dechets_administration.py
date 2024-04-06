@@ -1,3 +1,5 @@
+import pandas as pd
+
 if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
 if "test" not in globals():
@@ -5,11 +7,14 @@ if "test" not in globals():
 
 
 @transformer
-def execute_transformer_action(df, *args, **kwargs) -> None:
-    """Fitler on distance"""
-    df = df.loc[df["distance"] < 0.1, :]
+def transform(data, data_2, *args, **kwargs):
+    """Merge nb_dechet with administrations"""
 
-    return df
+    data = data.merge(data_2, how="left", left_on="INSEE_COM", right_on="codgeo")
+
+    data.drop(columns=["codgeo"], inplace=True)
+
+    return data
 
 
 @test

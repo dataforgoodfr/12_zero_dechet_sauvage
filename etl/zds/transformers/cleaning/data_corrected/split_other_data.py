@@ -5,11 +5,17 @@ if "test" not in globals():
 
 
 @transformer
-def execute_transformer_action(df, *args, **kwargs) -> None:
-    """Fitler on distance"""
-    df = df.loc[df["distance"] < 0.1, :]
+def transform(data, *args, **kwargs):
+    """Split the data
+    Used to prevent the dateime loading issue at the Geodataframe creaction
+    """
 
-    return df
+    geo_cols = ["LIEU_PAYS", "LIEU_COORD_GPS_X", "LIEU_COORD_GPS_Y"]
+    cols = [c for c in list(data.columns) if c not in geo_cols]
+
+    data = data[cols]
+
+    return data
 
 
 @test

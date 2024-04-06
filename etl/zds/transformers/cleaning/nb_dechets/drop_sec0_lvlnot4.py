@@ -5,11 +5,21 @@ if "test" not in globals():
 
 
 @transformer
-def execute_transformer_action(df, *args, **kwargs) -> None:
-    """Fitler on distance"""
-    df = df.loc[df["distance"] < 0.1, :]
+def transform(data, *args, **kwargs):
+    """GET lines other than
 
-    return df
+    'SECTEUR and is equal to 0 and NIVEAU_CARAC less than 4'
+    """
+
+    data = data.loc[
+        ~(
+            (data.NB_DECHET == 0)
+            & (data.TYPE_REGROUPEMENT == "SECTEUR")
+            & (data.NIVEAU_CARAC < 4)
+        )
+    ]
+
+    return data
 
 
 @test

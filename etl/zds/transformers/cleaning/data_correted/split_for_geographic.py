@@ -5,11 +5,14 @@ if "test" not in globals():
 
 
 @transformer
-def execute_transformer_action(df, *args, **kwargs) -> None:
-    """Fitler on distance"""
-    df = df.loc[df["distance"] < 0.1, :]
+def transform(data, *args, **kwargs):
+    """Split the data
+    Used to prevent the dateime loading issue at the Geodataframe creaction
+    """
 
-    return df
+    data = data[["ID_RELEVE", "LIEU_PAYS", "LIEU_COORD_GPS_X", "LIEU_COORD_GPS_Y"]]
+
+    return data
 
 
 @test

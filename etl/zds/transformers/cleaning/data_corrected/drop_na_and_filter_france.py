@@ -3,6 +3,8 @@ if "transformer" not in globals():
 if "test" not in globals():
     from mage_ai.data_preparation.decorators import test
 
+from datetime import datetime
+
 
 @transformer
 def transform(data, *args, **kwargs):

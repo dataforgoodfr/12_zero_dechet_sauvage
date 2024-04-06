@@ -5,11 +5,15 @@ if "test" not in globals():
 
 
 @transformer
-def execute_transformer_action(df, *args, **kwargs) -> None:
-    """Fitler on distance"""
-    df = df.loc[df["distance"] < 0.1, :]
+def transform(data, *args, **kwargs):
+    """Keep the original columns + NOM + INSEE"""
 
-    return df
+    columns_to_keep = ["ID_RELEVE", "NOM", "INSEE_COM"]
+
+    data = data[columns_to_keep]
+    data.rename(columns={"NOM": "COMMUNE"}, inplace=True)
+
+    return data
 
 
 @test

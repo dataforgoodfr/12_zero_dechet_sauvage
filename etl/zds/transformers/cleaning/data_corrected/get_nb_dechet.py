@@ -5,15 +5,14 @@ if "test" not in globals():
 
 
 @transformer
-def transform(data, data_2, *args, **kwargs):
-    """Keep the original columns + NOM + INSEE"""
+def transform(data, *args, **kwargs):
+    """Get NB_DECHET columns from data"""
 
-    columns_to_keep = list(data_2.columns) + ["NOM", "INSEE_COM"]
+    data_nb_dechet = data[
+        ["ID_RELEVE", "NIVEAU_CARAC"] + [c for c in data.columns if "NB_DECHET_" in c]
+    ]
 
-    data = data[columns_to_keep]
-    data.rename(columns={"NOM": "commune"}, inplace=True)
-
-    return data
+    return data_nb_dechet
 
 
 @test

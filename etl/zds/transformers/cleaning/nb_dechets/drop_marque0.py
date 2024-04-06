@@ -5,11 +5,12 @@ if "test" not in globals():
 
 
 @transformer
-def execute_transformer_action(df, *args, **kwargs) -> None:
-    """Fitler on distance"""
-    df = df.loc[df["distance"] < 0.1, :]
+def transform(data, *args, **kwargs):
+    """GET lines other than 'MARQUE and equal to 0'"""
 
-    return df
+    data = data.loc[(data.TYPE_REGROUPEMENT != "MARQUE") & (data.NB_DECHET != 0)]
+
+    return data
 
 
 @test
