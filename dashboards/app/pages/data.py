@@ -1,7 +1,9 @@
 import streamlit as st
-import altair as alt
+
+# import altair as alt
 import pandas as pd
-import duckdb
+
+# import duckdb
 import plotly.express as px
 import folium
 from folium import IFrame
@@ -100,8 +102,11 @@ with tab1:
     volume_total = df_volume["VOLUME_TOTAL"].sum()
     poids_total = df_volume["POIDS_TOTAL"].sum()
     volume_total_categorise = df_volume[cols_volume].sum().sum()
-    pct_volume_cateforise = volume_total_categorise / volume_total
+    pct_volume_categorise = volume_total_categorise / volume_total
     nb_collectes = len(df_volume)
+
+    # estimation du poids categorisée en utilisant pct_volume_categorise
+    poids_total_categorise = round(poids_total * pct_volume_categorise)
 
     # Dépivotage du tableau pour avoir une base de données exploitable
     df_volume = df_volume.melt(
@@ -156,6 +161,7 @@ with tab1:
     # 2ème métrique : poids
     cell2 = l1_col2.container(border=True)
     poids_total = f"{poids_total:,.0f}".replace(",", " ")
+
     cell2.metric("Poids total collecté", f"{poids_total} kg")
 
     # 3ème métrique : nombre de relevés
@@ -212,7 +218,7 @@ with tab1:
 
     st.write("")
     st.caption(
-        f"Note : Cette analyse se base sur les déchets qui ont pu être classés par matériau : {volume_total_categorise:.0f} Litres, soit {pct_volume_cateforise:.0%} du volume total collecté."
+        f"Note : Cette analyse se base sur les déchets qui ont pu être classés par matériau : {volume_total_categorise:.0f} Litres, soit {pct_volume_categorise:.0%} du volume total collecté."
     )
 
     st.divider()
@@ -268,8 +274,36 @@ with tab1:
 
 # Onglet 2 : Top Déchets
 with tab2:
+
+    # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
+    l1_col1, l1_col2, l1_col3 = st.columns(3)
+    # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+    # 1ère métrique : volume total de déchets collectés
+    cell1 = l1_col1.container(border=True)
+    # Trick pour séparer les milliers
+
+    volume_total_categorise = f"{volume_total_categorise:,.0f}".replace(",", " ")
+    cell1.metric("Volume de déchets catégorisés", f"{volume_total_categorise} litres")
+
+    # 2ème métrique : poids
+    cell2 = l1_col2.container(border=True)
+    poids_total_categorise = f"{poids_total_categorise:,.0f}".replace(",", " ")
+    # poids_total = f"{poids_total:,.0f}".replace(",", " ")
+    cell2.metric(
+        "Poids total de déchets categorisés (estimation)",
+        f"{poids_total_categorise} kg",
+    )
+
+    # 3ème métrique : nombre de relevés
+    cell3 = l1_col3.container(border=True)
+    # nb_collectes = f"{nb_collectes:,.0f}".replace(",", " ")
+    cell3.metric("Nombre de collectes réalisées", f"{nb_collectes}")
+
+    # Ligne 2 : graphique top déchets
+
     # Préparation des datas pour l'onglet 2
     df_top = df_nb_dechet.copy()
+
     df_top_data_releves = df_other_filtre.copy()
     # Filtration des données pour nb_dechets
     df_top10 = pd.merge(df_top, df_top_data_releves, on="ID_RELEVE", how="inner")
@@ -294,11 +328,12 @@ with tab2:
         labels={"categorie": "Dechet", "nb_dechet": "Nombre total"},
         title="Top 10 dechets ramassés",
     )
-
+    fig.update_layout(yaxis_type="log")
     # Amélioration du visuel du graphique
     fig.update_traces(
-        #texttemplate="%{text:.2f}",
-         textposition="outside")
+        # texttemplate="%{text:.2f}",
+        textposition="outside"
+    )
     fig.update_layout(
         width=1400,
         height=900,
@@ -395,9 +430,7 @@ with tab2:
         # Affichage de la carte Folium dans Streamlit
         st_folium = st.components.v1.html
         st_folium(
-            folium.Figure().add_child(map_paca).render()
-            # , width=1400
-            ,
+            folium.Figure().add_child(map_paca).render(),  # , width=1400
             height=1000,
         )
 
