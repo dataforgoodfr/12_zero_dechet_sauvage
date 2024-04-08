@@ -290,7 +290,7 @@ with tab2:
     poids_total_categorise = f"{poids_total_categorise:,.0f}".replace(",", " ")
     # poids_total = f"{poids_total:,.0f}".replace(",", " ")
     cell2.metric(
-        "Poids total de déchets categorisés (estimation)",
+        "Poids estimé de déchets categorisés",
         f"{poids_total_categorise} kg",
     )
 
@@ -438,6 +438,115 @@ with tab2:
 # Onglet 3 : Secteurs et marques
 with tab3:
     st.write("")
+
+    # Préparation des données
+    df_dechet_copy = df_nb_dechet.copy()
+
+    df_filtre_copy = df_other_filtre.copy()
+    # Filtration des données pour nb_dechets
+    df_init = pd.merge(df_dechet_copy, df_filtre_copy, on="ID_RELEVE", how="inner")
+
+    # Data pour le plot secteur
+    secteur_df = df_init[df_init["type_regroupement"].isin(["SECTEUR"])]
+    top_secteur_df = (
+        secteur_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
+    )
+    top_secteur_df = top_secteur_df.reset_index()
+    top_secteur_df.columns = ["Secteur", "Nombre de déchets"]
+
+    # Data pour le plot marque
+    marque_df = df_init[df_init["type_regroupement"].isin(["MARQUE"])]
+    top_marque_df = (
+        marque_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
+    )
+    top_marque_df = top_marque_df.reset_index()
+    top_marque_df.columns = ["Marque", "Nombre de déchets"]
+
+    # Chiffres clés
+    nb_dechet_secteur = secteur_df["nb_dechet"].sum()
+    nb_secteurs = len(top_secteur_df["Secteur"].unique())
+
+    nb_dechet_marque = marque_df["nb_dechet"].sum()
+    nb_marques = len(top_marque_df["Marque"].unique())
+
+    # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
+
+    l1_col1, l1_col2 = st.columns(2)
+    # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+    # 1ère métrique : volume total de déchets collectés
+    cell1 = l1_col1.container(border=True)
+    # Trick pour séparer les milliers
+
+    nb_dechet_secteur = f"{nb_dechet_secteur:,.0f}".replace(",", " ")
+    cell1.metric(
+        "Nombre de déchets catégorisés par secteur", f"{nb_dechet_secteur} dechets"
+    )
+
+    # 2ème métrique : poids
+    cell2 = l1_col2.container(border=True)
+    nb_secteurs = f"{nb_secteurs:,.0f}".replace(",", " ")
+    # poids_total = f"{poids_total:,.0f}".replace(",", " ")
+    cell2.metric(
+        "Nombre de secteurs identifiés lors des collectes",
+        f"{nb_secteurs} secteurs",
+    )
+
+    fig_secteur = px.bar(
+        top_secteur_df.tail(10),
+        x="Nombre de déchets",
+        y="Secteur",
+        title="Top 10 des secteurs les plus ramassés",
+        orientation="h",
+    )
+    # add log scale to x axis
+    fig_secteur.update_layout(xaxis_type="log")
+    fig_secteur.update_traces(
+        # texttemplate="%{text:.2f}",
+        textposition="outside"
+    )
+    fig_secteur.update_layout(
+        width=800, height=500, uniformtext_minsize=8, uniformtext_mode="hide"
+    )
+
+    st.plotly_chart(fig_secteur, use_container_width=False)
+
+    l1_col1, l1_col2 = st.columns(2)
+    cell1 = l1_col1.container(border=True)
+    # Trick pour séparer les milliers
+
+    nb_dechet_marque = f"{nb_dechet_marque:,.0f}".replace(",", " ")
+    cell1.metric(
+        "Nombre de déchets catégorisés par marque", f"{nb_dechet_marque} dechets"
+    )
+
+    # 2ème métrique : poids
+    cell2 = l1_col2.container(border=True)
+    nb_marques = f"{nb_marques:,.0f}".replace(",", " ")
+    # poids_total = f"{poids_total:,.0f}".replace(",", " ")
+    cell2.metric(
+        "Nombre de marques identifiés lors des collectes",
+        f"{nb_marques} marques",
+    )
+    fig_marque = px.bar(
+        top_marque_df.tail(10),
+        x="Nombre de déchets",
+        y="Marque",
+        title="Top 10 des marques les plus ramassées",
+        orientation="h",
+    )
+    # add log scale to x axis
+    fig_marque.update_layout(xaxis_type="log")
+    fig_marque.update_traces(
+        # texttemplate="%{text:.2f}",
+        textposition="outside"
+    )
+
+    fig_marque.update_layout(
+        width=800, height=500, uniformtext_minsize=8, uniformtext_mode="hide"
+    )
+    st.plotly_chart(fig_marque, use_container_width=False)
+
+
 #    st.markdown(
 #        """## Quels sont les secteurs, filières et marques les plus représentés ?
 #    """
