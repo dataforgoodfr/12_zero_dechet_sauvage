@@ -1,0 +1,1309 @@
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 2796 entries, 0 to 2795
+Data columns (total 1302 columns):
+ #     Column                                                                                      Dtype  
+---    ------                                                                                      -----  
+ 0     ID_RELEVE                                                                                   int64  
+ 1     LIEU_PAYS                                                                                   object 
+ 2     LIEU_REGION                                                                                 object 
+ 3     LIEU_DEPT                                                                                   float64
+ 4     LIEU_VILLE                                                                                  object 
+ 5     LIEU_CODE_POSTAL                                                                            float64
+ 6     LIEU_COORD_GPS                                                                              object 
+ 7     LIEU_COORD_GPS_X                                                                            float64
+ 8     LIEU_COORD_GPS_Y                                                                            float64
+ 9     NOM_ZONE                                                                                    object 
+ 10    SPOT_A1S                                                                                    int64  
+ 11    SPOT_ID                                                                                     float64
+ 12    TYPE_LIEU                                                                                   object 
+ 13    TYPE_MILIEU                                                                                 object 
+ 14    TYPE_LIEU2                                                                                  object 
+ 15    TYPE_DECHET                                                                                 object 
+ 16    LONGUEUR_LINEAIRE                                                                           float64
+ 17    SURFACE                                                                                     float64
+ 18    ID_EVENEMENT                                                                                float64
+ 19    NOM_EVENEMENT                                                                               object 
+ 20    TYPE_EVENEMENT                                                                              object 
+ 21    EVENEMENT_ENVERGURE                                                                         object 
+ 22    DATE                                                                                        object 
+ 23    ANNEE                                                                                       int64  
+ 24    NOM_STRUCTURE                                                                               object 
+ 25    ID_STRUCTURE                                                                                int64  
+ 26    NB_PARTICIPANTS                                                                             float64
+ 27    DUREE                                                                                       float64
+ 28    NIVEAU_CARAC                                                                                int64  
+ 29    VERSION_PROTOCOLE                                                                           float64
+ 30    VOLUME_TOTAL                                                                                float64
+ 31    VOLUME_TOTAL_SACS                                                                           float64
+ 32    POIDS_TOTAL                                                                                 float64
+ 33    VOLUME_VOLUMINEUX                                                                           float64
+ 34    POURCENTAGE_VOLUMINEUX                                                                      float64
+ 35    GLOBAL_POURCENTAGE_TOTAL                                                                    float64
+ 36    GLOBAL_POURCENTAGE_PLASTIQUE                                                                float64
+ 37    GLOBAL_POURCENTAGE_CAOUTCHOUC                                                               float64
+ 38    GLOBAL_POURCENTAGE_BOIS                                                                     float64
+ 39    GLOBAL_POURCENTAGE_TEXTILE                                                                  float64
+ 40    GLOBAL_POURCENTAGE_PAPIER                                                                   float64
+ 41    GLOBAL_POURCENTAGE_METAL                                                                    float64
+ 42    GLOBAL_POURCENTAGE_VERRE                                                                    float64
+ 43    GLOBAL_POURCENTAGE_AUTRE                                                                    float64
+ 44    GLOBAL_VOLUME_PLASTIQUE                                                                     float64
+ 45    GLOBAL_VOLUME_CAOUTCHOUC                                                                    float64
+ 46    GLOBAL_VOLUME_BOIS                                                                          float64
+ 47    GLOBAL_VOLUME_TEXTILE                                                                       float64
+ 48    GLOBAL_VOLUME_PAPIER                                                                        float64
+ 49    GLOBAL_VOLUME_METAL                                                                         float64
+ 50    GLOBAL_VOLUME_VERRE                                                                         float64
+ 51    GLOBAL_VOLUME_AUTRE                                                                         float64
+ 52    SACS_POURCENTAGE_PLASTIQUE                                                                  float64
+ 53    SACS_POURCENTAGE_CAOUTCHOUC                                                                 float64
+ 54    SACS_POURCENTAGE_BOIS                                                                       float64
+ 55    SACS_POURCENTAGE_TEXTILE                                                                    float64
+ 56    SACS_POURCENTAGE_PAPIER                                                                     float64
+ 57    SACS_POURCENTAGE_METAL                                                                      float64
+ 58    SACS_POURCENTAGE_VERRE                                                                      float64
+ 59    SACS_POURCENTAGE_AUTRE                                                                      float64
+ 60    SACS_VOLUME_PLASTIQUE                                                                       float64
+ 61    SACS_VOLUME_CAOUTCHOUC                                                                      float64
+ 62    SACS_VOLUME_BOIS                                                                            float64
+ 63    SACS_VOLUME_TEXTILE                                                                         float64
+ 64    SACS_VOLUME_PAPIER                                                                          float64
+ 65    SACS_VOLUME_METAL                                                                           float64
+ 66    SACS_VOLUME_VERRE                                                                           float64
+ 67    SACS_VOLUME_AUTRE                                                                           float64
+ 68    SACS_POIDS_PLASTIQUE                                                                        float64
+ 69    SACS_POIDS_CAOUTCHOUC                                                                       float64
+ 70    SACS_POIDS_BOIS                                                                             float64
+ 71    SACS_POIDS_TEXTILE                                                                          float64
+ 72    SACS_POIDS_PAPIER                                                                           float64
+ 73    SACS_POIDS_METAL                                                                            float64
+ 74    SACS_POIDS_VERRE                                                                            float64
+ 75    SACS_POIDS_AUTRE                                                                            float64
+ 76    VOLUMINEUX_POURCENTAGE_PLASTIQUE                                                            float64
+ 77    VOLUMINEUX_POURCENTAGE_CAOUTCHOUC                                                           float64
+ 78    VOLUMINEUX_POURCENTAGE_BOIS                                                                 float64
+ 79    VOLUMINEUX_POURCENTAGE_TEXTILE                                                              float64
+ 80    VOLUMINEUX_POURCENTAGE_PAPIER                                                               float64
+ 81    VOLUMINEUX_POURCENTAGE_METAL                                                                float64
+ 82    VOLUMINEUX_POURCENTAGE_VERRE                                                                float64
+ 83    VOLUMINEUX_POURCENTAGE_AUTRE                                                                float64
+ 84    VOLUMINEUX_VOLUME_PLASTIQUE                                                                 float64
+ 85    VOLUMINEUX_VOLUME_CAOUTCHOUC                                                                float64
+ 86    VOLUMINEUX_VOLUME_BOIS                                                                      float64
+ 87    VOLUMINEUX_VOLUME_TEXTILE                                                                   float64
+ 88    VOLUMINEUX_VOLUME_PAPIER                                                                    float64
+ 89    VOLUMINEUX_VOLUME_METAL                                                                     float64
+ 90    VOLUMINEUX_VOLUME_VERRE                                                                     float64
+ 91    VOLUMINEUX_VOLUME_AUTRE                                                                     float64
+ 92    COMMENTAIRE_VOLUMINEUX                                                                      object 
+ 93    NB_DECHET_GROUPE_ALLUMETTES                                                                 float64
+ 94    NB_DECHET_GROUPE_AMPOULES ET NÉONS                                                          float64
+ 95    NB_DECHET_GROUPE_ANNEAUX ET OPERCULES DE BOUCHONS                                           float64
+ 96    NB_DECHET_GROUPE_APPAREILS MÉNAGERS                                                         float64
+ 97    NB_DECHET_GROUPE_AUTRES DÉCHETS DE LA PÊCHE                                                 float64
+ 98    NB_DECHET_GROUPE_AUTRES DÉCHETS DU TABAC                                                    float64
+ 99    NB_DECHET_GROUPE_AUTRES OBJETS D'HYGIÈNE ET DE SOINS PERSONNELS                             float64
+ 100   NB_DECHET_GROUPE_AUTRES OBJETS EN BOIS                                                      float64
+ 101   NB_DECHET_GROUPE_AUTRES OBJETS EN MÉTAL                                                     float64
+ 102   NB_DECHET_GROUPE_AUTRES OBJETS EN PAPIER/CARTON                                             float64
+ 103   NB_DECHET_GROUPE_AUTRES OBJETS EN PLASTIQUE                                                 float64
+ 104   NB_DECHET_GROUPE_AUTRES OBJETS EN VERRE/CÉRAMIQUE                                           float64
+ 105   NB_DECHET_GROUPE_AUTRES OBJETS ET FRAGMENTS DE TEXTILE                                      float64
+ 106   NB_DECHET_GROUPE_AUTRES OBJETS ET FRAGMENTS EN CAOUTCHOUC                                   float64
+ 107   NB_DECHET_GROUPE_AUTRES OBJETS SANITAIRE ET MÉDICAUX                                        float64
+ 108   NB_DECHET_GROUPE_BALAIS ET OUTILS                                                           float64
+ 109   NB_DECHET_GROUPE_BALLONS DE BAUDRUCHE                                                       float64
+ 110   NB_DECHET_GROUPE_BANDEROLES DE SIGNALEMENT                                                  float64
+ 111   NB_DECHET_GROUPE_BARBECUES JETABLES                                                         float64
+ 112   NB_DECHET_GROUPE_BATTERIES                                                                  float64
+ 113   NB_DECHET_GROUPE_BILLES DE BOIS                                                             float64
+ 114   NB_DECHET_GROUPE_BOCAUX ET POTS                                                             float64
+ 115   NB_DECHET_GROUPE_BOIS ALIMENTAIRE                                                           float64
+ 116   NB_DECHET_GROUPE_BOITES ET FÛTS EN METAL                                                    float64
+ 117   NB_DECHET_GROUPE_BOMBES AÉROSOL                                                             float64
+ 118   NB_DECHET_GROUPE_BOUCHONS DE LIÈGE                                                          float64
+ 119   NB_DECHET_GROUPE_BOUCHONS PLASTIQUE                                                         float64
+ 120   NB_DECHET_GROUPE_BOUTEILLES EN PLASTIQUE ALIMENTAIRE                                        float64
+ 121   NB_DECHET_GROUPE_BOUTEILLES EN VERRE                                                        float64
+ 122   NB_DECHET_GROUPE_BOUTEILLES ET CONTENANTS NON ALIMENTAIRES                                  float64
+ 123   NB_DECHET_GROUPE_BOUÉES                                                                     float64
+ 124   NB_DECHET_GROUPE_BOÎTES DE CONSERVE                                                         float64
+ 125   NB_DECHET_GROUPE_BOÎTES D’APPÂTS                                                            float64
+ 126   NB_DECHET_GROUPE_BRIQUETS                                                                   float64
+ 127   NB_DECHET_GROUPE_BÂTONS DE SKI                                                              float64
+ 128   NB_DECHET_GROUPE_BÂTONS DE SUCETTE                                                          float64
+ 129   NB_DECHET_GROUPE_CAISSES EN BOIS                                                            float64
+ 130   NB_DECHET_GROUPE_CANETTES                                                                   float64
+ 131   NB_DECHET_GROUPE_CARTONS                                                                    float64
+ 132   NB_DECHET_GROUPE_CARTOUCHES DE CHASSE                                                       float64
+ 133   NB_DECHET_GROUPE_CASQUES DE PROTECTION                                                      float64
+ 134   NB_DECHET_GROUPE_CD ET DVD                                                                  float64
+ 135   NB_DECHET_GROUPE_CHAUFFERETTES                                                              float64
+ 136   NB_DECHET_GROUPE_CHAUSSURES                                                                 float64
+ 137   NB_DECHET_GROUPE_CIGARETTES ÉLECTRONIQUES ET RECHARGES                                      float64
+ 138   NB_DECHET_GROUPE_CIRE ET BOUGIES                                                            float64
+ 139   NB_DECHET_GROUPE_COMPRESSES ET PANSEMENTS                                                   float64
+ 140   NB_DECHET_GROUPE_CONTENANTS ALIMENTAIRES EN PLASTIQUE                                       float64
+ 141   NB_DECHET_GROUPE_CORDAGES DE SÉCURITÉ                                                       float64
+ 142   NB_DECHET_GROUPE_CORDAGES ET FICELLES                                                       float64
+ 143   NB_DECHET_GROUPE_COTONS-TIGES                                                               float64
+ 144   NB_DECHET_GROUPE_COTONS-TIGES EN CARTON                                                     float64
+ 145   NB_DECHET_GROUPE_DÉCHETS DE COLIS ET D'EMBALLAGES INDUSTRIELS                               float64
+ 146   NB_DECHET_GROUPE_DÉCHETS DE L'AGRICULTURE                                                   float64
+ 147   NB_DECHET_GROUPE_DÉCHETS DE LA CONCHYLICULTURE                                              float64
+ 148   NB_DECHET_GROUPE_DÉCHETS DE LA CONSTRUCTION                                                 float64
+ 149   NB_DECHET_GROUPE_EMBALLAGES ALIMENTAIRES PAPIER/CARTON                                      float64
+ 150   NB_DECHET_GROUPE_EMBALLAGES ALIMENTAIRES PLASTIQUE                                          float64
+ 151   NB_DECHET_GROUPE_EMBALLAGES FIN                                                             float64
+ 152   NB_DECHET_GROUPE_EMBALLAGES MÉDICAMENTS                                                     float64
+ 153   NB_DECHET_GROUPE_EMBALLAGES NON ALIMENTAIRES                                                float64
+ 154   NB_DECHET_GROUPE_ETIQUETTES DE BOUTEILLE                                                    float64
+ 155   NB_DECHET_GROUPE_ETIQUETTES DIVERSES (HORS BOUTEILLE)                                       float64
+ 156   NB_DECHET_GROUPE_FERRAILLES INDUSTRIELLES                                                   float64
+ 157   NB_DECHET_GROUPE_FIBRE DE VERRE                                                             float64
+ 158   NB_DECHET_GROUPE_FILETS DE PÊCHE                                                            float64
+ 159   NB_DECHET_GROUPE_FILS DE PÊCHE                                                              float64
+ 160   NB_DECHET_GROUPE_FILS ET CABLES EN MÉTAL                                                    float64
+ 161   NB_DECHET_GROUPE_FLEURS EN PLASTIQUE                                                        float64
+ 162   NB_DECHET_GROUPE_FORFAITS DE SKI                                                            float64
+ 163   NB_DECHET_GROUPE_FOURNITURES DE BUREAU                                                      float64
+ 164   NB_DECHET_GROUPE_FRAGMENTS DE BOIS                                                          float64
+ 165   NB_DECHET_GROUPE_FRAGMENTS DE MÉTAL                                                         float64
+ 166   NB_DECHET_GROUPE_FRAGMENTS DE VERRE/CÉRAMIQUE                                               float64
+ 167   NB_DECHET_GROUPE_FRAGMENTS PLASTIQUE NON-IDENTIFIÉS                                         float64
+ 168   NB_DECHET_GROUPE_FUSÉES ET FEUX D'ARTIFICE                                                  float64
+ 169   NB_DECHET_GROUPE_GOBELETS EN CARTON                                                         float64
+ 170   NB_DECHET_GROUPE_GOBELETS EN PLASTIQUE                                                      float64
+ 171   NB_DECHET_GROUPE_GRANULÉS PLASTIQUES INDUSTRIELS                                            float64
+ 172   NB_DECHET_GROUPE_JALONS DE PISTE                                                            float64
+ 173   NB_DECHET_GROUPE_JOINTS EN RONDELLE                                                         float64
+ 174   NB_DECHET_GROUPE_JOUETS                                                                     float64
+ 175   NB_DECHET_GROUPE_JOURNAUX                                                                   float64
+ 176   NB_DECHET_GROUPE_LINGETTES JETABLES                                                         float64
+ 177   NB_DECHET_GROUPE_MASQUES                                                                    float64
+ 178   NB_DECHET_GROUPE_MASQUES ET LUNETTES DE SKI                                                 float64
+ 179   NB_DECHET_GROUPE_MATÉRIAUX DE CONSTRUCTION                                                  float64
+ 180   NB_DECHET_GROUPE_MATÉRIELS SPORTS NAUTIQUES                                                 float64
+ 181   NB_DECHET_GROUPE_MORCEAUX DE PAPIER                                                         float64
+ 182   NB_DECHET_GROUPE_MOUCHOIRS                                                                  float64
+ 183   NB_DECHET_GROUPE_MOUSSES SYNTHÉTIQUES                                                       float64
+ 184   NB_DECHET_GROUPE_MÉDIAS FILTRANTS                                                           float64
+ 185   NB_DECHET_GROUPE_MÉGOTS                                                                     float64
+ 186   NB_DECHET_GROUPE_OBJETS BEAUTÉ                                                              float64
+ 187   NB_DECHET_GROUPE_OBJETS BRICOLAGE, TRAVAUX ET ENTRETIEN                                     float64
+ 188   NB_DECHET_GROUPE_PAILLES EN PLASTIQUE                                                       float64
+ 189   NB_DECHET_GROUPE_PALETTES                                                                   float64
+ 190   NB_DECHET_GROUPE_PANNEAUX DE SIGNALISATION                                                  float64
+ 191   NB_DECHET_GROUPE_PAPIER ALUMINIUM                                                           float64
+ 192   NB_DECHET_GROUPE_PAQUETS DE CIGARETTE                                                       float64
+ 193   NB_DECHET_GROUPE_PILES                                                                      float64
+ 194   NB_DECHET_GROUPE_PINCES À LINGE                                                             float64
+ 195   NB_DECHET_GROUPE_PIÈCES DE VEHICULES                                                        float64
+ 196   NB_DECHET_GROUPE_PIÈCES DE VÉHICULE                                                         float64
+ 197   NB_DECHET_GROUPE_PLANCHES                                                                   float64
+ 198   NB_DECHET_GROUPE_PLOMBS ET HAMEÇONS                                                         float64
+ 199   NB_DECHET_GROUPE_PNEUS                                                                      float64
+ 200   NB_DECHET_GROUPE_POTS DE PEINTURE                                                           float64
+ 201   NB_DECHET_GROUPE_PRODUITS CHIMIQUES                                                         float64
+ 202   NB_DECHET_GROUPE_PROTECTIONS HYGIÉNIQUES                                                    float64
+ 203   NB_DECHET_GROUPE_PROTOXYDE D'AZOTE                                                          float64
+ 204   NB_DECHET_GROUPE_SACS EN PAPIER                                                             float64
+ 205   NB_DECHET_GROUPE_SACS EN TEXTILE                                                            float64
+ 206   NB_DECHET_GROUPE_SACS PLASTIQUE                                                             float64
+ 207   NB_DECHET_GROUPE_SCELLÉS                                                                    float64
+ 208   NB_DECHET_GROUPE_SERINGUES                                                                  float64
+ 209   NB_DECHET_GROUPE_SKIS ET CHAUSSURES DE SKI                                                  float64
+ 210   NB_DECHET_GROUPE_STICKS À LÈVRE                                                             float64
+ 211   NB_DECHET_GROUPE_TAPIS DE PROTECTION PYLÔNE                                                 float64
+ 212   NB_DECHET_GROUPE_TAPIS DE REMONTÉE MÉCANIQUE                                                float64
+ 213   NB_DECHET_GROUPE_TETRAPACKS                                                                 float64
+ 214   NB_DECHET_GROUPE_TEXTILES SKI (VÊTEMENTS, GANTS, BONNET...)                                 float64
+ 215   NB_DECHET_GROUPE_TIRETTES ET CAPSULES                                                       float64
+ 216   NB_DECHET_GROUPE_TISSUS D'AMEUBLEMENT                                                       float64
+ 217   NB_DECHET_GROUPE_TOILES ET VOILES                                                           float64
+ 218   NB_DECHET_GROUPE_TROTTINETTES                                                               float64
+ 219   NB_DECHET_GROUPE_TUYAUX                                                                     float64
+ 220   NB_DECHET_GROUPE_TÉLÉPHONES                                                                 float64
+ 221   NB_DECHET_GROUPE_TÉTINES                                                                    float64
+ 222   NB_DECHET_GROUPE_VAISSELLES (VERRE ET CÉRAMIQUE)                                            float64
+ 223   NB_DECHET_GROUPE_VAISSELLES EN MÉTAL                                                        float64
+ 224   NB_DECHET_GROUPE_VAISSELLES EN PLASTIQUE                                                    float64
+ 225   NB_DECHET_GROUPE_VÉLOS                                                                      float64
+ 226   NB_DECHET_GROUPE_VÊTEMENTS                                                                  float64
+ 227   NB_DECHET_DCSMM_ADHÉSIFS                                                                    float64
+ 228   NB_DECHET_DCSMM_ALLUMETTES ET FEUX D'ARTIFICE                                               float64
+ 229   NB_DECHET_DCSMM_AMPOULES                                                                    float64
+ 230   NB_DECHET_DCSMM_ANNEAUX ET OPERCULES DE BOUCHONS                                            float64
+ 231   NB_DECHET_DCSMM_APPAREILS MÉNAGERS                                                          float64
+ 232   NB_DECHET_DCSMM_ASSIETTES ET PLATS EN PLASTIQUE                                             float64
+ 233   NB_DECHET_DCSMM_AUTRES BOUÉES EN PLASTIQUE                                                  float64
+ 234   NB_DECHET_DCSMM_AUTRES CONTENANTS EN PLASTIQUE                                              float64
+ 235   NB_DECHET_DCSMM_AUTRES CONTENANTS EN POLYSTYRÈNE                                            float64
+ 236   NB_DECHET_DCSMM_AUTRES OBJETS CÉRAMIQUE                                                     float64
+ 237   NB_DECHET_DCSMM_AUTRES OBJETS D'HYGIÈNE ET SOINS PERSONNELS                                 float64
+ 238   NB_DECHET_DCSMM_AUTRES OBJETS DE L'AGRICULTURE                                              float64
+ 239   NB_DECHET_DCSMM_AUTRES OBJETS EN BOIS INFÉRIEURS À 50 CM                                    float64
+ 240   NB_DECHET_DCSMM_AUTRES OBJETS EN BOIS SUPÉRIEURS À 50 CM                                    float64
+ 241   NB_DECHET_DCSMM_AUTRES OBJETS EN CAOUTCHOUC                                                 float64
+ 242   NB_DECHET_DCSMM_AUTRES OBJETS EN MÉTAL INFÉRIEURS À 50 CM                                   float64
+ 243   NB_DECHET_DCSMM_AUTRES OBJETS EN MÉTAL SUPÉRIEURS À 50 CM                                   float64
+ 244   NB_DECHET_DCSMM_AUTRES OBJETS EN PAPIER-CARTON                                              float64
+ 245   NB_DECHET_DCSMM_AUTRES OBJETS EN PLASTIQUE                                                  float64
+ 246   NB_DECHET_DCSMM_AUTRES OBJETS EN POLYSTYRÈNE                                                float64
+ 247   NB_DECHET_DCSMM_AUTRES OBJETS LIÉS À LA PÊCHE                                               float64
+ 248   NB_DECHET_DCSMM_AUTRES OBJETS MÉDICAUX                                                      float64
+ 249   NB_DECHET_DCSMM_AUTRES OBJETS TEXTILE                                                       float64
+ 250   NB_DECHET_DCSMM_AUTRES OBJETS VERRE                                                         float64
+ 251   NB_DECHET_DCSMM_AUTRES POLLUANTS                                                            float64
+ 252   NB_DECHET_DCSMM_AUTRES TETRAPACKS                                                           float64
+ 253   NB_DECHET_DCSMM_BALAIS ET OUTILS INFÉRIEURS À 50 CM                                         float64
+ 254   NB_DECHET_DCSMM_BALAIS ET OUTILS SUPÉRIEURS À 50 CM                                         float64
+ 255   NB_DECHET_DCSMM_BALLES EN ÉPONGE                                                            float64
+ 256   NB_DECHET_DCSMM_BALLONS DE BAUDRUCHE                                                        float64
+ 257   NB_DECHET_DCSMM_BALLONS EN CAOUTCHOUC                                                       float64
+ 258   NB_DECHET_DCSMM_BALLONS EN NYLON                                                            float64
+ 259   NB_DECHET_DCSMM_BARBECUES JETABLES                                                          float64
+ 260   NB_DECHET_DCSMM_BATTERIES DE VEHICULES                                                      float64
+ 261   NB_DECHET_DCSMM_BATÔNNETS DE PÊCHE LUMINEUX                                                 float64
+ 262   NB_DECHET_DCSMM_BIDONS DIVERS                                                               float64
+ 263   NB_DECHET_DCSMM_BILLES DE BOIS                                                              float64
+ 264   NB_DECHET_DCSMM_BOBINES DE PÊCHE                                                            float64
+ 265   NB_DECHET_DCSMM_BOCAUX ET POTS                                                              float64
+ 266   NB_DECHET_DCSMM_BOITES EN MÉTAL INFÉRIEURES À 50 CM                                         float64
+ 267   NB_DECHET_DCSMM_BOITES EN MÉTAL SUPÉRIEURES À 50 CM                                         float64
+ 268   NB_DECHET_DCSMM_BOMBES AÉROSOL                                                              float64
+ 269   NB_DECHET_DCSMM_BOTTES                                                                      float64
+ 270   NB_DECHET_DCSMM_BOUCHONS D'OREILLE                                                          float64
+ 271   NB_DECHET_DCSMM_BOUCHONS DE LIÈGE                                                           float64
+ 272   NB_DECHET_DCSMM_BOUCHONS ET COUVERCLES AUTRES                                               float64
+ 273   NB_DECHET_DCSMM_BOUCHONS ET COUVERCLES DE BOUTEILLE                                         float64
+ 274   NB_DECHET_DCSMM_BOUCHONS ET COUVERCLES NON ALIMENTAIRE                                      float64
+ 275   NB_DECHET_DCSMM_BOUCHONS, TIRETTES ET CAPSULES                                              float64
+ 276   NB_DECHET_DCSMM_BOUGIES                                                                     float64
+ 277   NB_DECHET_DCSMM_BOUTEILLES DE GAZ                                                           float64
+ 278   NB_DECHET_DCSMM_BOUTEILLES EN PLASTIQUE ALIMENTAIRE INFÉRIEURES À 0,5 L                     float64
+ 279   NB_DECHET_DCSMM_BOUTEILLES EN PLASTIQUE ALIMENTAIRE SUPÉRIEURES À 0,5 L                     float64
+ 280   NB_DECHET_DCSMM_BOUTEILLES EN VERRE                                                         float64
+ 281   NB_DECHET_DCSMM_BOUTEILLES ET CONTENANTS PRODUIT DE NETTOYAGE                               float64
+ 282   NB_DECHET_DCSMM_BOUÉES PARE-BATTAGES                                                        float64
+ 283   NB_DECHET_DCSMM_BOÎTES D'APPÂTS                                                             float64
+ 284   NB_DECHET_DCSMM_BOÎTES DE CONSERVE                                                          float64
+ 285   NB_DECHET_DCSMM_BRIQUETS                                                                    float64
+ 286   NB_DECHET_DCSMM_BROSSES À DENTS                                                             float64
+ 287   NB_DECHET_DCSMM_BÂCHES AGRICOLES                                                            float64
+ 288   NB_DECHET_DCSMM_BÂTONNETS GLACES, COUVERTS, CURE-DENTS                                      float64
+ 289   NB_DECHET_DCSMM_BÂTONS DE COLLE                                                             float64
+ 290   NB_DECHET_DCSMM_BÂTONS DE SUCETTE                                                           float64
+ 291   NB_DECHET_DCSMM_CAISSES EN BOIS, BOITES, PANIERS                                            float64
+ 292   NB_DECHET_DCSMM_CAISSES ET PANIERS                                                          float64
+ 293   NB_DECHET_DCSMM_CAISSES À POISSON EN PLASTIQUE                                              float64
+ 294   NB_DECHET_DCSMM_CAISSES À POISSON EN POLYSTYRÈNE                                            float64
+ 295   NB_DECHET_DCSMM_CAISSES À POISSONS                                                          float64
+ 296   NB_DECHET_DCSMM_CANETTES                                                                    float64
+ 297   NB_DECHET_DCSMM_CARTONS                                                                     float64
+ 298   NB_DECHET_DCSMM_CARTOUCHES D'INJECTION                                                      float64
+ 299   NB_DECHET_DCSMM_CARTOUCHES ET BOURRE DE CHASSE                                              float64
+ 300   NB_DECHET_DCSMM_CASIERS DE PÊCHE BULOTS                                                     float64
+ 301   NB_DECHET_DCSMM_CASIERS DE PÊCHE CRABES                                                     float64
+ 302   NB_DECHET_DCSMM_CASIERS DE PÊCHE EN BOIS                                                    float64
+ 303   NB_DECHET_DCSMM_CASIERS DE PÊCHE EN MÉTAL                                                   float64
+ 304   NB_DECHET_DCSMM_CASQUES DE PROTECTION                                                       float64
+ 305   NB_DECHET_DCSMM_CD ET DVD (DONT BOÎTES)                                                     float64
+ 306   NB_DECHET_DCSMM_CEINTURES EN CAOUTCHOUC                                                     float64
+ 307   NB_DECHET_DCSMM_CERCLES D'EMBALLAGE                                                         float64
+ 308   NB_DECHET_DCSMM_CHAMBRES À AIR                                                              float64
+ 309   NB_DECHET_DCSMM_CHAUSSURES (HORS TONGS)                                                     float64
+ 310   NB_DECHET_DCSMM_CHAUSSURES ET SANDALES                                                      float64
+ 311   NB_DECHET_DCSMM_COLLECTEURS À NAISSAINS                                                     float64
+ 312   NB_DECHET_DCSMM_COMPRESSES ET PANSEMENTS                                                    float64
+ 313   NB_DECHET_DCSMM_CONTENANTS ALIMENTAIRE EN POLYSTYRÈNE                                       float64
+ 314   NB_DECHET_DCSMM_CONTENANTS ALIMENTAIRES EN PLASTIQUE                                        float64
+ 315   NB_DECHET_DCSMM_CONTENANTS HUILE DE MOTEUR INFÉRIEURS À 50 CM                               float64
+ 316   NB_DECHET_DCSMM_CONTENANTS HUILE DE MOTEUR SUPÉRIEURS À 50 CM                               float64
+ 317   NB_DECHET_DCSMM_CONTENANTS HYGIÈNE ET SOINS CORPORELS                                       float64
+ 318   NB_DECHET_DCSMM_CONTENANTS, TUBES ET EMBALLAGES MÉDICAUX                                    float64
+ 319   NB_DECHET_DCSMM_CORDAGES ET FICELLES INFÉRIEURES À 1 CM                                     float64
+ 320   NB_DECHET_DCSMM_CORDAGES ET FICELLES INFÉRIEURES À 1 CM (AUTRES)                            float64
+ 321   NB_DECHET_DCSMM_CORDAGES ET FICELLES INFÉRIEURES À 1 CM (PÊCHE)                             float64
+ 322   NB_DECHET_DCSMM_CORDAGES ET FICELLES SUPÉRIEURES À 1 CM                                     float64
+ 323   NB_DECHET_DCSMM_CORDES, FICELLES ET FILETS TEXTILE                                          float64
+ 324   NB_DECHET_DCSMM_COTONS-TIGES                                                                float64
+ 325   NB_DECHET_DCSMM_COTONS-TIGES (PAPIER)                                                       float64
+ 326   NB_DECHET_DCSMM_COUCHES                                                                     float64
+ 327   NB_DECHET_DCSMM_COUVERTS EN PLASTIQUE                                                       float64
+ 328   NB_DECHET_DCSMM_CRÈMES SOLAIRE ET PRODUITS DE PLAGE                                         float64
+ 329   NB_DECHET_DCSMM_CÂBLES INFÉRIEURS À 50 CM                                                   float64
+ 330   NB_DECHET_DCSMM_CÂBLES SUPÉRIEURS À 50 CM                                                   float64
+ 331   NB_DECHET_DCSMM_CÔNES DE CIRCULATION                                                        float64
+ 332   NB_DECHET_DCSMM_DESODORISANTS TOILETTE (DONT BLOCS WC)                                      float64
+ 333   NB_DECHET_DCSMM_DÉCHET DE LA CONSTRUCTION (CHUTES PVC, CROISILLONS...)                      float64
+ 334   NB_DECHET_DCSMM_DÉCHETS DE LA CONSTRUCTION (TUBES, TUYAUX,…)                                float64
+ 335   NB_DECHET_DCSMM_ELASTIQUES DE BUREAU                                                        float64
+ 336   NB_DECHET_DCSMM_ELASTIQUES DE CONCHYLICULTURE                                               float64
+ 337   NB_DECHET_DCSMM_EMBALLAGES ALIMENTAIRES                                                     float64
+ 338   NB_DECHET_DCSMM_EMBALLAGES ALIMENTAIRES AUTRES                                              float64
+ 339   NB_DECHET_DCSMM_EMBALLAGES DE PAQUETS DE CIGARETTE                                          float64
+ 340   NB_DECHET_DCSMM_EMBALLAGES FIN                                                              float64
+ 341   NB_DECHET_DCSMM_EMBALLAGES INDUSTRIELS (BÂCHES, PAPIER BULLE,…)                             float64
+ 342   NB_DECHET_DCSMM_EMBALLAGES NON-ALIMENTAIRES IDENTIFIÉS                                      float64
+ 343   NB_DECHET_DCSMM_EMBALLAGES SUCRERIES ET CHIPS                                               float64
+ 344   NB_DECHET_DCSMM_EMBOUTS DE CIGARETTE                                                        float64
+ 345   NB_DECHET_DCSMM_EPONGES                                                                     float64
+ 346   NB_DECHET_DCSMM_EQUIPEMENTS DE PLONGÉE                                                      float64
+ 347   NB_DECHET_DCSMM_ETIQUETTES DE BOUTEILLE                                                     float64
+ 348   NB_DECHET_DCSMM_ETIQUETTES DIVERSES (HORS BOUTEILLE)                                        float64
+ 349   NB_DECHET_DCSMM_FERRAILLES INDUSTRIELLES                                                    float64
+ 350   NB_DECHET_DCSMM_FEUILLES DE REVÊTEMENT EN CAOUTCHOUC                                        float64
+ 351   NB_DECHET_DCSMM_FEUX D'ARTIFICE                                                             float64
+ 352   NB_DECHET_DCSMM_FILAMENTS ISSUS DE PERRUQUES DE CHALUT                                      float64
+ 353   NB_DECHET_DCSMM_FILETS ET CORDAGES EMMÊLÉS                                                  float64
+ 354   NB_DECHET_DCSMM_FILETS INFÉRIEURS À 50 CM                                                   float64
+ 355   NB_DECHET_DCSMM_FILETS SUPÉRIEURS À 50 CM                                                   float64
+ 356   NB_DECHET_DCSMM_FILETS À FRUITS ET LÉGUMES                                                  float64
+ 357   NB_DECHET_DCSMM_FILS DE FER, GRILLAGES ET BARBELÉS                                          float64
+ 358   NB_DECHET_DCSMM_FLEURS EN PLASTIQUE                                                         float64
+ 359   NB_DECHET_DCSMM_FLOTTEURS BOULES EN VERRE POUR FILET                                        float64
+ 360   NB_DECHET_DCSMM_FLOTTEURS ET BOUÉES EN POLYSTYRÈNE                                          float64
+ 361   NB_DECHET_DCSMM_FLOTTEURS EXTERNES POUR FILET                                               float64
+ 362   NB_DECHET_DCSMM_FLOTTEURS INTERNES POUR FILET                                               float64
+ 363   NB_DECHET_DCSMM_FRAGMENTS CÉRAMIQUE SUPÉRIEURS À 2,5 CM                                     float64
+ 364   NB_DECHET_DCSMM_FRAGMENTS DE BOIS INFÉRIEURS À 50 CM                                        float64
+ 365   NB_DECHET_DCSMM_FRAGMENTS DE FILM PLASTIQUE 0 - 2,5 CM                                      float64
+ 366   NB_DECHET_DCSMM_FRAGMENTS DE FILM PLASTIQUE 2,5 - 50 CM                                     float64
+ 367   NB_DECHET_DCSMM_FRAGMENTS DE FILM PLASTIQUE SUPÉRIEURS À 50 CM                              float64
+ 368   NB_DECHET_DCSMM_FRAGMENTS DE MÉTAL INFÉRIEURS À 50 CM                                       float64
+ 369   NB_DECHET_DCSMM_FRAGMENTS DE MÉTAL SUPÉRIEURS À 50 CM                                       float64
+ 370   NB_DECHET_DCSMM_FRAGMENTS DE PAPIER                                                         float64
+ 371   NB_DECHET_DCSMM_FRAGMENTS DE PLASTIQUE 0 - 2,5 CM                                           float64
+ 372   NB_DECHET_DCSMM_FRAGMENTS DE PLASTIQUE 2,5 - 50 CM                                          float64
+ 373   NB_DECHET_DCSMM_FRAGMENTS DE PLASTIQUE DUR 0 - 2,5 CM                                       float64
+ 374   NB_DECHET_DCSMM_FRAGMENTS DE PLASTIQUE DUR 2,5 - 50 CM                                      float64
+ 375   NB_DECHET_DCSMM_FRAGMENTS DE PLASTIQUE DUR SUPÉRIEURS À 50 CM                               float64
+ 376   NB_DECHET_DCSMM_FRAGMENTS DE PLASTIQUE SUPÉRIEURS À 50 CM                                   float64
+ 377   NB_DECHET_DCSMM_FRAGMENTS DE POLYSTYRÈNE                                                    float64
+ 378   NB_DECHET_DCSMM_FRAGMENTS DE POLYSTYRÈNE  SUPÉRIEURS À 50 CM                                float64
+ 379   NB_DECHET_DCSMM_FRAGMENTS DE POLYSTYRÈNE 0 - 2,5 CM                                         float64
+ 380   NB_DECHET_DCSMM_FRAGMENTS DE POLYSTYRÈNE 2,5 - 50 CM                                        float64
+ 381   NB_DECHET_DCSMM_FRAGMENTS DE TEXTILE                                                        float64
+ 382   NB_DECHET_DCSMM_FRAGMENTS EN BOIS SUPÉRIEURS À 50 CM                                        float64
+ 383   NB_DECHET_DCSMM_FRAGMENTS ET AUTRES OBJETS EN MOUSSE                                        float64
+ 384   NB_DECHET_DCSMM_FRAGMENTS NON IDENTIFIÉS EN CAOUTCHOUC                                      float64
+ 385   NB_DECHET_DCSMM_FRAGMENTS VERRE SUPÉRIEURS À 2,5 CM                                         float64
+ 386   NB_DECHET_DCSMM_FUSÉES DE DÉTRESSE                                                          float64
+ 387   NB_DECHET_DCSMM_FÛTS ET BARILS                                                              float64
+ 388   NB_DECHET_DCSMM_GANTS MÉNAGERS                                                              float64
+ 389   NB_DECHET_DCSMM_GANTS PROFESSIONNELS                                                        float64
+ 390   NB_DECHET_DCSMM_GANTS À USAGE UNIQUE                                                        float64
+ 391   NB_DECHET_DCSMM_GOBELETS EN CARTON                                                          float64
+ 392   NB_DECHET_DCSMM_GOBELETS EN PLASTIQUE                                                       float64
+ 393   NB_DECHET_DCSMM_GOBELETS EN POLYSTYRÈNE                                                     float64
+ 394   NB_DECHET_DCSMM_GÉOTEXTILES                                                                 float64
+ 395   NB_DECHET_DCSMM_HYDROCARBURES                                                               float64
+ 396   NB_DECHET_DCSMM_JERRYCANS                                                                   float64
+ 397   NB_DECHET_DCSMM_JEUX DE PLAGE                                                               float64
+ 398   NB_DECHET_DCSMM_JOINTS EN RONDELLE                                                          float64
+ 399   NB_DECHET_DCSMM_JOUETS                                                                      float64
+ 400   NB_DECHET_DCSMM_JOURNAUX ET MAGAZINES                                                       float64
+ 401   NB_DECHET_DCSMM_LEURRES SOUPLES                                                             float64
+ 402   NB_DECHET_DCSMM_LIENS DE VIGNE PLASTIQUE                                                    float64
+ 403   NB_DECHET_DCSMM_LIENS DE VIGNE TEXTILE                                                      float64
+ 404   NB_DECHET_DCSMM_LIGNES ET FILS DE PÊCHE                                                     float64
+ 405   NB_DECHET_DCSMM_LINGETTES JETABLES                                                          float64
+ 406   NB_DECHET_DCSMM_MARQUAGES ET TAGS (PÊCHE)                                                   float64
+ 407   NB_DECHET_DCSMM_MASQUES EN TISSU                                                            float64
+ 408   NB_DECHET_DCSMM_MASQUES À USAGE UNIQUE                                                      float64
+ 409   NB_DECHET_DCSMM_MATÉRIAUX DE CONSTRUCTION (VERRE, BRIQUE, CIMENT)                           float64
+ 410   NB_DECHET_DCSMM_MATÉRIELS DE SPORT NAUTIQUE (NON MOTORISÉS, HORS PALMES)                    float64
+ 411   NB_DECHET_DCSMM_MATÉRIELS ENTRETIEN ET BRICOLAGE                                            float64
+ 412   NB_DECHET_DCSMM_MOUCHOIRS, ESSUIES-TOUT, PAPIER TOILETTE                                    float64
+ 413   NB_DECHET_DCSMM_MOUSSE DE PROTECTIONS HAMEÇON                                               float64
+ 414   NB_DECHET_DCSMM_MOUSSES ISOLANTES                                                           float64
+ 415   NB_DECHET_DCSMM_MÉDIAS FILTRANTS                                                            float64
+ 416   NB_DECHET_DCSMM_MÉGOTS                                                                      float64
+ 417   NB_DECHET_DCSMM_NÉONS                                                                       float64
+ 418   NB_DECHET_DCSMM_OBJETS BEAUTÉ (PEIGNES, BROSSES, LUNETTES, ÉLASTIQUES CHEVEUX)              float64
+ 419   NB_DECHET_DCSMM_OBJETS ET FRAGMENTS EN FIBRE DE VERRE                                       float64
+ 420   NB_DECHET_DCSMM_OBJETS MYTILICULTURE (HORS TAHITIENNES)                                     float64
+ 421   NB_DECHET_DCSMM_OBJETS OSTREICULTURE (HORS COLLECTEURS À NAISSAINS)                         float64
+ 422   NB_DECHET_DCSMM_PAILLES                                                                     float64
+ 423   NB_DECHET_DCSMM_PALETTES                                                                    float64
+ 424   NB_DECHET_DCSMM_PALMES                                                                      float64
+ 425   NB_DECHET_DCSMM_PAPIER ALUMINIUM                                                            float64
+ 426   NB_DECHET_DCSMM_PAQUETS DE CIGARETTE                                                        float64
+ 427   NB_DECHET_DCSMM_PARAFFINE INFÉRIEURE À 10 CM                                                float64
+ 428   NB_DECHET_DCSMM_PARAFFINE SUPÉRIEURE À 10 CM                                                float64
+ 429   NB_DECHET_DCSMM_PEINTURE                                                                    float64
+ 430   NB_DECHET_DCSMM_PERRUQUES CHALUT DE FOND                                                    float64
+ 431   NB_DECHET_DCSMM_PETITS SACS PLASTIQUE                                                       float64
+ 432   NB_DECHET_DCSMM_PILES                                                                       float64
+ 433   NB_DECHET_DCSMM_PINCEAUX                                                                    float64
+ 434   NB_DECHET_DCSMM_PINCES À LINGE                                                              float64
+ 435   NB_DECHET_DCSMM_PIÈCES DE VOITURE INFÉRIEURES À 50 CM                                       float64
+ 436   NB_DECHET_DCSMM_PIÈCES DE VOITURE SUPÉRIEURES À 50 CM                                       float64
+ 437   NB_DECHET_DCSMM_PIÈCES DE VÉHICULE                                                          float64
+ 438   NB_DECHET_DCSMM_PLANCHES                                                                    float64
+ 439   NB_DECHET_DCSMM_PLATEAUX POUR SEMIS EN POLYSTYRÈNE                                          float64
+ 440   NB_DECHET_DCSMM_PLATS ET PLATEAU EN POLYSTYRÈNE                                             float64
+ 441   NB_DECHET_DCSMM_PLOMBS ET HAMEÇONS                                                          float64
+ 442   NB_DECHET_DCSMM_PNEUS                                                                       float64
+ 443   NB_DECHET_DCSMM_POCHES DE CONCHYLICULTURE                                                   float64
+ 444   NB_DECHET_DCSMM_POTS DE FLEUR                                                               float64
+ 445   NB_DECHET_DCSMM_POTS DE PEINTURE                                                            float64
+ 446   NB_DECHET_DCSMM_POTS À PIEUVRE CÉRAMIQUE                                                    float64
+ 447   NB_DECHET_DCSMM_POTS À POULPE PLASTIQUE                                                     float64
+ 448   NB_DECHET_DCSMM_PROTECTIONS EN POLYSTYRÈNE                                                  float64
+ 449   NB_DECHET_DCSMM_PRÉSERVATIFS                                                                float64
+ 450   NB_DECHET_DCSMM_RASOIRS                                                                     float64
+ 451   NB_DECHET_DCSMM_REMBOURRAGES EN POLYSTYRÈNE                                                 float64
+ 452   NB_DECHET_DCSMM_RESTES DE FEUX D'ARTIFICE EN PLASTIQUE                                      float64
+ 453   NB_DECHET_DCSMM_ROUES                                                                       float64
+ 454   NB_DECHET_DCSMM_RUBALISES                                                                   float64
+ 455   NB_DECHET_DCSMM_SACS DE SEL                                                                 float64
+ 456   NB_DECHET_DCSMM_SACS EN PAPIER                                                              float64
+ 457   NB_DECHET_DCSMM_SACS EN PLASTIQUE ÉPAIS (EX: ENGRAIS)                                       float64
+ 458   NB_DECHET_DCSMM_SACS EN TOILE DE JUTE                                                       float64
+ 459   NB_DECHET_DCSMM_SACS PLASTIQUE                                                              float64
+ 460   NB_DECHET_DCSMM_SACS POUBELLE (DONT LIENS)                                                  float64
+ 461   NB_DECHET_DCSMM_SACS À CROTTE                                                               float64
+ 462   NB_DECHET_DCSMM_SACS À DOS ET SAC EN TISSU                                                  float64
+ 463   NB_DECHET_DCSMM_SCELLÉS                                                                     float64
+ 464   NB_DECHET_DCSMM_SEAUX                                                                       float64
+ 465   NB_DECHET_DCSMM_SERINGUES                                                                   float64
+ 466   NB_DECHET_DCSMM_SERRE-CABLE                                                                 float64
+ 467   NB_DECHET_DCSMM_SERRES-PACKS                                                                float64
+ 468   NB_DECHET_DCSMM_SERVIETTES HYGIÉNIQUES (DONT EMBALLAGE)                                     float64
+ 469   NB_DECHET_DCSMM_SOUCHES DE DISTRIBUTION                                                     float64
+ 470   NB_DECHET_DCSMM_STYLOS ET BOUCHONS                                                          float64
+ 471   NB_DECHET_DCSMM_TAHITIENNES (CONCHYLICULTURE)                                               float64
+ 472   NB_DECHET_DCSMM_TAMPONS ET APPLICATEURS                                                     float64
+ 473   NB_DECHET_DCSMM_TETRAPACKS APPÂTS                                                           float64
+ 474   NB_DECHET_DCSMM_TETRAPACKS LAIT                                                             float64
+ 475   NB_DECHET_DCSMM_TISSUS D'AMEUBLEMENT                                                        float64
+ 476   NB_DECHET_DCSMM_TOILES ET VOILES                                                            float64
+ 477   NB_DECHET_DCSMM_TONGS                                                                       float64
+ 478   NB_DECHET_DCSMM_TOUILLETTES ET AGITATEURS                                                   float64
+ 479   NB_DECHET_DCSMM_TUYAUX D'IRRIGATION                                                         float64
+ 480   NB_DECHET_DCSMM_TUYAUX SOUPLES                                                              float64
+ 481   NB_DECHET_DCSMM_TÉLÉPHONES                                                                  float64
+ 482   NB_DECHET_DCSMM_TÉTINES                                                                     float64
+ 483   NB_DECHET_DCSMM_VAISSELLES (VERRE ET CÉRAMIQUE)                                             float64
+ 484   NB_DECHET_DCSMM_VAISSELLES EN MÉTAL                                                         float64
+ 485   NB_DECHET_DCSMM_VAISSELLES EN PLASTIQUE                                                     float64
+ 486   NB_DECHET_DCSMM_VETEMENTS NÉOPRÈNE                                                          float64
+ 487   NB_DECHET_DCSMM_VÊTEMENTS                                                                   float64
+ 488   NB_DECHET_DCSMM_GENERIQUE_BOUCHONS EN PLASTIQUE (TOUT USAGE)                                float64
+ 489   NB_DECHET_DCSMM_GENERIQUE_BOUTEILLES EN PLASTIQUE ALIMENTAIRE (TOUTE TAILLE)                float64
+ 490   NB_DECHET_DCSMM_GENERIQUE_BOUTEILLES PLASTIQUE NON ALIMENTAIRES (TOUT USAGE)                float64
+ 491   NB_DECHET_DCSMM_GENERIQUE_CHAUSSURES (TOUT MATERIAU)                                        float64
+ 492   NB_DECHET_DCSMM_GENERIQUE_CORDAGES ET FICELLES (TOUTE TAILLE)                               float64
+ 493   NB_DECHET_DCSMM_GENERIQUE_FILETS DE PÊCHE (TOUTE TAILLE)                                    float64
+ 494   NB_DECHET_DCSMM_GENERIQUE_FRAGMENTS DE FILMS PLASTIQUE (TOUTE TAILLE)                       float64
+ 495   NB_DECHET_DCSMM_GENERIQUE_FRAGMENTS DE PLASTIQUE (TOUT TYPE, TOUTE TAILLE)                  float64
+ 496   NB_DECHET_DCSMM_GENERIQUE_FRAGMENTS DE PLASTIQUE DUR (TOUTE TAILLE)                         float64
+ 497   NB_DECHET_DCSMM_GENERIQUE_FRAGMENTS DE POLYSTYRÈNE (TOUTE TAILLE)                           float64
+ 498   NB_DECHET_DCSMM_GENERIQUE_GOBELETS EN PLASTIQUE (TOUT TYPE)                                 float64
+ 499   NB_DECHET_DCSMM_GENERIQUE_JOUETS (TOUT TYPE)                                                float64
+ 500   NB_DECHET_DCSMM_GENERIQUE_MASQUES (TOUT TYPE)                                               float64
+ 501   NB_DECHET_DCSMM_GENERIQUE_MATÉRIELS DE PÊCHE (TOUT TYPE; HORS FILS, FILETS ET PLOMBS)       float64
+ 502   NB_DECHET_DCSMM_GENERIQUE_MOUSSES SYNTHÉTIQUES (TOUT TYPE)                                  float64
+ 503   NB_DECHET_DCSMM_GENERIQUE_PROTECTIONS HYGIÉNIQUES (TOUT TYPE)                               float64
+ 504   NB_DECHET_DCSMM_GENERIQUE_SACS PLASTIQUE (TOUT TYPE)                                        float64
+ 505   NB_DECHET_DCSMM_GENERIQUE_VAISSELLES EN PLASTIQUE (TOUT TYPE)                               float64
+ 506   NB_DECHET_DCSMM_SPECIFIQUE_BANDEROLES DE SIGNALEMENT                                        float64
+ 507   NB_DECHET_DCSMM_SPECIFIQUE_BOUTEILLES ET CARTOUCHES DE PROTOXYDE D'AZOTE - NO2              float64
+ 508   NB_DECHET_DCSMM_SPECIFIQUE_BÂTONS DE SKI (OU MORCEAUX)                                      float64
+ 509   NB_DECHET_DCSMM_SPECIFIQUE_CHAUFFERETTES                                                    float64
+ 510   NB_DECHET_DCSMM_SPECIFIQUE_CIGARETTES ÉLECTRONIQUES ET RECHARGES                            float64
+ 511   NB_DECHET_DCSMM_SPECIFIQUE_CORDAGES DE SÉCURITÉ                                             float64
+ 512   NB_DECHET_DCSMM_SPECIFIQUE_DOSETTES DE SUCRE EN PAPIER                                      float64
+ 513   NB_DECHET_DCSMM_SPECIFIQUE_ELASTIQUES POUR CHEVEUX                                          float64
+ 514   NB_DECHET_DCSMM_SPECIFIQUE_EMBALLAGES ALIMENTAIRES PLASTIQUE                                float64
+ 515   NB_DECHET_DCSMM_SPECIFIQUE_EMBALLAGES DE PAILLE                                             float64
+ 516   NB_DECHET_DCSMM_SPECIFIQUE_FORFAITS DE SKI                                                  float64
+ 517   NB_DECHET_DCSMM_SPECIFIQUE_GAINES ET CÂBLES ÉLECTRIQUES                                     float64
+ 518   NB_DECHET_DCSMM_SPECIFIQUE_GRANULÉS PLASTIQUES INDUSTRIELS (GPI, LARMES DE SIRÈNE)          float64
+ 519   NB_DECHET_DCSMM_SPECIFIQUE_JALONS DE PISTE                                                  float64
+ 520   NB_DECHET_DCSMM_SPECIFIQUE_MASQUES ET LUNETTES DE SKI                                       float64
+ 521   NB_DECHET_DCSMM_SPECIFIQUE_PANNEAUX DE SIGNALISATION                                        float64
+ 522   NB_DECHET_DCSMM_SPECIFIQUE_SKIS ET CHAUSSURES DE SKI (OU MORCEAUX)                          float64
+ 523   NB_DECHET_DCSMM_SPECIFIQUE_STICKS À LÈVRE                                                   float64
+ 524   NB_DECHET_DCSMM_SPECIFIQUE_TAPIS DE PROTECTION PYLÔNE                                       float64
+ 525   NB_DECHET_DCSMM_SPECIFIQUE_TAPIS DE REMONTÉE MÉCANIQUE                                      float64
+ 526   NB_DECHET_DCSMM_SPECIFIQUE_TEXTILES SKI (VÊTEMENTS, GANTS, BONNET...)                       float64
+ 527   NB_DECHET_DCSMM_SPECIFIQUE_TROTTINETTES                                                     float64
+ 528   NB_DECHET_DCSMM_SPECIFIQUE_VIS, CLOUS, BOULONS, AGRAFES                                     float64
+ 529   NB_DECHET_DCSMM_SPECIFIQUE_VÉLOS                                                            float64
+ 530   AUTRES_DECHETS                                                                              object 
+ 531   NB_DECHETS_AUTRES                                                                           float64
+ 532   NB_DECHET_MARQUE_1664                                                                       float64
+ 533   NB_DECHET_MARQUE_3 MONTS                                                                    float64
+ 534   NB_DECHET_MARQUE_3M                                                                         float64
+ 535   NB_DECHET_MARQUE_8 À HUIT                                                                   float64
+ 536   NB_DECHET_MARQUE_A VOTRE GOUT                                                               float64
+ 537   NB_DECHET_MARQUE_ABSOLUTE                                                                   float64
+ 538   NB_DECHET_MARQUE_ACTIMEL                                                                    float64
+ 539   NB_DECHET_MARQUE_ADIDAS                                                                     float64
+ 540   NB_DECHET_MARQUE_AFRAN                                                                      float64
+ 541   NB_DECHET_MARQUE_AFTER EIGHT                                                                float64
+ 542   NB_DECHET_MARQUE_AIRWAVES                                                                   float64
+ 543   NB_DECHET_MARQUE_ALESTO                                                                     float64
+ 544   NB_DECHET_MARQUE_ALVALLE                                                                    float64
+ 545   NB_DECHET_MARQUE_ALWAYS                                                                     float64
+ 546   NB_DECHET_MARQUE_AMORA                                                                      float64
+ 547   NB_DECHET_MARQUE_AMSTERDAM                                                                  float64
+ 548   NB_DECHET_MARQUE_ANDROS                                                                     float64
+ 549   NB_DECHET_MARQUE_ANIMAL WORLD                                                               float64
+ 550   NB_DECHET_MARQUE_ANTILLES MER                                                               float64
+ 551   NB_DECHET_MARQUE_APOLLO                                                                     float64
+ 552   NB_DECHET_MARQUE_APTONIA                                                                    float64
+ 553   NB_DECHET_MARQUE_APÉRICUBE                                                                  float64
+ 554   NB_DECHET_MARQUE_ARBRE MAGIQUE                                                              float64
+ 555   NB_DECHET_MARQUE_ARCOR                                                                      float64
+ 556   NB_DECHET_MARQUE_ARIEL                                                                      float64
+ 557   NB_DECHET_MARQUE_ARIZONA                                                                    float64
+ 558   NB_DECHET_MARQUE_ARLEQUIN                                                                   float64
+ 559   NB_DECHET_MARQUE_ARMOR DÉLICES                                                              float64
+ 560   NB_DECHET_MARQUE_ARNOTTS                                                                    float64
+ 561   NB_DECHET_MARQUE_ARTENGO                                                                    float64
+ 562   NB_DECHET_MARQUE_ASICS                                                                      float64
+ 563   NB_DECHET_MARQUE_AUBRET                                                                     float64
+ 564   NB_DECHET_MARQUE_AUCHAN                                                                     float64
+ 565   NB_DECHET_MARQUE_AUCHAN BABY                                                                float64
+ 566   NB_DECHET_MARQUE_AUCHAN BIO                                                                 float64
+ 567   NB_DECHET_MARQUE_BABY                                                                       float64
+ 568   NB_DECHET_MARQUE_BABYBEL                                                                    float64
+ 569   NB_DECHET_MARQUE_BACCARA                                                                    float64
+ 570   NB_DECHET_MARQUE_BADOIT                                                                     float64
+ 571   NB_DECHET_MARQUE_BAHLSEN                                                                    float64
+ 572   NB_DECHET_MARQUE_BALCONI                                                                    float64
+ 573   NB_DECHET_MARQUE_BALISTO                                                                    float64
+ 574   NB_DECHET_MARQUE_BAM                                                                        float64
+ 575   NB_DECHET_MARQUE_BARILLA                                                                    float64
+ 576   NB_DECHET_MARQUE_BARONNY'S                                                                  float64
+ 577   NB_DECHET_MARQUE_BEAUPRÉ                                                                    float64
+ 578   NB_DECHET_MARQUE_BELIN                                                                      float64
+ 579   NB_DECHET_MARQUE_BELLA HOLANDESA                                                            float64
+ 580   NB_DECHET_MARQUE_BELLAROM                                                                   float64
+ 581   NB_DECHET_MARQUE_BELLE BRASSEUSE                                                            float64
+ 582   NB_DECHET_MARQUE_BELLE FRANCE                                                               float64
+ 583   NB_DECHET_MARQUE_BEN & JERRY'S                                                              float64
+ 584   NB_DECHET_MARQUE_BENENUTS                                                                   float64
+ 585   NB_DECHET_MARQUE_BIC                                                                        float64
+ 586   NB_DECHET_MARQUE_BIJOU BRIGITTE                                                             float64
+ 587   NB_DECHET_MARQUE_BIKA                                                                       float64
+ 588   NB_DECHET_MARQUE_BIMO                                                                       float64
+ 589   NB_DECHET_MARQUE_BIO INTERMARCHÉ                                                            float64
+ 590   NB_DECHET_MARQUE_BIO VILLAGE                                                                float64
+ 591   NB_DECHET_MARQUE_BISCUIT INTERNATIONAL                                                      float64
+ 592   NB_DECHET_MARQUE_BISON                                                                      float64
+ 593   NB_DECHET_MARQUE_BISTRO-VITE                                                                float64
+ 594   NB_DECHET_MARQUE_BIÈRE 86                                                                   float64
+ 595   NB_DECHET_MARQUE_BLINI                                                                      float64
+ 596   NB_DECHET_MARQUE_BLÉDINA                                                                    float64
+ 597   NB_DECHET_MARQUE_BN                                                                         float64
+ 598   NB_DECHET_MARQUE_BOIS CHÉRI                                                                 float64
+ 599   NB_DECHET_MARQUE_BON APPÉTIT                                                                float64
+ 600   NB_DECHET_MARQUE_BON GELATI                                                                 float64
+ 601   NB_DECHET_MARQUE_BONDUEL                                                                    float64
+ 602   NB_DECHET_MARQUE_BONNE MAMAN                                                                float64
+ 603   NB_DECHET_MARQUE_BONVALLE                                                                   float64
+ 604   NB_DECHET_MARQUE_BORDEAU CHESNEL                                                            float64
+ 605   NB_DECHET_MARQUE_BOUNTY                                                                     float64
+ 606   NB_DECHET_MARQUE_BOURBON                                                                    float64
+ 607   NB_DECHET_MARQUE_BOURSIN                                                                    float64
+ 608   NB_DECHET_MARQUE_BOUT-CHOU                                                                  float64
+ 609   NB_DECHET_MARQUE_BOUTON D'OR                                                                float64
+ 610   NB_DECHET_MARQUE_BRASSERIE L'HIRONDELLE                                                     float64
+ 611   NB_DECHET_MARQUE_BRASSERIE LANCELOT                                                         float64
+ 612   NB_DECHET_MARQUE_BRAUNE                                                                     float64
+ 613   NB_DECHET_MARQUE_BREIZH COLA                                                                float64
+ 614   NB_DECHET_MARQUE_BRIOCHE DORÉE                                                              float64
+ 615   NB_DECHET_MARQUE_BRIOCHE PASQUIER                                                           float64
+ 616   NB_DECHET_MARQUE_BROCÉLIANDE                                                                float64
+ 617   NB_DECHET_MARQUE_BROSSARD                                                                   float64
+ 618   NB_DECHET_MARQUE_BRULERIE D'ALRÉ                                                            float64
+ 619   NB_DECHET_MARQUE_BUDWEISER                                                                  float64
+ 620   NB_DECHET_MARQUE_BUITONI                                                                    float64
+ 621   NB_DECHET_MARQUE_BUNDABERG                                                                  float64
+ 622   NB_DECHET_MARQUE_BURGER KING                                                                float64
+ 623   NB_DECHET_MARQUE_CACOLAC                                                                    float64
+ 624   NB_DECHET_MARQUE_CAFÉ RICHARD                                                               float64
+ 625   NB_DECHET_MARQUE_CALBEE                                                                     float64
+ 626   NB_DECHET_MARQUE_CALIPPO                                                                    float64
+ 627   NB_DECHET_MARQUE_CAMEL                                                                      float64
+ 628   NB_DECHET_MARQUE_CANDIA                                                                     float64
+ 629   NB_DECHET_MARQUE_CAPERLAN                                                                   float64
+ 630   NB_DECHET_MARQUE_CAPRI-SUN                                                                  float64
+ 631   NB_DECHET_MARQUE_CARAMBAR                                                                   float64
+ 632   NB_DECHET_MARQUE_CARESSE ANTILLAISE                                                         float64
+ 633   NB_DECHET_MARQUE_CARESSE ANTILLAISE                                                         float64
+ 634   NB_DECHET_MARQUE_CARIB                                                                      float64
+ 635   NB_DECHET_MARQUE_CARREFOUR                                                                  float64
+ 636   NB_DECHET_MARQUE_CARREFOUR BABY                                                             float64
+ 637   NB_DECHET_MARQUE_CARREFOUR BIO                                                              float64
+ 638   NB_DECHET_MARQUE_CARREFOUR KIDS                                                             float64
+ 639   NB_DECHET_MARQUE_CARREFOUR NO GLUTEN                                                        float64
+ 640   NB_DECHET_MARQUE_CARREFOUR SÉLECTION                                                        float64
+ 641   NB_DECHET_MARQUE_CARREFOUR VEGGIE                                                           float64
+ 642   NB_DECHET_MARQUE_CARTE D'OR                                                                 float64
+ 643   NB_DECHET_MARQUE_CARTE NOIRE                                                                float64
+ 644   NB_DECHET_MARQUE_CASINO                                                                     float64
+ 645   NB_DECHET_MARQUE_CASINO BIO                                                                 float64
+ 646   NB_DECHET_MARQUE_CASINO D'AVENIR                                                            float64
+ 647   NB_DECHET_MARQUE_CASINO DÉLICES                                                             float64
+ 648   NB_DECHET_MARQUE_CASINO SAVEUR D'AILLEURS                                                   float64
+ 649   NB_DECHET_MARQUE_CASINO ÇA VIENT D'ICI                                                      float64
+ 650   NB_DECHET_MARQUE_CELEBRITY                                                                  float64
+ 651   NB_DECHET_MARQUE_CEREZAS                                                                    float64
+ 652   NB_DECHET_MARQUE_CHABRIOR                                                                   float64
+ 653   NB_DECHET_MARQUE_CHALEUR CRÉOLE                                                             float64
+ 654   NB_DECHET_MARQUE_CHAMPION                                                                   float64
+ 655   NB_DECHET_MARQUE_CHANFLOR                                                                   float64
+ 656   NB_DECHET_MARQUE_CHARLES & ALICE                                                            float64
+ 657   NB_DECHET_MARQUE_CHARNEL                                                                    float64
+ 658   NB_DECHET_MARQUE_CHAVROUX                                                                   float64
+ 659   NB_DECHET_MARQUE_CHEETOS                                                                    float64
+ 660   NB_DECHET_MARQUE_CHEF SELECT                                                                float64
+ 661   NB_DECHET_MARQUE_CHIPSO                                                                     float64
+ 662   NB_DECHET_MARQUE_CHOCO NUSSA                                                                float64
+ 663   NB_DECHET_MARQUE_CHOCOLATERIE MONBANA                                                       float64
+ 664   NB_DECHET_MARQUE_CHUPA CHUPS                                                                float64
+ 665   NB_DECHET_MARQUE_CHÊNE D'ARGENT                                                             float64
+ 666   NB_DECHET_MARQUE_CIEN                                                                       float64
+ 667   NB_DECHET_MARQUE_CLIPPER                                                                    float64
+ 668   NB_DECHET_MARQUE_CLUB DES SOMMELIERS                                                        float64
+ 669   NB_DECHET_MARQUE_CLUB SANDWICH                                                              float64
+ 670   NB_DECHET_MARQUE_CLÉMENT                                                                    float64
+ 671   NB_DECHET_MARQUE_COCA-COLA                                                                  float64
+ 672   NB_DECHET_MARQUE_COCK BRAND                                                                 float64
+ 673   NB_DECHET_MARQUE_COLONA                                                                     float64
+ 674   NB_DECHET_MARQUE_COLOR FOODS                                                                float64
+ 675   NB_DECHET_MARQUE_COLORADO                                                                   float64
+ 676   NB_DECHET_MARQUE_COMBINO                                                                    float64
+ 677   NB_DECHET_MARQUE_COMPANINO                                                                  float64
+ 678   NB_DECHET_MARQUE_CONNETABLE                                                                 float64
+ 679   NB_DECHET_MARQUE_CONTREX                                                                    float64
+ 680   NB_DECHET_MARQUE_COOP                                                                       float64
+ 681   NB_DECHET_MARQUE_CORA                                                                       float64
+ 682   NB_DECHET_MARQUE_CORA DEGUSTATION                                                           float64
+ 683   NB_DECHET_MARQUE_CORAYA                                                                     float64
+ 684   NB_DECHET_MARQUE_CORNETTO                                                                   float64
+ 685   NB_DECHET_MARQUE_CORONA                                                                     float64
+ 686   NB_DECHET_MARQUE_CORSAIRE                                                                   float64
+ 687   NB_DECHET_MARQUE_CORSICA FERRIES                                                            float64
+ 688   NB_DECHET_MARQUE_COUNTRY FARM                                                               float64
+ 689   NB_DECHET_MARQUE_COÏC                                                                       float64
+ 690   NB_DECHET_MARQUE_CRAZY TIGER                                                                float64
+ 691   NB_DECHET_MARQUE_CREDIT LYONNAIS                                                            float64
+ 692   NB_DECHET_MARQUE_CRESSI                                                                     float64
+ 693   NB_DECHET_MARQUE_CRISTALINE                                                                 float64
+ 694   NB_DECHET_MARQUE_CROCALO                                                                    float64
+ 695   NB_DECHET_MARQUE_CROIX BLEUE                                                                float64
+ 696   NB_DECHET_MARQUE_CROQ'ANDISE                                                                float64
+ 697   NB_DECHET_MARQUE_CROWNFIELD                                                                 float64
+ 698   NB_DECHET_MARQUE_CRUESLI                                                                    float64
+ 699   NB_DECHET_MARQUE_CRUNCH                                                                     float64
+ 700   NB_DECHET_MARQUE_CRUSTI CROC                                                                float64
+ 701   NB_DECHET_MARQUE_CRÉOLE FOOD                                                                float64
+ 702   NB_DECHET_MARQUE_CTF BRAND                                                                  float64
+ 703   NB_DECHET_MARQUE_CUBANISTO                                                                  float64
+ 704   NB_DECHET_MARQUE_CÔTE D'OR                                                                  float64
+ 705   NB_DECHET_MARQUE_CŒUR DE LION                                                               float64
+ 706   NB_DECHET_MARQUE_DADDY                                                                      float64
+ 707   NB_DECHET_MARQUE_DAGSBIER                                                                   float64
+ 708   NB_DECHET_MARQUE_DAIM                                                                       float64
+ 709   NB_DECHET_MARQUE_DAME BESSON                                                                float64
+ 710   NB_DECHET_MARQUE_DANETTE                                                                    float64
+ 711   NB_DECHET_MARQUE_DANONE                                                                     float64
+ 712   NB_DECHET_MARQUE_DAUNAT                                                                     float64
+ 713   NB_DECHET_MARQUE_DECATHLON                                                                  float64
+ 714   NB_DECHET_MARQUE_DELACRE                                                                    float64
+ 715   NB_DECHET_MARQUE_DELL KORY                                                                  float64
+ 716   NB_DECHET_MARQUE_DEPAZ                                                                      float64
+ 717   NB_DECHET_MARQUE_DESPERADOS                                                                 float64
+ 718   NB_DECHET_MARQUE_DIA                                                                        float64
+ 719   NB_DECHET_MARQUE_DIDIER                                                                     float64
+ 720   NB_DECHET_MARQUE_DISNEY                                                                     float64
+ 721   NB_DECHET_MARQUE_DOCTEUR CANDY                                                              float64
+ 722   NB_DECHET_MARQUE_DOLIPRANE                                                                  float64
+ 723   NB_DECHET_MARQUE_DOMINO'S PIZZA                                                             float64
+ 724   NB_DECHET_MARQUE_DOOWAP                                                                     float64
+ 725   NB_DECHET_MARQUE_DORITOS                                                                    float64
+ 726   NB_DECHET_MARQUE_DORMOY                                                                     float64
+ 727   NB_DECHET_MARQUE_DOUX CAPRICES                                                              float64
+ 728   NB_DECHET_MARQUE_DR PEPPER                                                                  float64
+ 729   NB_DECHET_MARQUE_DR. TOM'S                                                                  float64
+ 730   NB_DECHET_MARQUE_DRAGIBUS                                                                   float64
+ 731   NB_DECHET_MARQUE_DRIZZ                                                                      float64
+ 732   NB_DECHET_MARQUE_DULANO                                                                     float64
+ 733   NB_DECHET_MARQUE_DULCES SANTA CRUZ                                                          float64
+ 734   NB_DECHET_MARQUE_DUPLO                                                                      float64
+ 735   NB_DECHET_MARQUE_DURACELL                                                                   float64
+ 736   NB_DECHET_MARQUE_DUREX                                                                      float64
+ 737   NB_DECHET_MARQUE_DUVEL                                                                      float64
+ 738   NB_DECHET_MARQUE_DÉLICES DE GUYANE                                                          float64
+ 739   NB_DECHET_MARQUE_DÉLICES DE KERLOCH                                                         float64
+ 740   NB_DECHET_MARQUE_DÉLICES LOCALES                                                            float64
+ 741   NB_DECHET_MARQUE_DÉLICHOC                                                                   float64
+ 742   NB_DECHET_MARQUE_EAU ROYALE                                                                 float64
+ 743   NB_DECHET_MARQUE_ECO +                                                                      float64
+ 744   NB_DECHET_MARQUE_ECOPLANET                                                                  float64
+ 745   NB_DECHET_MARQUE_ELLE & VIRE                                                                float64
+ 746   NB_DECHET_MARQUE_ELODI                                                                      float64
+ 747   NB_DECHET_MARQUE_ELOT                                                                       float64
+ 748   NB_DECHET_MARQUE_EMILE NOEL                                                                 float64
+ 749   NB_DECHET_MARQUE_ESPRIT DE FÊTE                                                             float64
+ 750   NB_DECHET_MARQUE_ESSO                                                                       float64
+ 751   NB_DECHET_MARQUE_EVIAN                                                                      float64
+ 752   NB_DECHET_MARQUE_EYREIN                                                                     float64
+ 753   NB_DECHET_MARQUE_FANTA                                                                      float64
+ 754   NB_DECHET_MARQUE_FERRERO                                                                    float64
+ 755   NB_DECHET_MARQUE_FETIA                                                                      float64
+ 756   NB_DECHET_MARQUE_FILIÈRE QUALITÉ CARREFOUR                                                  float64
+ 757   NB_DECHET_MARQUE_FINDUS                                                                     float64
+ 758   NB_DECHET_MARQUE_FINI                                                                       float64
+ 759   NB_DECHET_MARQUE_FISHER                                                                     float64
+ 760   NB_DECHET_MARQUE_FISHERMAN'S FRIEND                                                         float64
+ 761   NB_DECHET_MARQUE_FLAMBY                                                                     float64
+ 762   NB_DECHET_MARQUE_FLASHMER                                                                   float64
+ 763   NB_DECHET_MARQUE_FLEURY MICHON                                                              float64
+ 764   NB_DECHET_MARQUE_FLIS                                                                       float64
+ 765   NB_DECHET_MARQUE_FLORALYS                                                                   float64
+ 766   NB_DECHET_MARQUE_FLORETTE                                                                   float64
+ 767   NB_DECHET_MARQUE_FLOUP                                                                      float64
+ 768   NB_DECHET_MARQUE_FLUOCARIL                                                                  float64
+ 769   NB_DECHET_MARQUE_FNAC                                                                       float64
+ 770   NB_DECHET_MARQUE_FOLLIET                                                                    float64
+ 771   NB_DECHET_MARQUE_FOOD TO GO                                                                 float64
+ 772   NB_DECHET_MARQUE_FORCE 4                                                                    float64
+ 773   NB_DECHET_MARQUE_FORCLAZ                                                                    float64
+ 774   NB_DECHET_MARQUE_FRANÇAISE DES JEUX                                                         float64
+ 775   NB_DECHET_MARQUE_FREEDENT                                                                   float64
+ 776   NB_DECHET_MARQUE_FREEWAY                                                                    float64
+ 777   NB_DECHET_MARQUE_FREEZ                                                                      float64
+ 778   NB_DECHET_MARQUE_FRISKIES                                                                   float64
+ 779   NB_DECHET_MARQUE_FRIT RAVICH                                                                float64
+ 780   NB_DECHET_MARQUE_FRUITELLA                                                                  float64
+ 781   NB_DECHET_MARQUE_FRUITMA                                                                    float64
+ 782   NB_DECHET_MARQUE_FRUITO                                                                     float64
+ 783   NB_DECHET_MARQUE_FRUTI-TAIPINA                                                              float64
+ 784   NB_DECHET_MARQUE_FUCHES                                                                     float64
+ 785   NB_DECHET_MARQUE_FUZETEA                                                                    float64
+ 786   NB_DECHET_MARQUE_GALBANI                                                                    float64
+ 787   NB_DECHET_MARQUE_GARDEL                                                                     float64
+ 788   NB_DECHET_MARQUE_GARNIER                                                                    float64
+ 789   NB_DECHET_MARQUE_GASTON                                                                     float64
+ 790   NB_DECHET_MARQUE_GAULOISE                                                                   float64
+ 791   NB_DECHET_MARQUE_GELATELLI                                                                  float64
+ 792   NB_DECHET_MARQUE_GERBLÉ                                                                     float64
+ 793   NB_DECHET_MARQUE_GERVAIS                                                                    float64
+ 794   NB_DECHET_MARQUE_GIFI                                                                       float64
+ 795   NB_DECHET_MARQUE_GILLETTE                                                                   float64
+ 796   NB_DECHET_MARQUE_GO SPORT                                                                   float64
+ 797   NB_DECHET_MARQUE_GOM'S                                                                      float64
+ 798   NB_DECHET_MARQUE_GOUDALE                                                                    float64
+ 799   NB_DECHET_MARQUE_GRACE                                                                      float64
+ 800   NB_DECHET_MARQUE_GRACE                                                                      float64
+ 801   NB_DECHET_MARQUE_GRAND FRAIS                                                                float64
+ 802   NB_DECHET_MARQUE_GRANOLA                                                                    float64
+ 803   NB_DECHET_MARQUE_GREENPRINT                                                                 float64
+ 804   NB_DECHET_MARQUE_GRILLON D'OR                                                               float64
+ 805   NB_DECHET_MARQUE_GRIMBERGEN                                                                 float64
+ 806   NB_DECHET_MARQUE_GUAD EPICES                                                                float64
+ 807   NB_DECHET_MARQUE_GUERLIN                                                                    float64
+ 808   NB_DECHET_MARQUE_GUICHARD PERRACHON                                                         float64
+ 809   NB_DECHET_MARQUE_GUSTO                                                                      float64
+ 810   NB_DECHET_MARQUE_GUSTO DE BRIO                                                              float64
+ 811   NB_DECHET_MARQUE_GUY LESUEUR                                                                float64
+ 812   NB_DECHET_MARQUE_GYMA                                                                       float64
+ 813   NB_DECHET_MARQUE_HAAGEN DAAZ                                                                float64
+ 814   NB_DECHET_MARQUE_HARIBO                                                                     float64
+ 815   NB_DECHET_MARQUE_HARRY'S                                                                    float64
+ 816   NB_DECHET_MARQUE_HASBRO                                                                     float64
+ 817   NB_DECHET_MARQUE_HAYABUSA                                                                   float64
+ 818   NB_DECHET_MARQUE_HEAD & SHOULDERS                                                           float64
+ 819   NB_DECHET_MARQUE_HEINEKEN                                                                   float64
+ 820   NB_DECHET_MARQUE_HEINZ                                                                      float64
+ 821   NB_DECHET_MARQUE_HENRY BLANC                                                                float64
+ 822   NB_DECHET_MARQUE_HERTA                                                                      float64
+ 823   NB_DECHET_MARQUE_HINANO                                                                     float64
+ 824   NB_DECHET_MARQUE_HOEGAARDEN                                                                 float64
+ 825   NB_DECHET_MARQUE_HOLLYWOOD                                                                  float64
+ 826   NB_DECHET_MARQUE_HOMEN'S                                                                    float64
+ 827   NB_DECHET_MARQUE_HONEST                                                                     float64
+ 828   NB_DECHET_MARQUE_HSE                                                                        float64
+ 829   NB_DECHET_MARQUE_HUGGIES                                                                    float64
+ 830   NB_DECHET_MARQUE_HYBA                                                                       float64
+ 831   NB_DECHET_MARQUE_ICE TEA                                                                    float64
+ 832   NB_DECHET_MARQUE_IKEA                                                                       float64
+ 833   NB_DECHET_MARQUE_ILHAM                                                                      float64
+ 834   NB_DECHET_MARQUE_INNOCENT                                                                   float64
+ 835   NB_DECHET_MARQUE_INTERMARCHÉ                                                                float64
+ 836   NB_DECHET_MARQUE_ITIWIT                                                                     float64
+ 837   NB_DECHET_MARQUE_JACK DANIELS                                                               float64
+ 838   NB_DECHET_MARQUE_JANSSEN-CILAG                                                              float64
+ 839   NB_DECHET_MARQUE_JB                                                                         float64
+ 840   NB_DECHET_MARQUE_JEAN ROZÉ                                                                  float64
+ 841   NB_DECHET_MARQUE_JOCKEY                                                                     float64
+ 842   NB_DECHET_MARQUE_JUSTIN BRIDOU                                                              float64
+ 843   NB_DECHET_MARQUE_K-RO                                                                       float64
+ 844   NB_DECHET_MARQUE_KALENJI                                                                    float64
+ 845   NB_DECHET_MARQUE_KARLSQUELL                                                                 float64
+ 846   NB_DECHET_MARQUE_KELLOGG'S                                                                  float64
+ 847   NB_DECHET_MARQUE_KER CADELAC                                                                float64
+ 848   NB_DECHET_MARQUE_KFC                                                                        float64
+ 849   NB_DECHET_MARQUE_KICÉO                                                                      float64
+ 850   NB_DECHET_MARQUE_KIDO                                                                       float64
+ 851   NB_DECHET_MARQUE_KIM'PLAY                                                                   float64
+ 852   NB_DECHET_MARQUE_KINDER                                                                     float64
+ 853   NB_DECHET_MARQUE_KIRI                                                                       float64
+ 854   NB_DECHET_MARQUE_KITKAT NESTLÉ                                                              float64
+ 855   NB_DECHET_MARQUE_KIYOU  KOMLA                                                               float64
+ 856   NB_DECHET_MARQUE_KLEENEX                                                                    float64
+ 857   NB_DECHET_MARQUE_KLINDO                                                                     float64
+ 858   NB_DECHET_MARQUE_KNOPPERS                                                                   float64
+ 859   NB_DECHET_MARQUE_KNORR                                                                      float64
+ 860   NB_DECHET_MARQUE_KOENIGSBIER                                                                float64
+ 861   NB_DECHET_MARQUE_KONG STRONG                                                                float64
+ 862   NB_DECHET_MARQUE_KREMA                                                                      float64
+ 863   NB_DECHET_MARQUE_KRONENBOURG                                                                float64
+ 864   NB_DECHET_MARQUE_L&M                                                                        float64
+ 865   NB_DECHET_MARQUE_L' AMOUR DU GOÛT                                                           float64
+ 866   NB_DECHET_MARQUE_L'OCCITANE                                                                 float64
+ 867   NB_DECHET_MARQUE_L'OISEAU                                                                   float64
+ 868   NB_DECHET_MARQUE_L'OR                                                                       float64
+ 869   NB_DECHET_MARQUE_L'ORIGINE DU GOÛT                                                          float64
+ 870   NB_DECHET_MARQUE_L'ORÉAL                                                                    float64
+ 871   NB_DECHET_MARQUE_LA BEAUTÉ                                                                  float64
+ 872   NB_DECHET_MARQUE_LA CASE AUX ÉPICES                                                         float64
+ 873   NB_DECHET_MARQUE_LA CROIX                                                                   float64
+ 874   NB_DECHET_MARQUE_LA FAVORITE                                                                float64
+ 875   NB_DECHET_MARQUE_LA FAVORITE (DISTILLERIE)                                                  float64
+ 876   NB_DECHET_MARQUE_LA MAISON DES ANTILLES                                                     float64
+ 877   NB_DECHET_MARQUE_LA MAISON DU CAFÉ                                                          float64
+ 878   NB_DECHET_MARQUE_LA MAUNY                                                                   float64
+ 879   NB_DECHET_MARQUE_LA MENORQUINA                                                              float64
+ 880   NB_DECHET_MARQUE_LA MORDUE                                                                  float64
+ 881   NB_DECHET_MARQUE_LA MÈRE POULARD                                                            float64
+ 882   NB_DECHET_MARQUE_LA PIE QUI CHANTE                                                          float64
+ 883   NB_DECHET_MARQUE_LA PROVENCE                                                                float64
+ 884   NB_DECHET_MARQUE_LA ROCHE POSAY                                                             float64
+ 885   NB_DECHET_MARQUE_LA VILLAGEOISE                                                             float64
+ 886   NB_DECHET_MARQUE_LA VOSGIENNE                                                               float64
+ 887   NB_DECHET_MARQUE_LABEL 5                                                                    float64
+ 888   NB_DECHET_MARQUE_LACROIX                                                                    float64
+ 889   NB_DECHET_MARQUE_LACTEL                                                                     float64
+ 890   NB_DECHET_MARQUE_LAGUIOLE                                                                   float64
+ 891   NB_DECHET_MARQUE_LAVAZZA                                                                    float64
+ 892   NB_DECHET_MARQUE_LAY'S                                                                      float64
+ 893   NB_DECHET_MARQUE_LE ROYAUME DU BOUDIN                                                       float64
+ 894   NB_DECHET_MARQUE_LE STER                                                                    float64
+ 895   NB_DECHET_MARQUE_LEADER PRICE                                                               float64
+ 896   NB_DECHET_MARQUE_LECLERC                                                                    float64
+ 897   NB_DECHET_MARQUE_LEFFE                                                                      float64
+ 898   NB_DECHET_MARQUE_LEGALION                                                                   float64
+ 899   NB_DECHET_MARQUE_LEGRAND                                                                    float64
+ 900   NB_DECHET_MARQUE_LES BONNES EPICES                                                          float64
+ 901   NB_DECHET_MARQUE_LES COSMÉTIQUES DESIGN PARIS                                               float64
+ 902   NB_DECHET_MARQUE_LES CROISÉS                                                                float64
+ 903   NB_DECHET_MARQUE_LES CRUDETTES                                                              float64
+ 904   NB_DECHET_MARQUE_LES DOODINGUES DE CASINO                                                   float64
+ 905   NB_DECHET_MARQUE_LES FADAS                                                                  float64
+ 906   NB_DECHET_MARQUE_LES MALINS PLAISIRS                                                        float64
+ 907   NB_DECHET_MARQUE_LES MOUSQUETAIRES                                                          float64
+ 908   NB_DECHET_MARQUE_LES PATISSADES                                                             float64
+ 909   NB_DECHET_MARQUE_LES TILAPINS DE CASINO                                                     float64
+ 910   NB_DECHET_MARQUE_LIDL                                                                       float64
+ 911   NB_DECHET_MARQUE_LINDT                                                                      float64
+ 912   NB_DECHET_MARQUE_LION                                                                       float64
+ 913   NB_DECHET_MARQUE_LIPTON ICE TEA                                                             float64
+ 914   NB_DECHET_MARQUE_LISTEL ROSÉ                                                                float64
+ 915   NB_DECHET_MARQUE_LONGKOU VERMICELLI                                                         float64
+ 916   NB_DECHET_MARQUE_LOOK O LOOK                                                                float64
+ 917   NB_DECHET_MARQUE_LORAINE                                                                    float64
+ 918   NB_DECHET_MARQUE_LORRAINE                                                                   float64
+ 919   NB_DECHET_MARQUE_LOTUS                                                                      float64
+ 920   NB_DECHET_MARQUE_LOVILIO                                                                    float64
+ 921   NB_DECHET_MARQUE_LU                                                                         float64
+ 922   NB_DECHET_MARQUE_LUCKY STRICKE                                                              float64
+ 923   NB_DECHET_MARQUE_LUSTUCRU                                                                   float64
+ 924   NB_DECHET_MARQUE_LUTTI                                                                      float64
+ 925   NB_DECHET_MARQUE_M&M'S                                                                      float64
+ 926   NB_DECHET_MARQUE_M'AMOUR                                                                    float64
+ 927   NB_DECHET_MARQUE_MADRANGE                                                                   float64
+ 928   NB_DECHET_MARQUE_MAESTADE                                                                   float64
+ 929   NB_DECHET_MARQUE_MAGGI                                                                      float64
+ 930   NB_DECHET_MARQUE_MAGNUM                                                                     float64
+ 931   NB_DECHET_MARQUE_MAILLE                                                                     float64
+ 932   NB_DECHET_MARQUE_MAITRE COQ                                                                 float64
+ 933   NB_DECHET_MARQUE_MAITRE JEAN PIERRE                                                         float64
+ 934   NB_DECHET_MARQUE_MAKLA EL HILAL                                                             float64
+ 935   NB_DECHET_MARQUE_MALABAR                                                                    float64
+ 936   NB_DECHET_MARQUE_MALLOW                                                                     float64
+ 937   NB_DECHET_MARQUE_MALONGO                                                                    float64
+ 938   NB_DECHET_MARQUE_MALTESERS                                                                  float64
+ 939   NB_DECHET_MARQUE_MAMIE NOVA                                                                 float64
+ 940   NB_DECHET_MARQUE_MAN GISÉLE                                                                 float64
+ 941   NB_DECHET_MARQUE_MANDINE                                                                    float64
+ 942   NB_DECHET_MARQUE_MANUTEA TAHITI                                                             float64
+ 943   NB_DECHET_MARQUE_MAOAM                                                                      float64
+ 944   NB_DECHET_MARQUE_MARIE ROSÉ                                                                 float64
+ 945   NB_DECHET_MARQUE_MARION                                                                     float64
+ 946   NB_DECHET_MARQUE_MARLBORO                                                                   float64
+ 947   NB_DECHET_MARQUE_MARQUE REPÈRE                                                              float64
+ 948   NB_DECHET_MARQUE_MARS                                                                       float64
+ 949   NB_DECHET_MARQUE_MARTENS                                                                    float64
+ 950   NB_DECHET_MARQUE_MATERNE                                                                    float64
+ 951   NB_DECHET_MARQUE_MCCAFÉ                                                                     float64
+ 952   NB_DECHET_MARQUE_MCDONALD'S                                                                 float64
+ 953   NB_DECHET_MARQUE_MEDLINE                                                                    float64
+ 954   NB_DECHET_MARQUE_MENTHE CLAIRE                                                              float64
+ 955   NB_DECHET_MARQUE_MENTHOS                                                                    float64
+ 956   NB_DECHET_MARQUE_MENTOS                                                                     float64
+ 957   NB_DECHET_MARQUE_MESA BELLA                                                                 float64
+ 958   NB_DECHET_MARQUE_MI-CHO-KO                                                                  float64
+ 959   NB_DECHET_MARQUE_MIEUX VIVRE BIO                                                            float64
+ 960   NB_DECHET_MARQUE_MIKADO                                                                     float64
+ 961   NB_DECHET_MARQUE_MIKO                                                                       float64
+ 962   NB_DECHET_MARQUE_MILBONA                                                                    float64
+ 963   NB_DECHET_MARQUE_MILKA                                                                      float64
+ 964   NB_DECHET_MARQUE_MILKY WAY                                                                  float64
+ 965   NB_DECHET_MARQUE_MINI BUBBLE                                                                float64
+ 966   NB_DECHET_MARQUE_MINIDOU                                                                    float64
+ 967   NB_DECHET_MARQUE_MINUTE MAID                                                                float64
+ 968   NB_DECHET_MARQUE_MIR                                                                        float64
+ 969   NB_DECHET_MARQUE_MISTER JIM                                                                 float64
+ 970   NB_DECHET_MARQUE_MMM!                                                                       float64
+ 971   NB_DECHET_MARQUE_MON CHERI                                                                  float64
+ 972   NB_DECHET_MARQUE_MONDELEZ                                                                   float64
+ 973   NB_DECHET_MARQUE_MONIQUE RANOU                                                              float64
+ 974   NB_DECHET_MARQUE_MONOP'MAKE UP                                                              float64
+ 975   NB_DECHET_MARQUE_MONOPRIX                                                                   float64
+ 976   NB_DECHET_MARQUE_MONOPRIX BIO                                                               float64
+ 977   NB_DECHET_MARQUE_MONOPRIX BIO ORIGINES                                                      float64
+ 978   NB_DECHET_MARQUE_MONOPRIX BÉBÉ                                                              float64
+ 979   NB_DECHET_MARQUE_MONOPRIX FIT                                                               float64
+ 980   NB_DECHET_MARQUE_MONOPRIX GOURMET                                                           float64
+ 981   NB_DECHET_MARQUE_MONOPRIX JE SUIS VERT                                                      float64
+ 982   NB_DECHET_MARQUE_MONSTER                                                                    float64
+ 983   NB_DECHET_MARQUE_MONSTER MUNCH                                                              float64
+ 984   NB_DECHET_MARQUE_MONT BLANC                                                                 float64
+ 985   NB_DECHET_MARQUE_MONTPELÉE                                                                  float64
+ 986   NB_DECHET_MARQUE_MOTOROLA                                                                   float64
+ 987   NB_DECHET_MARQUE_MOUNTAIN DEW                                                               float64
+ 988   NB_DECHET_MARQUE_MR FREEZE                                                                  float64
+ 989   NB_DECHET_MARQUE_MR NUT                                                                     float64
+ 990   NB_DECHET_MARQUE_MUSTADE                                                                    float64
+ 991   NB_DECHET_MARQUE_NALK & REY                                                                 float64
+ 992   NB_DECHET_MARQUE_NANA                                                                       float64
+ 993   NB_DECHET_MARQUE_NAPOLÉON                                                                   float64
+ 994   NB_DECHET_MARQUE_NARAYANINSAMY                                                              float64
+ 995   NB_DECHET_MARQUE_NATIVE                                                                     float64
+ 996   NB_DECHET_MARQUE_NATURE ADDICT                                                              float64
+ 997   NB_DECHET_MARQUE_NATURE BIO                                                                 float64
+ 998   NB_DECHET_MARQUE_NAWHAL'S                                                                   float64
+ 999   NB_DECHET_MARQUE_NEGRITA                                                                    float64
+ 1000  NB_DECHET_MARQUE_NEISSON                                                                    float64
+ 1001  NB_DECHET_MARQUE_NESCAFÉ                                                                    float64
+ 1002  NB_DECHET_MARQUE_NESPRESSO                                                                  float64
+ 1003  NB_DECHET_MARQUE_NESQUICK                                                                   float64
+ 1004  NB_DECHET_MARQUE_NESTEA                                                                     float64
+ 1005  NB_DECHET_MARQUE_NESTLÉ                                                                     float64
+ 1006  NB_DECHET_MARQUE_NETTO                                                                      float64
+ 1007  NB_DECHET_MARQUE_NIKE                                                                       float64
+ 1008  NB_DECHET_MARQUE_NIVEA                                                                      float64
+ 1009  NB_DECHET_MARQUE_NOS RÉGIONS ONT DU TALENT                                                  float64
+ 1010  NB_DECHET_MARQUE_NOUGATTI                                                                   float64
+ 1011  NB_DECHET_MARQUE_NUII                                                                       float64
+ 1012  NB_DECHET_MARQUE_NUTELLA                                                                    float64
+ 1013  NB_DECHET_MARQUE_NUXE                                                                       float64
+ 1014  NB_DECHET_MARQUE_O'TACOS                                                                    float64
+ 1015  NB_DECHET_MARQUE_O'TAHITI                                                                   float64
+ 1016  NB_DECHET_MARQUE_OASIS                                                                      float64
+ 1017  NB_DECHET_MARQUE_OCB                                                                        float64
+ 1018  NB_DECHET_MARQUE_OLAIAN                                                                     float64
+ 1019  NB_DECHET_MARQUE_ONDINE                                                                     float64
+ 1020  NB_DECHET_MARQUE_OPINEL                                                                     float64
+ 1021  NB_DECHET_MARQUE_ORAL B                                                                     float64
+ 1022  NB_DECHET_MARQUE_ORANGE                                                                     float64
+ 1023  NB_DECHET_MARQUE_ORANGINA                                                                   float64
+ 1024  NB_DECHET_MARQUE_OREO                                                                       float64
+ 1025  NB_DECHET_MARQUE_P'TIT DELI                                                                 float64
+ 1026  NB_DECHET_MARQUE_PAGO                                                                       float64
+ 1027  NB_DECHET_MARQUE_PALL MALL                                                                  float64
+ 1028  NB_DECHET_MARQUE_PAMPERS                                                                    float64
+ 1029  NB_DECHET_MARQUE_PANACH'                                                                    float64
+ 1030  NB_DECHET_MARQUE_PANACHADE                                                                  float64
+ 1031  NB_DECHET_MARQUE_PANACHÉ                                                                    float64
+ 1032  NB_DECHET_MARQUE_PAQUITO                                                                    float64
+ 1033  NB_DECHET_MARQUE_PARADIS GLACES                                                             float64
+ 1034  NB_DECHET_MARQUE_PARMAREGGIO                                                                float64
+ 1035  NB_DECHET_MARQUE_PASKESZ                                                                    float64
+ 1036  NB_DECHET_MARQUE_PASQUIER                                                                   float64
+ 1037  NB_DECHET_MARQUE_PATRIMOINE GOURMAND                                                        float64
+ 1038  NB_DECHET_MARQUE_PATURAGE                                                                   float64
+ 1039  NB_DECHET_MARQUE_PAYSAN BRETON                                                              float64
+ 1040  NB_DECHET_MARQUE_PELFORTH                                                                   float64
+ 1041  NB_DECHET_MARQUE_PEPSI                                                                      float64
+ 1042  NB_DECHET_MARQUE_PERLEMBOURG                                                                float64
+ 1043  NB_DECHET_MARQUE_PERRIER                                                                    float64
+ 1044  NB_DECHET_MARQUE_PERUGINA                                                                   float64
+ 1045  NB_DECHET_MARQUE_PETIT BILLY                                                                float64
+ 1046  NB_DECHET_MARQUE_PEUGEOT                                                                    float64
+ 1047  NB_DECHET_MARQUE_PEZ                                                                        float64
+ 1048  NB_DECHET_MARQUE_PEZON & MICHEL                                                             float64
+ 1049  NB_DECHET_MARQUE_PHARE D'ECKMÜHL                                                            float64
+ 1050  NB_DECHET_MARQUE_PHILIP MORRIS                                                              float64
+ 1051  NB_DECHET_MARQUE_PICARD                                                                     float64
+ 1052  NB_DECHET_MARQUE_PIMOUSSE                                                                   float64
+ 1053  NB_DECHET_MARQUE_PITCH                                                                      float64
+ 1054  NB_DECHET_MARQUE_PLANTOP DELTA                                                              float64
+ 1055  NB_DECHET_MARQUE_PLAYMOBILE                                                                 float64
+ 1056  NB_DECHET_MARQUE_POCKET COFFEE                                                              float64
+ 1057  NB_DECHET_MARQUE_POLIAKOV                                                                   float64
+ 1058  NB_DECHET_MARQUE_POM'LISSE                                                                  float64
+ 1059  NB_DECHET_MARQUE_POM'POTES                                                                  float64
+ 1060  NB_DECHET_MARQUE_POMMETTE                                                                   float64
+ 1061  NB_DECHET_MARQUE_POPFRUIT                                                                   float64
+ 1062  NB_DECHET_MARQUE_POPSICLE                                                                   float64
+ 1063  NB_DECHET_MARQUE_POSS                                                                       float64
+ 1064  NB_DECHET_MARQUE_POUCE                                                                      float64
+ 1065  NB_DECHET_MARQUE_POULAIN                                                                    float64
+ 1066  NB_DECHET_MARQUE_POULT                                                                      float64
+ 1067  NB_DECHET_MARQUE_POWERADE                                                                   float64
+ 1068  NB_DECHET_MARQUE_PRINCE                                                                     float64
+ 1069  NB_DECHET_MARQUE_PRINGLES                                                                   float64
+ 1070  NB_DECHET_MARQUE_PRIX MINI                                                                  float64
+ 1071  NB_DECHET_MARQUE_PRODIAL  PUNJAS                                                            float64
+ 1072  NB_DECHET_MARQUE_PRODUIT DE TERROIR                                                         float64
+ 1073  NB_DECHET_MARQUE_PROLIANS                                                                   float64
+ 1074  NB_DECHET_MARQUE_PROPRE ODEUR                                                               float64
+ 1075  NB_DECHET_MARQUE_PROXI                                                                      float64
+ 1076  NB_DECHET_MARQUE_PRÉSIDENT                                                                  float64
+ 1077  NB_DECHET_MARQUE_PULCO                                                                      float64
+ 1078  NB_DECHET_MARQUE_PURINA                                                                     float64
+ 1079  NB_DECHET_MARQUE_QUECHUA                                                                    float64
+ 1080  NB_DECHET_MARQUE_QUEZAC                                                                     float64
+ 1081  NB_DECHET_MARQUE_QUICK                                                                      float64
+ 1082  NB_DECHET_MARQUE_RAFFAELLO                                                                  float64
+ 1083  NB_DECHET_MARQUE_RAMZY GUM                                                                  float64
+ 1084  NB_DECHET_MARQUE_REDBULL                                                                    float64
+ 1085  NB_DECHET_MARQUE_REESE'S                                                                    float64
+ 1086  NB_DECHET_MARQUE_REFLETS DE FRANCE                                                          float64
+ 1087  NB_DECHET_MARQUE_RICARD                                                                     float64
+ 1088  NB_DECHET_MARQUE_RICHESMONTS                                                                float64
+ 1089  NB_DECHET_MARQUE_RICOLA                                                                     float64
+ 1090  NB_DECHET_MARQUE_RICQLES                                                                    float64
+ 1091  NB_DECHET_MARQUE_RIK & ROK                                                                  float64
+ 1092  NB_DECHET_MARQUE_RIVERA SYSTEM                                                              float64
+ 1093  NB_DECHET_MARQUE_RIZZLA                                                                     float64
+ 1094  NB_DECHET_MARQUE_ROCHEVAL                                                                   float64
+ 1095  NB_DECHET_MARQUE_ROCKSTAR                                                                   float64
+ 1096  NB_DECHET_MARQUE_ROTUI                                                                      float64
+ 1097  NB_DECHET_MARQUE_ROYAL BOURBON                                                              float64
+ 1098  NB_DECHET_MARQUE_ROYAL EXPORT                                                               float64
+ 1099  NB_DECHET_MARQUE_ROYAL SODA                                                                 float64
+ 1100  NB_DECHET_MARQUE_ROYAL                                                                      float64
+ 1101  NB_DECHET_MARQUE_RTM                                                                        float64
+ 1102  NB_DECHET_MARQUE_RÉA                                                                        float64
+ 1103  NB_DECHET_MARQUE_SADER                                                                      float64
+ 1104  NB_DECHET_MARQUE_SAER BRAU                                                                  float64
+ 1105  NB_DECHET_MARQUE_SAGUARO EAU DE SOURCE                                                      float64
+ 1106  NB_DECHET_MARQUE_SAINT AGUR                                                                 float64
+ 1107  NB_DECHET_MARQUE_SAINT AZAY                                                                 float64
+ 1108  NB_DECHET_MARQUE_SAINT JAMES                                                                float64
+ 1109  NB_DECHET_MARQUE_SAINT LOUIS                                                                float64
+ 1110  NB_DECHET_MARQUE_SAINT MICHEL                                                               float64
+ 1111  NB_DECHET_MARQUE_SALVITA                                                                    float64
+ 1112  NB_DECHET_MARQUE_SAMAI                                                                      float64
+ 1113  NB_DECHET_MARQUE_SAN BENEDETTO                                                              float64
+ 1114  NB_DECHET_MARQUE_SAN CARLO                                                                  float64
+ 1115  NB_DECHET_MARQUE_SAN MIGUEL                                                                 float64
+ 1116  NB_DECHET_MARQUE_SAN PELLEGRINO                                                             float64
+ 1117  NB_DECHET_MARQUE_SANT ERWANN                                                                float64
+ 1118  NB_DECHET_MARQUE_SAVANE                                                                     float64
+ 1119  NB_DECHET_MARQUE_SAVEUR DE NOS RÉGIONS                                                      float64
+ 1120  NB_DECHET_MARQUE_SAVEUR ET PASSION                                                          float64
+ 1121  NB_DECHET_MARQUE_SAXO                                                                       float64
+ 1122  NB_DECHET_MARQUE_SCHNEIDER ELECTRIC                                                         float64
+ 1123  NB_DECHET_MARQUE_SCHWEPPES                                                                  float64
+ 1124  NB_DECHET_MARQUE_SCORPIO                                                                    float64
+ 1125  NB_DECHET_MARQUE_SCOTCH VHS                                                                 float64
+ 1126  NB_DECHET_MARQUE_SELECT                                                                     float64
+ 1127  NB_DECHET_MARQUE_SELECTO                                                                    float64
+ 1128  NB_DECHET_MARQUE_SEVEN UP                                                                   float64
+ 1129  NB_DECHET_MARQUE_SIBELL                                                                     float64
+ 1130  NB_DECHET_MARQUE_SILVANA                                                                    float64
+ 1131  NB_DECHET_MARQUE_SIMPL                                                                      float64
+ 1132  NB_DECHET_MARQUE_SINCÈRE                                                                    float64
+ 1133  NB_DECHET_MARQUE_SKITTLES                                                                   float64
+ 1134  NB_DECHET_MARQUE_SMARTIES                                                                   float64
+ 1135  NB_DECHET_MARQUE_SMARTWATER                                                                 float64
+ 1136  NB_DECHET_MARQUE_SMIRNOFF                                                                   float64
+ 1137  NB_DECHET_MARQUE_SNACK DAY                                                                  float64
+ 1138  NB_DECHET_MARQUE_SNICKERS                                                                   float64
+ 1139  NB_DECHET_MARQUE_SOBIESKI                                                                   float64
+ 1140  NB_DECHET_MARQUE_SODEBO                                                                     float64
+ 1141  NB_DECHET_MARQUE_SOFT BIO                                                                   float64
+ 1142  NB_DECHET_MARQUE_SOJADE                                                                     float64
+ 1143  NB_DECHET_MARQUE_SOJASUN                                                                    float64
+ 1144  NB_DECHET_MARQUE_SOKANA                                                                     float64
+ 1145  NB_DECHET_MARQUE_SOLERO                                                                     float64
+ 1146  NB_DECHET_MARQUE_SOLEVITA                                                                   float64
+ 1147  NB_DECHET_MARQUE_SONDEY                                                                     float64
+ 1148  NB_DECHET_MARQUE_SOURCE DES PINS                                                            float64
+ 1149  NB_DECHET_MARQUE_SPACE CHUPI                                                                float64
+ 1150  NB_DECHET_MARQUE_SPOOKY FIZZ                                                                float64
+ 1151  NB_DECHET_MARQUE_SPRITE                                                                     float64
+ 1152  NB_DECHET_MARQUE_ST BERNARDO                                                                float64
+ 1153  NB_DECHET_MARQUE_ST MAMET                                                                   float64
+ 1154  NB_DECHET_MARQUE_ST MORET                                                                   float64
+ 1155  NB_DECHET_MARQUE_ST OMER                                                                    float64
+ 1156  NB_DECHET_MARQUE_ST. DOMINIQUE                                                              float64
+ 1157  NB_DECHET_MARQUE_STELLA ARTOIS                                                              float64
+ 1158  NB_DECHET_MARQUE_STEMELEN                                                                   float64
+ 1159  NB_DECHET_MARQUE_STOEFFLER                                                                  float64
+ 1160  NB_DECHET_MARQUE_STOPTOU                                                                    float64
+ 1161  NB_DECHET_MARQUE_SUBEA                                                                      float64
+ 1162  NB_DECHET_MARQUE_SUBWAY                                                                     float64
+ 1163  NB_DECHET_MARQUE_SUCHARD                                                                    float64
+ 1164  NB_DECHET_MARQUE_SUMTAT                                                                     float64
+ 1165  NB_DECHET_MARQUE_SUN                                                                        float64
+ 1166  NB_DECHET_MARQUE_SUNKIST                                                                    float64
+ 1167  NB_DECHET_MARQUE_SUNWAVE                                                                    float64
+ 1168  NB_DECHET_MARQUE_SUNÉO                                                                      float64
+ 1169  NB_DECHET_MARQUE_SUPER U                                                                    float64
+ 1170  NB_DECHET_MARQUE_SWEET CORNER                                                               float64
+ 1171  NB_DECHET_MARQUE_SÉLÉCTION D'EXPERTS                                                        float64
+ 1172  NB_DECHET_MARQUE_TABU                                                                       float64
+ 1173  NB_DECHET_MARQUE_TAHITI RIZ                                                                 float64
+ 1174  NB_DECHET_MARQUE_TAHO                                                                       float64
+ 1175  NB_DECHET_MARQUE_TAMPAX                                                                     float64
+ 1176  NB_DECHET_MARQUE_TANG                                                                       float64
+ 1177  NB_DECHET_MARQUE_TEMPO                                                                      float64
+ 1178  NB_DECHET_MARQUE_TERRE & SAVEURS                                                            float64
+ 1179  NB_DECHET_MARQUE_THIRIET                                                                    float64
+ 1180  NB_DECHET_MARQUE_TI FWIYAPEN LA                                                             float64
+ 1181  NB_DECHET_MARQUE_TI PO PÉYI                                                                 float64
+ 1182  NB_DECHET_MARQUE_TIC-TAC                                                                    float64
+ 1183  NB_DECHET_MARQUE_TISSAIA                                                                    float64
+ 1184  NB_DECHET_MARQUE_TOBLERONE                                                                  float64
+ 1185  NB_DECHET_MARQUE_TOC TOC                                                                    float64
+ 1186  NB_DECHET_MARQUE_TOCO GUYANE                                                                float64
+ 1187  NB_DECHET_MARQUE_TOFFIFEE                                                                   float64
+ 1188  NB_DECHET_MARQUE_TORTUE                                                                     float64
+ 1189  NB_DECHET_MARQUE_TORTUFEL                                                                   float64
+ 1190  NB_DECHET_MARQUE_TOURTEL                                                                    float64
+ 1191  NB_DECHET_MARQUE_TOUS LES JOURS                                                             float64
+ 1192  NB_DECHET_MARQUE_TOYSRUS                                                                    float64
+ 1193  NB_DECHET_MARQUE_TRADIZIONI D'ITALIA                                                        float64
+ 1194  NB_DECHET_MARQUE_TRIBORD                                                                    float64
+ 1195  NB_DECHET_MARQUE_TROIS-RIVIÈRE                                                              float64
+ 1196  NB_DECHET_MARQUE_TROPICANA                                                                  float64
+ 1197  NB_DECHET_MARQUE_TROPICO                                                                    float64
+ 1198  NB_DECHET_MARQUE_TUC                                                                        float64
+ 1199  NB_DECHET_MARQUE_TWIX                                                                       float64
+ 1200  NB_DECHET_MARQUE_TÊTES BRULÉES                                                              float64
+ 1201  NB_DECHET_MARQUE_U                                                                          float64
+ 1202  NB_DECHET_MARQUE_U SUPERHYPER                                                               float64
+ 1203  NB_DECHET_MARQUE_UGINE                                                                      float64
+ 1204  NB_DECHET_MARQUE_UNIVOR                                                                     float64
+ 1205  NB_DECHET_MARQUE_UPSA                                                                       float64
+ 1206  NB_DECHET_MARQUE_UP & GO                                                                    float64
+ 1207  NB_DECHET_MARQUE_VACHE QUI RIT                                                              float64
+ 1208  NB_DECHET_MARQUE_VAIMATO                                                                    float64
+ 1209  NB_DECHET_MARQUE_VAITI                                                                      float64
+ 1210  NB_DECHET_MARQUE_VALKONA                                                                    float64
+ 1211  NB_DECHET_MARQUE_VALS                                                                       float64
+ 1212  NB_DECHET_MARQUE_VAVAL                                                                      float64
+ 1213  NB_DECHET_MARQUE_VERT AZUR                                                                  float64
+ 1214  NB_DECHET_MARQUE_VERTU FOOD                                                                 float64
+ 1215  NB_DECHET_MARQUE_VICHY                                                                      float64
+ 1216  NB_DECHET_MARQUE_VICO                                                                       float64
+ 1217  NB_DECHET_MARQUE_VIDAL                                                                      float64
+ 1218  NB_DECHET_MARQUE_VINI                                                                       float64
+ 1219  NB_DECHET_MARQUE_VIO                                                                        float64
+ 1220  NB_DECHET_MARQUE_VITAGO                                                                     float64
+ 1221  NB_DECHET_MARQUE_VITAMALT                                                                   float64
+ 1222  NB_DECHET_MARQUE_VITTEL                                                                     float64
+ 1223  NB_DECHET_MARQUE_VIVIL                                                                      float64
+ 1224  NB_DECHET_MARQUE_VOGUE                                                                      float64
+ 1225  NB_DECHET_MARQUE_VOLAE                                                                      float64
+ 1226  NB_DECHET_MARQUE_VOLVIC                                                                     float64
+ 1227  NB_DECHET_MARQUE_VOLVO                                                                      float64
+ 1228  NB_DECHET_MARQUE_VRAI                                                                       float64
+ 1229  NB_DECHET_MARQUE_W5                                                                         float64
+ 1230  NB_DECHET_MARQUE_WATERMAN                                                                   float64
+ 1231  NB_DECHET_MARQUE_WERTHER'S ORIGINAL                                                         float64
+ 1232  NB_DECHET_MARQUE_WHAOU!                                                                     float64
+ 1233  NB_DECHET_MARQUE_WHISKAS                                                                    float64
+ 1234  NB_DECHET_MARQUE_WILLIAM SAURIN                                                             float64
+ 1235  NB_DECHET_MARQUE_WINSTON                                                                    float64
+ 1236  NB_DECHET_MARQUE_YETI                                                                       float64
+ 1237  NB_DECHET_MARQUE_YODI                                                                       float64
+ 1238  NB_DECHET_MARQUE_YOP                                                                        float64
+ 1239  NB_DECHET_MARQUE_YOPLAIT                                                                    float64
+ 1240  NB_DECHET_MARQUE_YSIANCE                                                                    float64
+ 1241  NB_DECHET_MARQUE_YUM YUM                                                                    float64
+ 1242  NB_DECHET_MARQUE_YVES ROCHER                                                                float64
+ 1243  NB_DECHET_MARQUE_ZEEMAN                                                                     float64
+ 1244  NB_DECHET_MARQUE_ZENOVA                                                                     float64
+ 1245  NB_DECHET_MARQUE_ZUBROWKA                                                                   float64
+ 1246  NB_DECHET_MARQUE_Ô TOUT BOUCANÉ                                                             float64
+ 1247  NB_DECHET_REP_ARTICLES DE BRICOLAGE ET DE JARDIN                                            float64
+ 1248  NB_DECHET_REP_ARTICLES DE SPORT ET DE LOISIRS                                               float64
+ 1249  NB_DECHET_REP_BÂTIMENT                                                                      float64
+ 1250  NB_DECHET_REP_DISPOSITIFS MÉDICAUX PERFORANTS UTILISÉS PAR LES PATIENTS EN AUTO-TRAITEMENT  float64
+ 1251  NB_DECHET_REP_DÉCHETS D'EMBALLAGES MÉNAGERS                                                 float64
+ 1252  NB_DECHET_REP_DÉCHETS D'ÉQUIPEMENTS ÉLECTRIQUES ET ÉLECTRONIQUES (DEEE)                     float64
+ 1253  NB_DECHET_REP_ENGINS DE PÊCHE                                                               float64
+ 1254  NB_DECHET_REP_JOUETS                                                                        float64
+ 1255  NB_DECHET_REP_PAPIERS GRAPHIQUES                                                            float64
+ 1256  NB_DECHET_REP_PILES ET ACCUMULATEURS                                                        float64
+ 1257  NB_DECHET_REP_PNEUMATIQUE                                                                   float64
+ 1258  NB_DECHET_REP_PRODUITS CHIMIQUES                                                            float64
+ 1259  NB_DECHET_REP_PRODUITS DE L'AGROFOURNITURE                                                  float64
+ 1260  NB_DECHET_REP_PRODUITS DU TABAC                                                             float64
+ 1261  NB_DECHET_REP_TEXTILE D'HABILLEMENT, LINGE DE MAISON, CHAUSSURE                             float64
+ 1262  NB_DECHET_REP_TEXTILES SANITAIRES À USAGE UNIQUE                                            float64
+ 1263  NB_DECHET_REP_VÉHICULES HORS D’USAGE (VHU)                                                  float64
+ 1264  NB_DECHET_REP_VIDE                                                                          float64
+ 1265  NB_DECHET_SECTEUR_AGRICULTURE                                                               float64
+ 1266  NB_DECHET_SECTEUR_ALIMENTATION                                                              float64
+ 1267  NB_DECHET_SECTEUR_AMEUBLEMENT, DÉCORATION ET ÉQUIPEMENT DE LA MAISON                        float64
+ 1268  NB_DECHET_SECTEUR_AQUACULTURE                                                               float64
+ 1269  NB_DECHET_SECTEUR_BÂTIMENT, TRAVAUX ET MATÉRIAUX DE CONSTRUCTION                            float64
+ 1270  NB_DECHET_SECTEUR_CHASSE ET ARMEMENT                                                        float64
+ 1271  NB_DECHET_SECTEUR_COSMÉTIQUES, HYGIÈNE ET SOINS PERSONNELS                                  float64
+ 1272  NB_DECHET_SECTEUR_DÉTERGENTS ET PRODUITS D'ENTRETIENS                                       float64
+ 1273  NB_DECHET_SECTEUR_EMBALLAGE INDUSTRIEL ET COLIS                                             float64
+ 1274  NB_DECHET_SECTEUR_GRAPHIQUE, PAPETERIE ET FOURNITURES DE BUREAU                             float64
+ 1275  NB_DECHET_SECTEUR_INDÉTERMINÉ                                                               float64
+ 1276  NB_DECHET_SECTEUR_INFORMATIQUE ET HIGHTECH                                                  float64
+ 1277  NB_DECHET_SECTEUR_JOUETS ET LOISIR                                                          float64
+ 1278  NB_DECHET_SECTEUR_MATÉRIEL ÉLÉCTRIQUE ET ÉLECTROMÉNAGER                                     float64
+ 1279  NB_DECHET_SECTEUR_MÉTALLURGIE                                                               float64
+ 1280  NB_DECHET_SECTEUR_PETROCHIMIE                                                               float64
+ 1281  NB_DECHET_SECTEUR_PHARMACEUTIQUE/PARAMÉDICAL                                                float64
+ 1282  NB_DECHET_SECTEUR_PLASTURGIE                                                                float64
+ 1283  NB_DECHET_SECTEUR_PÊCHE                                                                     float64
+ 1284  NB_DECHET_SECTEUR_TABAC                                                                     float64
+ 1285  NB_DECHET_SECTEUR_TEXTILE ET HABILLEMENT                                                    float64
+ 1286  NB_DECHET_SECTEUR_TRAITEMENT DES EAUX                                                       float64
+ 1287  NB_DECHET_SECTEUR_TRANSPORT / AUTOMOBILE                                                    float64
+ 1288  NB_DECHET_SECTEUR_VAISSELLE À USAGE UNIQUE                                                  float64
+ 1289  NB_DECHET_SECTEUR_VIDE                                                                      float64
+ 1290  COMMENTAIRE                                                                                 object 
+ 1291  commune                                                                                     object 
+ 1292  INSEE_COM                                                                                   object 
+ 1293  DEP                                                                                         object 
+ 1294  REG                                                                                         int64  
+ 1295  EPCI                                                                                        object 
+ 1296  NATURE_EPCI                                                                                 object 
+ 1297  BV2022                                                                                      object 
+ 1298  LIBEPCI                                                                                     object 
+ 1299  DEPARTEMENT                                                                                 object 
+ 1300  REGION                                                                                      object 
+ 1301  BASSIN_DE_VIE                                                                               object 
+dtypes: float64(1269), int64(6), object(27)
+memory usage: 27.8+ MB
