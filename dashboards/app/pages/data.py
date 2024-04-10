@@ -563,8 +563,67 @@ with tab3:
     df_dechet_copy = df_nb_dechet.copy()
 
     df_filtre_copy = df_other_filtre.copy()
+
+    # Étape 1: Création des filtres
+    selected_annee_onglet_3 = st.selectbox(
+        "Choisir une année:",
+        options=["Aucune sélection"] + list(df_other_filtre["ANNEE"].unique()),
+        key="année_select",
+    )
+    if selected_annee_onglet_3 != "Aucune sélection":
+        filtered_data_milieu = df_other_filtre[
+            df_other_filtre["ANNEE"] == selected_annee_onglet_3
+        ]
+    else:
+        filtered_data_milieu = df_other_filtre
+
+    selected_type_milieu_onglet_3 = st.selectbox(
+        "Choisir un type de milieu:",
+        options=["Aucune sélection"]
+        + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
+        key="type_milieu_select",
+    )
+
+    if selected_type_milieu_onglet_3 != "Aucune sélection":
+        filtered_data_lieu = filtered_data_milieu[
+            filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu_onglet_3
+        ]
+    else:
+        filtered_data_lieu = filtered_data_milieu
+
+    selected_type_lieu_onglet_3 = st.selectbox(
+        "Choisir un type de lieu:",
+        options=["Aucune sélection"] + list(filtered_data_lieu["TYPE_LIEU"].unique()),
+        key="type_lieu_select",
+    )
+
+    if (
+        selected_annee_onglet_3 == "Aucune sélection"
+        and selected_type_milieu_onglet_3 == "Aucune sélection"
+        and selected_type_lieu_onglet_3 == "Aucune sélection"
+    ):
+        df_filtered = df_other_filtre
+    elif (
+        selected_type_milieu_onglet_3 == "Aucune sélection"
+        and selected_type_lieu_onglet_3 == "Aucune sélection"
+    ):
+        df_filtered = df_other_filtre[
+            df_other_filtre["ANNEE"] == selected_annee_onglet_3
+        ]
+    elif selected_type_lieu_onglet_3 == "Aucune sélection":
+        df_filtered = df_other_filtre[
+            (df_other_filtre["ANNEE"] == selected_annee_onglet_3)
+            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
+        ]
+    else:
+        df_filtered = df_other_filtre[
+            (df_other_filtre["ANNEE"] == selected_annee_onglet_3)
+            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
+            & (df_other_filtre["TYPE_LIEU"] == selected_type_lieu_onglet_3)
+        ]
+
     # Filtration des données pour nb_dechets
-    df_init = pd.merge(df_dechet_copy, df_filtre_copy, on="ID_RELEVE", how="inner")
+    df_init = pd.merge(df_dechet_copy, df_filtered, on="ID_RELEVE", how="inner")
 
     # Data pour le plot secteur
     secteur_df = df_init[df_init["type_regroupement"].isin(["SECTEUR"])]
