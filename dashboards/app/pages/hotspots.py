@@ -3,6 +3,8 @@ import altair as alt
 import pandas as pd
 import duckdb
 
+from hotspots_functions.maps import plot_adopted_waste_spots
+
 st.markdown(
     """# 🔥 Hotspots
 *Quelles sont les zones les plus impactées ?*
@@ -36,14 +38,12 @@ res_aggCategory_filGroup = duckdb.query(
     )
 ).to_df()
 
-# st.bar_chart(data=res_aggCategory_filGroup, x="categorie", y="total_dechet")
-
 st.altair_chart(
     alt.Chart(res_aggCategory_filGroup)
     .mark_bar()
     .encode(
-        x=alt.X("categorie", sort=None, title=""),
-        y=alt.Y("total_dechet", title="Total de déchet"),
+        x=alt.X("categorie", sort = None, title = ""),
+        y=alt.Y("total_dechet", title = "Total de déchet"),
     ),
-    use_container_width=True,
+    use_container_width = True,
 )
