@@ -28,6 +28,15 @@ Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à
 
 # Définition d'une fonction pour charger les données du nombre de déchets
 @st.cache_data
+def load_df_dict_corr_dechet_materiau():
+    return pd.read_csv(
+        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
+        "exploration-des-donn%C3%A9es/Exploration_visualisation/data/dict_de"
+        "chet_groupe_materiau.csv"
+    )
+
+
+@st.cache_data
 def load_df_nb_dechet():
     return pd.read_csv(
         "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
@@ -49,6 +58,7 @@ def load_df_other():
 # Appel des fonctions pour charger les données
 df_nb_dechet = load_df_nb_dechet()
 df_other = load_df_other()
+df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
 
 
 # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
@@ -133,13 +143,17 @@ with tab1:
 
     # Charte graphique MERTERRE :
     colors_map = {
-        "Plastique": "#48BEF0",
-        "Caoutchouc": "#364E74",
-        "Bois": "#673C11",
         "Textile": "#C384B1",
         "Papier": "#CAA674",
         "Metal": "#A0A0A0",
         "Verre": "#3DCE89",
+        "Autre": "#F3B900",
+        "Plastique": "#48BEF0",
+        "Caoutchouc": "#364E74",
+        "Bois": "#673C11",
+        "Papier/Carton": "#CAA674",
+        "Métal": "#A0A0A0",
+        "Verre/Céramique": "#3DCE89",
         "Autre": "#F3B900",
     }
 
@@ -267,17 +281,57 @@ with tab1:
 
     # Étape 1: Création des filtres
     selected_annee = st.selectbox(
-        "Choisir une année:", options=df_other_filtre["ANNEE"].unique()
+        "Choisir une année:",
+        options=["Aucune sélection"] + list(df_other_filtre["ANNEE"].unique()),
     )
-    #    selected_type_milieu = st.selectbox('Choisir un type de milieu:', options=df_other_filtre['TYPE_MILIEU'].unique())
-    #    selected_type_lieu = st.selectbox('Choisir un type de lieu:', options=df_other_filtre['TYPE_LIEU'].unique())
+    if selected_annee != "Aucune sélection":
+        filtered_data_milieu = df_other_filtre[
+            df_other_filtre["ANNEE"] == selected_annee
+        ]
+    else:
+        filtered_data_milieu = df_other_filtre
 
-    # Étape 2: Filtrage du DataFrame
-    df_filtered = df_other_filtre[
-        (df_other_filtre["ANNEE"] == selected_annee)
-        #        & (df_other_filtre['TYPE_MILIEU'] == selected_type_milieu)
-        #        & (df_other_filtre['TYPE_LIEU'] == selected_type_lieu)
-    ]
+    selected_type_milieu = st.selectbox(
+        "Choisir un type de milieu:",
+        options=["Aucune sélection"]
+        + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
+    )
+
+    if selected_type_milieu != "Aucune sélection":
+        filtered_data_lieu = filtered_data_milieu[
+            filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu
+        ]
+    else:
+        filtered_data_lieu = filtered_data_milieu
+
+    selected_type_lieu = st.selectbox(
+        "Choisir un type de lieu:",
+        options=["Aucune sélection"] + list(filtered_data_lieu["TYPE_LIEU"].unique()),
+    )
+
+    if (
+        selected_annee == "Aucune sélection"
+        and selected_type_milieu == "Aucune sélection"
+        and selected_type_lieu == "Aucune sélection"
+    ):
+        df_filtered = df_other_filtre
+    elif (
+        selected_type_milieu == "Aucune sélection"
+        and selected_type_lieu == "Aucune sélection"
+    ):
+        df_filtered = df_other_filtre[df_other_filtre["ANNEE"] == selected_annee]
+    elif selected_type_lieu == "Aucune sélection":
+        df_filtered = df_other_filtre[
+            (df_other_filtre["ANNEE"] == selected_annee)
+            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu)
+        ]
+    else:
+        df_filtered = df_other_filtre[
+            (df_other_filtre["ANNEE"] == selected_annee)
+            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu)
+            & (df_other_filtre["TYPE_LIEU"] == selected_type_lieu)
+        ]
+
     # Étape 3: Preparation dataframe pour graphe
     # Copie des données pour transfo
     df_volume2 = df_filtered.copy()
@@ -375,6 +429,10 @@ with tab2:
     )
     # recuperation de ces 10 dechets dans une liste pour filtration bubble map
     noms_top10_dechets = df_top10_dechets.index.tolist()
+    # Preparation des datas pour l'onglet 3# ajout de la colonne materiau
+    df_top10_dechets = df_top10_dechets.merge(
+        df_dict_corr_dechet_materiau, on="categorie", how="left"
+    )
     # Preparation de la figure barplot
     df_top10_dechets.reset_index(inplace=True)
     # Création du graphique en barres avec Plotly Express
@@ -384,6 +442,9 @@ with tab2:
         y="nb_dechet",
         labels={"categorie": "Dechet", "nb_dechet": "Nombre total"},
         title="Top 10 dechets ramassés",
+        color="Materiau",
+        color_discrete_map=colors_map,
+        category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
     )
     fig.update_layout(yaxis_type="log")
     # Amélioration du visuel du graphique
@@ -398,6 +459,8 @@ with tab2:
         uniformtext_mode="hide",
         xaxis_tickangle=90,
     )
+    # Suppression de la colonne categorie
+    del df_top10_dechets["Materiau"]
 
     #        st.markdown(
     #            """## Quels sont les types de déchets les plus présents sur votre territoire ?
@@ -602,9 +665,3 @@ with tab3:
         width=800, height=500, uniformtext_minsize=8, uniformtext_mode="hide"
     )
     st.plotly_chart(fig_marque, use_container_width=False)
-
-
-#    st.markdown(
-#        """## Quels sont les secteurs, filières et marques les plus représentés ?
-#    """
-#    )
