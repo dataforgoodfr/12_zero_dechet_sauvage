@@ -14,29 +14,42 @@ st.set_page_config(
     layout="wide", page_title="Dashboard Zéro Déchet Sauvage : onglet Data"
 )
 
+# Session state
+session_state = st.session_state
+
+
+# Titre de l'onglet
 st.markdown(
     """# 🔎 Data
 Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à l’origine de cette pollution
 """
 )
 
-# Import des données
 
-df_nb_dechet = pd.read_csv(
-    (
+# Définition d'une fonction pour charger les données du nombre de déchets
+@st.cache_data
+def load_df_nb_dechet():
+    return pd.read_csv(
         "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
         "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
         "sation/data/data_releve_nb_dechet.csv"
     )
-)
 
-df_other = pd.read_csv(
-    (
+
+# Définition d'une fonction pour charger les autres données
+@st.cache_data
+def load_df_other():
+    return pd.read_csv(
         "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
         "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
         "sation/data/data_zds_enriched.csv"
     )
-)
+
+
+# Appel des fonctions pour charger les données
+df_nb_dechet = load_df_nb_dechet()
+df_other = load_df_other()
+
 
 # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
 df_other["DEP_CODE_NOM"] = df_other["DEP"] + " - " + df_other["DEPARTEMENT"]
@@ -44,9 +57,12 @@ df_other["COMMUNE_CODE_NOM"] = df_other["INSEE_COM"] + " - " + df_other["commune
 
 
 # Création du filtre dynamique par niveau géographique
-niveaux_geo = ["REGION", "DEP_CODE_NOM", "LIBEPCI", "BASSIN_DE_VIE", "COMMUNE_CODE_NOM"]
+# df_other = df_other.rename(columns={"REGION": "Région","DEP_CODE_NOM":"Département","LIBEPCI":"EPCI","COMMUNE_CODE_NOM":"Commune" })
+# niveaux_geo = ["Région", "Département", "EPCI", "Commune"]
+niveaux_geo = ["REGION", "DEP_CODE_NOM", "LIBEPCI", "COMMUNE_CODE_NOM"]
 dynamic_filters = DynamicFilters(df_other, filters=niveaux_geo)
 df_other_filtre = dynamic_filters.filter_df()
+
 
 # 3 Onglets : Matériaux, Top déchets, Filières et marques
 tab1, tab2, tab3 = st.tabs(
@@ -57,16 +73,6 @@ tab1, tab2, tab3 = st.tabs(
     ]
 )
 
-# Creation des dictionnaires pour filtration des graphiques:
-collectivites_dict = {
-    "Région": df_other["REGION"].unique().tolist(),
-    "Département": df_other["DEPARTEMENT"].unique().tolist(),
-    "EPCI": df_other["EPCI"].unique().tolist(),
-    "Commune": df_other["commune"].unique().tolist(),
-    "Bassin de vie": df_other["BASSIN_DE_VIE"].unique().tolist(),
-    "LIB EPCI": df_other["LIBEPCI"].unique().tolist(),
-    "NATURE EPCI": df_other["NATURE_EPCI"].unique().tolist(),
-}
 
 milieu_lieu_dict = (
     df_other.groupby("TYPE_MILIEU")["TYPE_LIEU"]
@@ -180,9 +186,9 @@ with tab1:
             names="Matériau",
             title="Répartition des matériaux en volume",
             hole=0.4,
-            color="Matériau",  # Utilisation de 'index' pour le mappage des couleurs
+            color="Matériau",
             color_discrete_map=colors_map,
-        )  # Application du dictionnaire de mappage de couleurs
+        )
 
         # Amélioration de l'affichage
         fig.update_traces(textinfo="percent")
@@ -256,20 +262,71 @@ with tab1:
 
     st.divider()
 
-    # Ligne 3 : Graphe par milieu de collecte
+    # Ligne 3 : Graphe par milieu , lieu et année
     st.write("**Détail par milieu, lieu ou année**")
-    l3_col1, l3_col2, l3_col3 = st.columns(3)
-    filtre_milieu = l3_col1.selectbox("Milieu", ["Test 1", "Test_2"], index=None)
-    filtre_lieu = l3_col2.selectbox("Lieu", ["Lieu 1", "Lieu 2"], index=None)
-    filtre_annee = l3_col3.selectbox("Année", [2020, 2021], index=None)
 
-    # Ligne 4 : donut filtré et table de données
-    l4_col1, l4_col2 = st.columns(2)
-    with l4_col1:
-        st.markdown("""**Répartition des matériaux collectés (% volume)**""")
+    # Étape 1: Création des filtres
+    selected_annee = st.selectbox(
+        "Choisir une année:", options=df_other_filtre["ANNEE"].unique()
+    )
+    #    selected_type_milieu = st.selectbox('Choisir un type de milieu:', options=df_other_filtre['TYPE_MILIEU'].unique())
+    #    selected_type_lieu = st.selectbox('Choisir un type de lieu:', options=df_other_filtre['TYPE_LIEU'].unique())
 
-    with l4_col2:
-        st.markdown("""Table de données""")
+    # Étape 2: Filtrage du DataFrame
+    df_filtered = df_other_filtre[
+        (df_other_filtre["ANNEE"] == selected_annee)
+        #        & (df_other_filtre['TYPE_MILIEU'] == selected_type_milieu)
+        #        & (df_other_filtre['TYPE_LIEU'] == selected_type_lieu)
+    ]
+    # Étape 3: Preparation dataframe pour graphe
+    # Copie des données pour transfo
+    df_volume2 = df_filtered.copy()
+
+    # Calcul des indicateurs clés de haut de tableau avant transformation
+    volume2_total = df_volume2["VOLUME_TOTAL"].sum()
+    poids2_total = df_volume2["POIDS_TOTAL"].sum()
+    volume2_total_categorise = df_volume2[cols_volume].sum().sum()
+    pct_volume2_categorise = volume2_total_categorise / volume2_total
+    nb_collectes2 = len(df_volume2)
+
+    # estimation du poids categorisée en utilisant pct_volume_categorise
+    poids2_total_categorise = round(poids2_total * pct_volume2_categorise)
+
+    # Dépivotage du tableau pour avoir une base de données exploitable
+    df_volume2 = df_volume2.melt(
+        id_vars=cols_identifiers,
+        value_vars=cols_volume,
+        var_name="Matériau",
+        value_name="Volume",
+    )
+
+    # Nettoyer le nom du Type déchet pour le rendre plus lisible
+    df_volume2["Matériau"] = (
+        df_volume2["Matériau"].str.replace("GLOBAL_VOLUME_", "").str.title()
+    )
+
+    # Grouper par type de matériau pour les visualisations
+    df_totals_sorted2 = df_volume2.groupby(["Matériau"], as_index=False)["Volume"].sum()
+    df_totals_sorted2 = df_totals_sorted2.sort_values(["Volume"], ascending=False)
+
+    # Étape 4: Création du Graphique
+    if not df_filtered.empty:
+        fig4 = px.pie(
+            df_totals_sorted2,
+            values="Volume",
+            names="Matériau",
+            title="Répartition des matériaux en volume",
+            hole=0.4,
+            color="Matériau",
+            color_discrete_map=colors_map,
+        )
+
+        # Amélioration de l'affichage
+        fig4.update_traces(textinfo="percent")
+        fig4.update_layout(autosize=True, legend_title_text="Matériau")
+        st.plotly_chart(fig4, use_container_width=True)
+    else:
+        st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
 
 
 # Onglet 2 : Top Déchets
