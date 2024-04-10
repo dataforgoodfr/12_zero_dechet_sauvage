@@ -190,8 +190,11 @@ with tab1:
     cell3.metric("Nombre de collectes réalisées", f"{nb_collectes}")
 
     # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
+
     l2_col1, l2_col2 = st.columns(2)
-    with l2_col1:
+    cell4 = l2_col1.container(border=True)
+    cell5 = l2_col2.container(border=True)
+    with cell4:
 
         # Création du diagramme en donut en utilisant le dictionnaire de couleurs pour la correspondance
         fig = px.pie(
@@ -211,7 +214,7 @@ with tab1:
         # Affichage du graphique
         st.plotly_chart(fig, use_container_width=True)
 
-    with l2_col2:
+    with cell5:
         # Création du graphique en barres avec Plotly Express
         fig2 = px.bar(
             df_totals_sorted,
@@ -272,7 +275,8 @@ with tab1:
     fig3.update_layout(yaxis_title="% du volume collecté", xaxis_title=None)
 
     # Afficher le graphique
-    st.plotly_chart(fig3, use_container_width=True)
+    with st.container(border=True):
+        st.plotly_chart(fig3, use_container_width=True)
 
     st.divider()
 
@@ -378,7 +382,8 @@ with tab1:
         # Amélioration de l'affichage
         fig4.update_traces(textinfo="percent")
         fig4.update_layout(autosize=True, legend_title_text="Matériau")
-        st.plotly_chart(fig4, use_container_width=True)
+        with st.container(border=True):
+            st.plotly_chart(fig4, use_container_width=True)
     else:
         st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
 
@@ -489,14 +494,14 @@ with tab2:
     #        use_container_width=True,
     #    )
 
-    with st.container():
+    with st.container(border=True):
         col1, col2 = st.columns([3, 1])
 
         with col1:
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            st.write("Métriques des déchets")  # Titre pour les cartes
+            st.write("Nombre ramassé pour chaque déchet")
             for index, row in df_top10_dechets.iterrows():
                 value = f"{row['nb_dechet']:,.0f}".replace(",", " ")
                 st.metric(label=row["categorie"], value=value)
@@ -686,8 +691,8 @@ with tab3:
     fig_secteur.update_layout(
         width=800, height=500, uniformtext_minsize=8, uniformtext_mode="hide"
     )
-
-    st.plotly_chart(fig_secteur, use_container_width=False)
+    with st.container(border=True):
+        st.plotly_chart(fig_secteur, use_container_width=True)
 
     l1_col1, l1_col2 = st.columns(2)
     cell1 = l1_col1.container(border=True)
@@ -723,4 +728,6 @@ with tab3:
     fig_marque.update_layout(
         width=800, height=500, uniformtext_minsize=8, uniformtext_mode="hide"
     )
-    st.plotly_chart(fig_marque, use_container_width=False)
+
+    with st.container(border=True):
+        st.plotly_chart(fig_marque, use_container_width=True)
