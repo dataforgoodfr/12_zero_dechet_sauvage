@@ -17,6 +17,9 @@ st.set_page_config(
 # Session state
 session_state = st.session_state
 
+# Récupérer les filtres géographiques s'ils ont été fixés
+filtre_niveau = st.session_state.get("niveau_admin", "")
+filtre_collectivite = st.session_state.get("collectivite", "")
 
 # Titre de l'onglet
 st.markdown(
@@ -24,7 +27,7 @@ st.markdown(
 Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à l’origine de cette pollution
 """
 )
-
+st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
 # Définition d'une fonction pour charger les données du nombre de déchets
 @st.cache_data
@@ -48,30 +51,28 @@ def load_df_nb_dechet():
 # Définition d'une fonction pour charger les autres données
 @st.cache_data
 def load_df_other():
-    return pd.read_csv(
+    df = pd.read_csv(
         "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
         "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
         "sation/data/data_zds_enriched.csv"
     )
 
+    # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
+    df["DEP_CODE_NOM"] = df["DEP"] + " - " + df["DEPARTEMENT"]
+    df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["commune"]
+
+    return df
+
 
 # Appel des fonctions pour charger les données
 df_nb_dechet = load_df_nb_dechet()
-df_other = load_df_other()
 df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
 
-
-# Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
-df_other["DEP_CODE_NOM"] = df_other["DEP"] + " - " + df_other["DEPARTEMENT"]
-df_other["COMMUNE_CODE_NOM"] = df_other["INSEE_COM"] + " - " + df_other["commune"]
-
-
-# Création du filtre dynamique par niveau géographique
-# df_other = df_other.rename(columns={"REGION": "Région","DEP_CODE_NOM":"Département","LIBEPCI":"EPCI","COMMUNE_CODE_NOM":"Commune" })
-# niveaux_geo = ["Région", "Département", "EPCI", "Commune"]
-niveaux_geo = ["REGION", "DEP_CODE_NOM", "LIBEPCI", "COMMUNE_CODE_NOM"]
-dynamic_filters = DynamicFilters(df_other, filters=niveaux_geo)
-df_other_filtre = dynamic_filters.filter_df()
+# Appeler le dataframe filtré depuis le session state
+if "df_other" in st.session_state:
+    df_other = st.session_state["df_other"].copy()
+else:
+    df_other = load_df_other()
 
 
 # 3 Onglets : Matériaux, Top déchets, Filières et marques
@@ -112,7 +113,7 @@ with tab1:
     cols_volume = [k for k in df_other.columns if "GLOBAL_VOLUME_" in k]
 
     # Copie des données pour transfo
-    df_volume = df_other_filtre.copy()
+    df_volume = df_other.copy()
 
     # Calcul des indicateurs clés de haut de tableau avant transformation
     volume_total = df_volume["VOLUME_TOTAL"].sum()
@@ -160,12 +161,6 @@ with tab1:
     # Ligne 0 : Filtres géographiques
     # Popover cell
     #    with st.popover("Filtres géographiques", help = "Sélectionnez le niveau géographique souhaité pour afficher les indicateurs") :
-
-    dynamic_filters.display_filters(location="sidebar")
-    # filtre_region = st.selectbox(
-    #    "Région :", collectivites_dict["Région"],
-    #    index=None
-    # )
 
     # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
     l1_col1, l1_col2, l1_col3 = st.columns(3)
@@ -286,14 +281,12 @@ with tab1:
     # Étape 1: Création des filtres
     selected_annee = st.selectbox(
         "Choisir une année:",
-        options=["Aucune sélection"] + list(df_other_filtre["ANNEE"].unique()),
+        options=["Aucune sélection"] + list(df_other["ANNEE"].unique()),
     )
     if selected_annee != "Aucune sélection":
-        filtered_data_milieu = df_other_filtre[
-            df_other_filtre["ANNEE"] == selected_annee
-        ]
+        filtered_data_milieu = df_other[df_other["ANNEE"] == selected_annee]
     else:
-        filtered_data_milieu = df_other_filtre
+        filtered_data_milieu = df_other
 
     selected_type_milieu = st.selectbox(
         "Choisir un type de milieu:",
@@ -318,22 +311,22 @@ with tab1:
         and selected_type_milieu == "Aucune sélection"
         and selected_type_lieu == "Aucune sélection"
     ):
-        df_filtered = df_other_filtre
+        df_filtered = df_other
     elif (
         selected_type_milieu == "Aucune sélection"
         and selected_type_lieu == "Aucune sélection"
     ):
-        df_filtered = df_other_filtre[df_other_filtre["ANNEE"] == selected_annee]
+        df_filtered = df_other[df_other["ANNEE"] == selected_annee]
     elif selected_type_lieu == "Aucune sélection":
-        df_filtered = df_other_filtre[
-            (df_other_filtre["ANNEE"] == selected_annee)
-            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu)
+        df_filtered = df_other[
+            (df_other["ANNEE"] == selected_annee)
+            & (df_other["TYPE_MILIEU"] == selected_type_milieu)
         ]
     else:
-        df_filtered = df_other_filtre[
-            (df_other_filtre["ANNEE"] == selected_annee)
-            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu)
-            & (df_other_filtre["TYPE_LIEU"] == selected_type_lieu)
+        df_filtered = df_other[
+            (df_other["ANNEE"] == selected_annee)
+            & (df_other["TYPE_MILIEU"] == selected_type_milieu)
+            & (df_other["TYPE_LIEU"] == selected_type_lieu)
         ]
 
     # Étape 3: Preparation dataframe pour graphe
@@ -387,6 +380,25 @@ with tab1:
     else:
         st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
 
+        # 2ème option de graphique, à choisir
+    if not df_filtered.empty:
+        fig5 = px.treemap(
+            df_totals_sorted2,
+            path=["Matériau"],
+            values="Volume",
+            title="2ème option : treemap de répartition des matériaux en volume",
+            color="Matériau",
+            color_discrete_map=colors_map,
+        )
+        fig5.update_layout(
+            margin=dict(t=50, l=25, r=25, b=25), autosize=True, height=600
+        )
+        fig5.update_traces(textinfo="label+value")
+        with st.container(border=True):
+            st.plotly_chart(fig5, use_container_width=True)
+    else:
+        st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
+
 
 # Onglet 2 : Top Déchets
 with tab2:
@@ -420,7 +432,7 @@ with tab2:
     # Préparation des datas pour l'onglet 2
     df_top = df_nb_dechet.copy()
 
-    df_top_data_releves = df_other_filtre.copy()
+    df_top_data_releves = df_other.copy()
     # Filtration des données pour nb_dechets
     df_top10 = pd.merge(df_top, df_top_data_releves, on="ID_RELEVE", how="inner")
     # Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
@@ -481,18 +493,6 @@ with tab2:
     #            "ORDER BY total_dechet DESC;"
     #        )
     #    ).to_df()
-
-    # st.bar_chart(data=res_aggCategory_filGroup, x="categorie", y="total_dechet")
-
-    #    st.altair_chart(
-    #        alt.Chart(res_aggCategory_filGroup)
-    #        .mark_bar()
-    #        .encode(
-    #            x=alt.X("categorie", sort=None, title=""),
-    #            y=alt.Y("total_dechet", title="Total de déchet"),
-    #        ),
-    #        use_container_width=True,
-    #    )
 
     with st.container(border=True):
         col1, col2 = st.columns([3, 1])
@@ -567,20 +567,18 @@ with tab3:
     # Préparation des données
     df_dechet_copy = df_nb_dechet.copy()
 
-    df_filtre_copy = df_other_filtre.copy()
+    df_filtre_copy = df_other.copy()
 
     # Étape 1: Création des filtres
     selected_annee_onglet_3 = st.selectbox(
         "Choisir une année:",
-        options=["Aucune sélection"] + list(df_other_filtre["ANNEE"].unique()),
+        options=["Aucune sélection"] + list(df_other["ANNEE"].unique()),
         key="année_select",
     )
     if selected_annee_onglet_3 != "Aucune sélection":
-        filtered_data_milieu = df_other_filtre[
-            df_other_filtre["ANNEE"] == selected_annee_onglet_3
-        ]
+        filtered_data_milieu = df_other[df_other["ANNEE"] == selected_annee_onglet_3]
     else:
-        filtered_data_milieu = df_other_filtre
+        filtered_data_milieu = df_other
 
     selected_type_milieu_onglet_3 = st.selectbox(
         "Choisir un type de milieu:",
@@ -607,24 +605,22 @@ with tab3:
         and selected_type_milieu_onglet_3 == "Aucune sélection"
         and selected_type_lieu_onglet_3 == "Aucune sélection"
     ):
-        df_filtered = df_other_filtre
+        df_filtered = df_other
     elif (
         selected_type_milieu_onglet_3 == "Aucune sélection"
         and selected_type_lieu_onglet_3 == "Aucune sélection"
     ):
-        df_filtered = df_other_filtre[
-            df_other_filtre["ANNEE"] == selected_annee_onglet_3
-        ]
+        df_filtered = df_other[df_other["ANNEE"] == selected_annee_onglet_3]
     elif selected_type_lieu_onglet_3 == "Aucune sélection":
-        df_filtered = df_other_filtre[
-            (df_other_filtre["ANNEE"] == selected_annee_onglet_3)
-            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
+        df_filtered = df_other[
+            (df_other["ANNEE"] == selected_annee_onglet_3)
+            & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
         ]
     else:
-        df_filtered = df_other_filtre[
-            (df_other_filtre["ANNEE"] == selected_annee_onglet_3)
-            & (df_other_filtre["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
-            & (df_other_filtre["TYPE_LIEU"] == selected_type_lieu_onglet_3)
+        df_filtered = df_other[
+            (df_other["ANNEE"] == selected_annee_onglet_3)
+            & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
+            & (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
         ]
 
     # Filtration des données pour nb_dechets
