@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 import streamlit_authenticator as stauth
 import yaml
+from st_pages import Page, show_pages
 from yaml.loader import SafeLoader
 
 st.markdown(
@@ -25,7 +26,6 @@ authenticator = stauth.Authenticate(
     config["cookie"]["expiry_days"],
     config["pre-authorized"],
 )
-
 authenticator.login(
     fields={
         "Form name": "Connexion",
@@ -35,7 +35,17 @@ authenticator.login(
     },
 )
 
+
 if st.session_state["authentication_status"]:
+    show_pages(
+        [
+            Page("home.py", "Accueil", "🏠"),
+            Page("pages/actions.py", "Actions", "👊"),
+            Page("pages/data.py", "Data", "🔍"),
+            Page("pages/hotspots.py", "Hotspots", "🔥"),
+            Page("pages/structures.py", "Structures", "🔭"),
+        ],
+    )
     st.markdown("""# À propos""")
 
     # Chargement des données géographiques pour le filtre : une seule fois à l'arrivée
@@ -119,3 +129,10 @@ elif st.session_state["authentication_status"] is False:
     st.error("Mauvais identifiants ou mot de passe.")
 elif st.session_state["authentication_status"] is None:
     st.warning("Veuillez entrer votre identifiant et mot de passe")
+
+    show_pages(
+        [
+            Page("home.py", "Home", "🏠 "),
+            Page("pages/register.py", "S'enregistrer", "🚀"),
+        ],
+    )
