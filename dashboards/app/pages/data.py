@@ -30,6 +30,8 @@ Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à
 st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
 # Définition d'une fonction pour charger les données du nombre de déchets
+
+
 @st.cache_data
 def load_df_dict_corr_dechet_materiau():
     return pd.read_csv(
@@ -226,7 +228,7 @@ with tab1:
         )
 
         # Amélioration du graphique
-        fig2.update_traces(texttemplate="%{text:.2s}", textposition="outside")
+        fig2.update_traces(texttemplate="%{text:.2s}", textposition="inside")
         fig2.update_layout(
             autosize=True,
             uniformtext_minsize=8,
@@ -563,10 +565,7 @@ with tab2:
     )
     fig.update_layout(yaxis_type="log")
     # Amélioration du visuel du graphique
-    fig.update_traces(
-        # texttemplate="%{text:.2f}",
-        textposition="outside"
-    )
+
     fig.update_layout(
         width=1400,
         height=900,
@@ -574,6 +573,34 @@ with tab2:
         uniformtext_mode="hide",
         xaxis_tickangle=90,
     )
+
+    fig_alt = px.bar(
+        df_top10_dechets,
+        y="categorie",
+        x="nb_dechet",
+        labels={"categorie": "Dechet", "nb_dechet": "Nombre total"},
+        title="Top 10 dechets ramassés (alternative)",
+        text="nb_dechet",
+        color="Materiau",
+        color_discrete_map=colors_map,
+        category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
+    )
+    fig_alt.update_layout(xaxis_type="log")
+    # Amélioration du visuel du graphique
+    fig_alt.update_traces(
+        # texttemplate="%{text:.2f}",
+        textposition="inside",
+        textfont_color="white",
+        textfont_size=20,
+    )
+    fig_alt.update_layout(
+        width=1400,
+        height=900,
+        uniformtext_minsize=8,
+        uniformtext_mode="hide",
+        xaxis_tickangle=90,
+    )
+
     # Suppression de la colonne categorie
     del df_top10_dechets["Materiau"]
 
@@ -597,6 +624,7 @@ with tab2:
 
         with col1:
             st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig_alt, use_container_width=True)
 
         with col2:
             st.write("Nombre ramassé pour chaque déchet")
@@ -812,13 +840,42 @@ with tab3:
         "Nombre de secteurs identifiés lors des collectes",
         f"{nb_secteurs} secteurs",
     )
+    colors_map_secteur = {
+        "AGRICULTURE": "#156644",
+        "ALIMENTATION": "#F7D156",
+        "AMEUBLEMENT, DÉCORATION ET ÉQUIPEMENT DE LA MAISON": "#F79D65",
+        "AQUACULTURE": "#0067C2",
+        "BÂTIMENT, TRAVAUX ET MATÉRIAUX DE CONSTRUCTION": "#FF9900",
+        "CHASSE ET ARMEMENT": "#23A76F",
+        "COSMÉTIQUES, HYGIÈNE ET SOINS PERSONNELS": "#BF726B",
+        "DÉTERGENTS ET PRODUITS D'ENTRETIENS": "#506266",
+        "EMBALLAGE INDUSTRIEL ET COLIS": "#754B30",
+        "GRAPHIQUE ET PAPETERIE ET FOURNITURES DE BUREAU": "#EFEFEF",
+        "INDÉTERMINÉ": "#967EA1",
+        "INFORMATIQUE ET HIGHTECH": "#E351F7",
+        "JOUETS ET LOISIR": "#A64D79",
+        "MATÉRIEL ÉLECTRIQUE ET ÉLECTROMÉNAGER": "#AE05C3",
+        "MÉTALLURGIE": "#EC4773",
+        "PÊCHE": "#003463",
+        "PETROCHIMIE": "#0D0D0D",
+        "PHARMACEUTIQUE/PARAMÉDICAL": "#61BF5E",
+        "PLASTURGIE": "#05A2AD",
+        "TABAC": "#E9003F",
+        "TEXTILE ET HABILLEMENT": "#FA9EE5",
+        "TRAITEMENT DES EAUX": "#4AA6F7",
+        "TRANSPORT / AUTOMOBILE": "#6C2775",
+        "VAISSELLE À USAGE UNIQUE": "#732D3A",
+        "AUTRES SECTEURS": "#D9C190",
+    }
 
     fig_secteur = px.bar(
-        top_secteur_df.tail(10),
+        top_secteur_df.tail(10).sort_values(by="Nombre de déchets", ascending=False),
         x="Nombre de déchets",
         y="Secteur",
+        color="Secteur",
         title="Top 10 des secteurs les plus ramassés",
         orientation="h",
+        color_discrete_map=colors_map_secteur,
     )
     # add log scale to x axis
     fig_secteur.update_layout(xaxis_type="log")
@@ -849,12 +906,27 @@ with tab3:
         "Nombre de marques identifiés lors des collectes",
         f"{nb_marques} marques",
     )
+    colors_map_marque = {
+        "HEINEKEN": "#F7D156",
+        "COCA-COLA": "#F7D156",
+        "MARLBORO": "#E9003F",
+        "CRISTALINE": "#F7D156",
+        "PHILIP MORRIS": "#E9003F",
+        "CAPRI-SUN": "#F7D156",
+        "OASIS": "#F7D156",
+        "1664": "#F7D156",
+        "WINSTON": "#E9003F",
+        "RED BULL": "#F7D156",
+    }
+
     fig_marque = px.bar(
-        top_marque_df.tail(10),
+        top_marque_df.tail(10).sort_values(by="Nombre de déchets", ascending=False),
         x="Nombre de déchets",
         y="Marque",
         title="Top 10 des marques les plus ramassées",
+        color="Marque",
         orientation="h",
+        color_discrete_map=colors_map_marque,
     )
     # add log scale to x axis
     fig_marque.update_layout(xaxis_type="log")
