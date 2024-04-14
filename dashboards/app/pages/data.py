@@ -410,9 +410,10 @@ with tab1:
         ]
 
     # Ligne 5 : Metriques filtrés
-    l5_col1, l5_col2 = st.columns(2)
+    l5_col1, l5_col2, l5_col3 = st.columns(3)
     cell6 = l5_col1.container(border=True)
     cell7 = l5_col2.container(border=True)
+    cell8 = l5_col3.container(border=True)
 
     poids_total_filtered = df_filtered_metrics["POIDS_TOTAL"].sum()
     volume_total_filtered = df_filtered_metrics["VOLUME_TOTAL"].sum()
@@ -422,6 +423,9 @@ with tab1:
 
     poids_total_filtered = f"{poids_total_filtered:,.0f}".replace(",", " ")
     cell7.metric("Poids total collecté", f"{poids_total_filtered} kg")
+
+    nombre_collectes_filtered = f"{len(df_filtered):,.0f}".replace(",", " ")
+    cell8.metric("Nombre de collectes", f"{nombre_collectes_filtered}")
 
     # Étape 3: Preparation dataframe pour graphe
     # Copie des données pour transfo
