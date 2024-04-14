@@ -74,6 +74,10 @@ if "df_other" in st.session_state:
 else:
     df_other = load_df_other()
 
+if "df_other_metrics_raw" in st.session_state:
+    df_other_metrics_raw = st.session_state["df_other_metrics_raw"].copy()
+else:
+    df_other_metrics_raw = load_df_other()
 
 # 3 Onglets : Matériaux, Top déchets, Filières et marques
 tab1, tab2, tab3 = st.tabs(
@@ -279,14 +283,22 @@ with tab1:
     st.write("**Détail par milieu, lieu ou année**")
 
     # Étape 1: Création des filtres
+
+    df_other_metrics = df_other_metrics_raw.copy()
+    df_other_metrics = df_other_metrics.fillna(0)
+
     selected_annee = st.selectbox(
         "Choisir une année:",
         options=["Aucune sélection"] + list(df_other["ANNEE"].unique()),
     )
     if selected_annee != "Aucune sélection":
-        filtered_data_milieu = df_other[df_other["ANNEE"] == selected_annee]
+        filtered_data_milieu = df_other[df_other["ANNEE"] == selected_annee].copy()
+        filtered_metrics_milieu = df_other_metrics[
+            df_other_metrics["ANNEE"] == selected_annee
+        ].copy()
     else:
-        filtered_data_milieu = df_other
+        filtered_data_milieu = df_other.copy()
+        filtered_metrics_milieu = df_other_metrics.copy()
 
     selected_type_milieu = st.selectbox(
         "Choisir un type de milieu:",
@@ -298,8 +310,12 @@ with tab1:
         filtered_data_lieu = filtered_data_milieu[
             filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu
         ]
+        filtered_metrics_milieu = filtered_metrics_milieu[
+            filtered_metrics_milieu["TYPE_MILIEU"] == selected_type_milieu
+        ]
     else:
-        filtered_data_lieu = filtered_data_milieu
+        filtered_data_lieu = filtered_data_milieu.copy()
+        filtered_metrics_milieu = df_other_metrics.copy()
 
     selected_type_lieu = st.selectbox(
         "Choisir un type de lieu:",
@@ -311,23 +327,101 @@ with tab1:
         and selected_type_milieu == "Aucune sélection"
         and selected_type_lieu == "Aucune sélection"
     ):
-        df_filtered = df_other
+        df_filtered = df_other.copy()
+        df_filtered_metrics = df_other_metrics_raw.copy()
     elif (
         selected_type_milieu == "Aucune sélection"
         and selected_type_lieu == "Aucune sélection"
     ):
-        df_filtered = df_other[df_other["ANNEE"] == selected_annee]
-    elif selected_type_lieu == "Aucune sélection":
+        df_filtered = df_other[df_other["ANNEE"] == selected_annee].copy()
+        df_filtered_metrics = df_other_metrics_raw[
+            df_other_metrics["ANNEE"] == selected_annee
+        ].copy()
+    elif (
+        selected_annee == "Aucune sélection"
+        and selected_type_lieu == "Aucune sélection"
+        and selected_type_milieu != "Aucune sélection"
+    ):
+        df_filtered = df_other[df_other["TYPE_MILIEU"] == selected_type_milieu].copy()
+        df_filtered_metrics = df_other_metrics_raw[
+            df_other_metrics["TYPE_MILIEU"] == selected_type_milieu
+        ].copy()
+
+    elif (
+        selected_annee == "Aucune sélection"
+        and selected_type_lieu != "Aucune sélection"
+        and selected_type_milieu == "Aucune sélection"
+    ):
+        df_filtered = df_other[df_other["TYPE_LIEU"] == selected_type_lieu].copy()
+        df_filtered_metrics = df_other_metrics_raw[
+            df_other_metrics["TYPE_LIEU"] == selected_type_lieu
+        ].copy()
+
+    elif (
+        selected_annee == "Aucune sélection"
+        and selected_type_lieu != "Aucune sélection"
+        and selected_type_milieu != "Aucune sélection"
+    ):
+        df_filtered = df_other[
+            (df_other["TYPE_LIEU"] == selected_type_lieu)
+            & (df_other["TYPE_MILIEU"] == selected_type_milieu)
+        ].copy()
+        df_filtered_metrics = df_other_metrics_raw[
+            (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
+            & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
+        ]
+    elif (
+        selected_annee != "Aucune sélection"
+        and selected_type_lieu != "Aucune sélection"
+        and selected_type_milieu == "Aucune sélection"
+    ):
+        df_filtered = df_other[
+            (df_other["ANNEE"] == selected_annee)
+            & (df_other["TYPE_LIEU"] == selected_type_lieu)
+        ].copy()
+        df_filtered_metrics = df_other_metrics_raw[
+            (df_other_metrics["ANNEE"] == selected_annee)
+            & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
+        ]
+    elif (
+        selected_annee != "Aucune sélection"
+        and selected_type_lieu == "Aucune sélection"
+        and selected_type_milieu != "Aucune sélection"
+    ):
         df_filtered = df_other[
             (df_other["ANNEE"] == selected_annee)
             & (df_other["TYPE_MILIEU"] == selected_type_milieu)
+        ].copy()
+        df_filtered_metrics = df_other_metrics_raw[
+            (df_other_metrics["ANNEE"] == selected_annee)
+            & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
         ]
+
     else:
         df_filtered = df_other[
             (df_other["ANNEE"] == selected_annee)
             & (df_other["TYPE_MILIEU"] == selected_type_milieu)
             & (df_other["TYPE_LIEU"] == selected_type_lieu)
+        ].copy()
+        df_filtered_metrics = df_other_metrics_raw[
+            (df_other_metrics["ANNEE"] == selected_annee)
+            & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
+            & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
         ]
+
+    # Ligne 5 : Metriques filtrés
+    l5_col1, l5_col2 = st.columns(2)
+    cell6 = l5_col1.container(border=True)
+    cell7 = l5_col2.container(border=True)
+
+    poids_total_filtered = df_filtered_metrics["POIDS_TOTAL"].sum()
+    volume_total_filtered = df_filtered_metrics["VOLUME_TOTAL"].sum()
+
+    volume_total_filtered = f"{volume_total_filtered:,.0f}".replace(",", " ")
+    cell6.metric("Volume de dechets collectés", f"{volume_total_filtered} litres")
+
+    poids_total_filtered = f"{poids_total_filtered:,.0f}".replace(",", " ")
+    cell7.metric("Poids total collecté", f"{poids_total_filtered} kg")
 
     # Étape 3: Preparation dataframe pour graphe
     # Copie des données pour transfo
@@ -578,7 +672,7 @@ with tab3:
     if selected_annee_onglet_3 != "Aucune sélection":
         filtered_data_milieu = df_other[df_other["ANNEE"] == selected_annee_onglet_3]
     else:
-        filtered_data_milieu = df_other
+        filtered_data_milieu = df_other.copy()
 
     selected_type_milieu_onglet_3 = st.selectbox(
         "Choisir un type de milieu:",
@@ -605,23 +699,67 @@ with tab3:
         and selected_type_milieu_onglet_3 == "Aucune sélection"
         and selected_type_lieu_onglet_3 == "Aucune sélection"
     ):
-        df_filtered = df_other
+        df_filtered = df_other.copy()
     elif (
         selected_type_milieu_onglet_3 == "Aucune sélection"
         and selected_type_lieu_onglet_3 == "Aucune sélection"
     ):
-        df_filtered = df_other[df_other["ANNEE"] == selected_annee_onglet_3]
+        df_filtered = df_other[df_other["ANNEE"] == selected_annee_onglet_3].copy()
+    elif (
+        selected_annee_onglet_3 == "Aucune sélection"
+        and selected_type_lieu_onglet_3 == "Aucune sélection"
+        and selected_type_milieu_onglet_3 != "Aucune sélection"
+    ):
+        df_filtered = df_other[
+            df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3
+        ].copy()
+    elif (
+        selected_annee_onglet_3 == "Aucune sélection"
+        and selected_type_lieu_onglet_3 != "Aucune sélection"
+        and selected_type_milieu_onglet_3 == "Aucune sélection"
+    ):
+        df_filtered = df_other[
+            df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3
+        ].copy()
+    elif (
+        selected_annee_onglet_3 == "Aucune sélection"
+        and selected_type_lieu_onglet_3 != "Aucune sélection"
+        and selected_type_milieu_onglet_3 != "Aucune sélection"
+    ):
+        df_filtered = df_other[
+            (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
+            & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
+        ].copy()
+    elif (
+        selected_annee_onglet_3 != "Aucune sélection"
+        and selected_type_lieu_onglet_3 != "Aucune sélection"
+        and selected_type_milieu_onglet_3 == "Aucune sélection"
+    ):
+        df_filtered = df_other[
+            (df_other["ANNEE"] == selected_annee_onglet_3)
+            & (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
+        ].copy()
+    elif (
+        selected_annee_onglet_3 != "Aucune sélection"
+        and selected_type_lieu_onglet_3 == "Aucune sélection"
+        and selected_type_milieu_onglet_3 != "Aucune sélection"
+    ):
+        df_filtered = df_other[
+            (df_other["ANNEE"] == selected_annee_onglet_3)
+            & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
+        ].copy()
+
     elif selected_type_lieu_onglet_3 == "Aucune sélection":
         df_filtered = df_other[
             (df_other["ANNEE"] == selected_annee_onglet_3)
             & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
-        ]
+        ].copy()
     else:
         df_filtered = df_other[
             (df_other["ANNEE"] == selected_annee_onglet_3)
             & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
             & (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
-        ]
+        ].copy()
 
     # Filtration des données pour nb_dechets
     df_init = pd.merge(df_dechet_copy, df_filtered, on="ID_RELEVE", how="inner")
