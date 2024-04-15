@@ -7,7 +7,6 @@ import pandas as pd
 import plotly.express as px
 import folium
 from folium import IFrame
-from streamlit_dynamic_filters import DynamicFilters
 
 # Page setting : wide layout
 st.set_page_config(
@@ -71,8 +70,8 @@ df_nb_dechet = load_df_nb_dechet()
 df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
 
 # Appeler le dataframe filtré depuis le session state
-if "df_other" in st.session_state:
-    df_other = st.session_state["df_other"].copy()
+if "df_other_filtre" in st.session_state:
+    df_other = st.session_state["df_other_filtre"].copy()
 else:
     df_other = load_df_other()
 

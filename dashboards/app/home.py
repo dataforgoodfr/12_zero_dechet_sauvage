@@ -40,46 +40,57 @@ niveaux_admin_dict = {
 }
 
 # 1ère étape : sélection du niveau administratif concerné (région, dép...)
-# Si déjà saisi précédemment, initialiser le filtre avec la valeur
-index_admin = st.session_state.get("niveau_admin", None)
+# Si déjà saisi précédemment, initialiser le filtre avec les valeurs entrées précédemment
+# Récupérer les index pour conserver la valeur des filtres au changement de pages
+# Filtre niveau administratif
+niveau_admin = st.session_state.get("niveau_admin", None)
+index_admin = st.session_state.get("index_admin", None)
+# Filtre collectivité
+collectivite = st.session_state.get("collectivite", None)
+index_collec = st.session_state.get("index_collec", None)
+
+# Initialiser la selectbox avec l'index récupéré
 select_niveauadmin = st.selectbox(
     "Niveau administratif : ",
     niveaux_admin_dict.keys(),
-    index=1,
-    key="niveau_admin",
+    index=index_admin,
 )
 
 if select_niveauadmin is not None:
-    # Extraction de la liste depuis le dataframe
+    # Filtrer la liste des collectivités en fonction du niveau admin
     liste_collectivites = df_other[niveaux_admin_dict[select_niveauadmin]]
     liste_collectivites = liste_collectivites.sort_values().unique()
 
     # 2ème filtre : sélection de la collectivité concernée
-    index_collec = st.session_state.get("collectivite", None)
     select_collectivite = st.selectbox(
         "Collectivité : ",
         liste_collectivites,
-        index=2,
-        key="collectivite",
+        index=index_collec,
     )
-else:
-    st.caption(
-        "Choisissez un niveau administratif pour afficher la liste des collectivités.",
-    )
+
 
 if st.button("Enregistrer la sélection"):
-    # Retourner le filtre validé et le nombre de relevés disponibles
-    filtre_niveau = st.session_state["niveau_admin"]
-    filtre_collectivite = st.session_state["collectivite"]
-    st.write(f"Vous avez sélectionné : {filtre_niveau} {filtre_collectivite}.")
+    # Enregistrer les valeurs sélectionnées dans le session.state
+    st.session_state["niveau_admin"] = select_niveauadmin
+    st.session_state["index_admin"] = list(niveaux_admin_dict.keys()).index(
+        select_niveauadmin,
+    )
 
-    # Enregistrer le DataFrame dans un "session state" pour conserver le filtre dans les onglets
-    colonne_filtre = niveaux_admin_dict[filtre_niveau]
-    st.session_state["df_other"] = df_other[
-        df_other[colonne_filtre] == filtre_collectivite
+    st.session_state["collectivite"] = select_collectivite
+    st.session_state["index_collec"] = list(liste_collectivites).index(
+        select_collectivite,
+    )
+
+    # Afficher la collectivité sélectionnée
+    st.write(f"Vous avez sélectionné : {select_niveauadmin} {select_collectivite}.")
+
+    # Filtrer et enregistrer le DataFrame dans un "session state" pour les onglets suivants
+    colonne_filtre = niveaux_admin_dict[select_niveauadmin]
+    st.session_state["df_other_filtre"] = df_other[
+        df_other[colonne_filtre] == select_collectivite
     ]
 
-    nb_releves = len(st.session_state["df_other"])
+    nb_releves = len(st.session_state["df_other_filtre"])
     st.write(
         f"{nb_releves} relevés de collecte disponibles \
              pour l'analyse sur votre territoire.",
