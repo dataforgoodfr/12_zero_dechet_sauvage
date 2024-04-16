@@ -1,14 +1,10 @@
 import streamlit as st
-
-# import altair as alt
 import pandas as pd
-
-# import duckdb
 import plotly.express as px
 import folium
 from folium import IFrame
 
-# Page setting : wide layout
+# Configuration de la page
 st.set_page_config(
     layout="wide", page_title="Dashboard Zéro Déchet Sauvage : onglet Data"
 )
@@ -26,10 +22,16 @@ st.markdown(
 Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à l’origine de cette pollution
 """
 )
-st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
-# Fonction pour charger le dictionnaire de correspondance déchets-matériaux
-@st.cache_data
+if filtre_niveau == "" and filtre_collectivite == "":
+    st.write(
+        "Aucune sélection de territoire n'ayant été effectuée les données sont globales"
+    )
+else:
+    st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
+
+
+# Définition d'une fonction pour charger les données du nombre de déchets@st.cache_data
 def load_df_dict_corr_dechet_materiau():
     return pd.read_csv(
         "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
@@ -67,7 +69,6 @@ tab1, tab2, tab3 = st.tabs(
         "Secteurs et marques :womans_clothes:",
     ]
 )
-
 
 milieu_lieu_dict = (
     df_other.groupby("TYPE_MILIEU")["TYPE_LIEU"]
@@ -587,21 +588,6 @@ with tab2:
     # Suppression de la colonne categorie
     del df_top10_dechets["Materiau"]
 
-    #        st.markdown(
-    #            """## Quels sont les types de déchets les plus présents sur votre territoire ?
-    #        """
-    #        )
-    #    res_aggCategory_filGroup = duckdb.query(
-    #        (
-    #            "SELECT categorie, sum(nb_dechet) AS total_dechet "
-    #            "FROM df_nb_dechet "
-    #            "WHERE type_regroupement = 'GROUPE' "
-    #            "GROUP BY categorie "
-    #            "HAVING sum(nb_dechet) > 10000 "
-    #            "ORDER BY total_dechet DESC;"
-    #        )
-    #    ).to_df()
-
     with st.container(border=True):
         col1, col2 = st.columns([3, 1])
 
@@ -681,7 +667,6 @@ with tab3:
 
     # Préparation des données
     df_dechet_copy = df_nb_dechet.copy()
-
     df_filtre_copy = df_other.copy()
 
     # Étape 1: Création des filtres
@@ -814,8 +799,8 @@ with tab3:
     # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
     # 1ère métrique : volume total de déchets collectés
     cell1 = l1_col1.container(border=True)
-    # Trick pour séparer les milliers
 
+    # Trick pour séparer les milliers
     nb_dechet_secteur = f"{nb_dechet_secteur:,.0f}".replace(",", " ")
     cell1.metric(
         "Nombre de déchets catégorisés par secteur", f"{nb_dechet_secteur} dechets"
@@ -882,8 +867,8 @@ with tab3:
 
     l1_col1, l1_col2 = st.columns(2)
     cell1 = l1_col1.container(border=True)
-    # Trick pour séparer les milliers
 
+    # Trick pour séparer les milliers
     nb_dechet_marque = f"{nb_dechet_marque:,.0f}".replace(",", " ")
     cell1.metric(
         "Nombre de déchets catégorisés par marque", f"{nb_dechet_marque} dechets"
@@ -892,7 +877,6 @@ with tab3:
     # 2ème métrique : poids
     cell2 = l1_col2.container(border=True)
     nb_marques = f"{nb_marques:,.0f}".replace(",", " ")
-    # poids_total = f"{poids_total:,.0f}".replace(",", " ")
     cell2.metric(
         "Nombre de marques identifiés lors des collectes",
         f"{nb_marques} marques",
