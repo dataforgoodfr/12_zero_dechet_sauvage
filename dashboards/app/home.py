@@ -11,7 +11,8 @@ st.markdown(
 st.markdown("""# À propos""")
 
 
-# Chargement des données géographiques pour le filtre : une seule fois à l'arrivée
+# Chargement des données et filtre géographique à l'arrivée sur le dashboard
+# Table des volumes par matériaux
 @st.cache_data
 def load_df_other() -> pd.DataFrame:
     df = pd.read_csv(
@@ -26,9 +27,20 @@ def load_df_other() -> pd.DataFrame:
     return df
 
 
+# Table du nb de déchets
+@st.cache_data
+def load_df_nb_dechet() -> pd.DataFrame:
+    return pd.read_csv(
+        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
+        "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
+        "sation/data/data_releve_nb_dechet.csv",
+    )
+
+
 # Appel des fonctions pour charger les données
 
 df_other = load_df_other()
+df_nb_dechets = load_df_nb_dechet()
 
 
 # Création du filtre par niveau géographique : correspondance labels et variables du dataframe
@@ -84,14 +96,22 @@ if st.button("Enregistrer la sélection"):
     # Afficher la collectivité sélectionnée
     st.write(f"Vous avez sélectionné : {select_niveauadmin} {select_collectivite}.")
 
-    # Filtrer et enregistrer le DataFrame dans un "session state" pour les onglets suivants
+    # Filtrer et enregistrer le DataFrame dans un session state pour la suite
     colonne_filtre = niveaux_admin_dict[select_niveauadmin]
-    st.session_state["df_other_filtre"] = df_other[
-        df_other[colonne_filtre] == select_collectivite
+    df_other_filtre = df_other[df_other[colonne_filtre] == select_collectivite]
+    st.session_state["df_other_filtre"] = df_other_filtre
+
+    # Filtrer et enregistrer le dataframe nb_dechets dans session.State
+    # Récuperer la liste des relevés
+    id_releves = df_other_filtre["ID_RELEVE"].unique()
+    # Filtrer df_nb_dechets sur la liste des relevés
+    st.session_state["df_nb_dechets_filtre"] = df_nb_dechets[
+        df_nb_dechets["ID_RELEVE"].isin(id_releves)
     ]
 
+    # Afficher le nombre de relevés disponibles
     nb_releves = len(st.session_state["df_other_filtre"])
     st.write(
-        f"{nb_releves} relevés de collecte disponibles \
+        f"{nb_releves} relevés de collecte sont disponibles \
              pour l'analyse sur votre territoire.",
     )

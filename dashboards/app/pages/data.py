@@ -28,9 +28,7 @@ Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à
 )
 st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
-# Définition d'une fonction pour charger les données du nombre de déchets
-
-
+# Fonction pour charger le dictionnaire de correspondance déchets-matériaux
 @st.cache_data
 def load_df_dict_corr_dechet_materiau():
     return pd.read_csv(
@@ -40,45 +38,26 @@ def load_df_dict_corr_dechet_materiau():
     )
 
 
-@st.cache_data
-def load_df_nb_dechet():
-    return pd.read_csv(
-        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-        "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-        "sation/data/data_releve_nb_dechet.csv"
-    )
-
-
-# Définition d'une fonction pour charger les autres données
-@st.cache_data
-def load_df_other():
-    df = pd.read_csv(
-        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-        "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-        "sation/data/data_zds_enriched.csv"
-    )
-
-    # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
-    df["DEP_CODE_NOM"] = df["DEP"] + " - " + df["DEPARTEMENT"]
-    df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["commune"]
-
-    return df
-
-
 # Appel des fonctions pour charger les données
-df_nb_dechet = load_df_nb_dechet()
 df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
 
-# Appeler le dataframe filtré depuis le session state
-if "df_other_filtre" in st.session_state:
+# Appeler les dataframes volumes et nb_dechets filtré depuis le session state
+if ("df_other_filtre" not in st.session_state) or (
+    "df_nb_dechets_filtre" not in st.session_state
+):
+    st.write(
+        """
+            ### :warning: Merci de sélectionner une collectivité\
+            dans l'onglet Home pour afficher les données. :warning:
+            """
+    )
+else:
     df_other = st.session_state["df_other_filtre"].copy()
-else:
-    df_other = load_df_other()
+    df_nb_dechet = st.session_state["df_nb_dechets_filtre"].copy()
 
-if "df_other_metrics_raw" in st.session_state:
-    df_other_metrics_raw = st.session_state["df_other_metrics_raw"].copy()
-else:
-    df_other_metrics_raw = load_df_other()
+# Copier le df pour la partie filtrée par milieu/lieu/année
+df_other_metrics_raw = df_other.copy()
+
 
 # 3 Onglets : Matériaux, Top déchets, Filières et marques
 tab1, tab2, tab3 = st.tabs(
@@ -163,10 +142,6 @@ with tab1:
         "Autre": "#F3B900",
     }
 
-    # Ligne 0 : Filtres géographiques
-    # Popover cell
-    #    with st.popover("Filtres géographiques", help = "Sélectionnez le niveau géographique souhaité pour afficher les indicateurs") :
-
     # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
     l1_col1, l1_col2, l1_col3 = st.columns(3)
 
@@ -244,12 +219,7 @@ with tab1:
         f"Note : Cette analyse se base sur les déchets qui ont pu être classés par matériau : {volume_total_categorise:.0f} Litres, soit {pct_volume_categorise:.0%} du volume total collecté."
     )
 
-    st.divider()
-
     # Ligne 3 : Graphe par milieu de collecte
-    st.write("**Volume collecté par matériau en fonction du milieu de collecte**")
-
-    # Part de volume collecté par type de milieu
 
     # Grouper par année et type de matériau
     df_typemilieu = df_volume.groupby(["TYPE_MILIEU", "Matériau"], as_index=False)[
@@ -266,12 +236,11 @@ with tab1:
         y="Volume",
         color="Matériau",
         barnorm="percent",
-        title="Répartition des matériaux en fonction du milieu de collecte",
-        text_auto=False,
+        title="Part de chaque matériau en volume selon le milieu de collecte",
         color_discrete_map=colors_map,
     )
+    fig3.update_layout(bargap=0.2, height=500)
 
-    fig3.update_layout(bargap=0.2)
     fig3.update_layout(yaxis_title="% du volume collecté", xaxis_title=None)
 
     # Afficher le graphique
@@ -479,7 +448,7 @@ with tab1:
     else:
         st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
 
-        # 2ème option de graphique, à choisir
+    # 2ème option de graphique, à choisir
     if not df_filtered.empty:
         fig5 = px.treemap(
             df_totals_sorted2,
@@ -502,6 +471,16 @@ with tab1:
 # Onglet 2 : Top Déchets
 with tab2:
 
+    # Préparation des datas pour l'onglet 2
+    df_top = df_nb_dechet.copy()
+    df_top_data_releves = df_other.copy()
+
+    # Calcul du nombre total de déchets catégorisés sur le territoier
+    nb_total_dechets = df_top[(df_top["type_regroupement"] == "GROUPE")][
+        "nb_dechet"
+    ].sum()
+    nb_total_dechets = f"{nb_total_dechets:,.0f}".replace(",", " ")
+
     # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
     l1_col1, l1_col2, l1_col3 = st.columns(3)
     # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
@@ -509,29 +488,33 @@ with tab2:
     cell1 = l1_col1.container(border=True)
     # Trick pour séparer les milliers
 
-    volume_total_categorise = f"{volume_total_categorise:,.0f}".replace(",", " ")
-    cell1.metric("Volume de déchets catégorisés", f"{volume_total_categorise} litres")
+    # volume_total_categorise = f"{volume_total_categorise:,.0f}".replace(",", " ")
+    cell1.metric("Nombre de déchets catégorisés", f"{nb_total_dechets} déchets")
 
-    # 2ème métrique : poids
+    # 2ème métrique : équivalent volume catégorisé
     cell2 = l1_col2.container(border=True)
-    poids_total_categorise = f"{poids_total_categorise:,.0f}".replace(",", " ")
-    # poids_total = f"{poids_total:,.0f}".replace(",", " ")
+    volume_total_categorise = f"{volume_total_categorise:,.0f}".replace(",", " ")
     cell2.metric(
-        "Poids estimé de déchets categorisés",
-        f"{poids_total_categorise} kg",
+        "Equivalent en volume ",
+        f"{volume_total_categorise} litres",
     )
+
+    # # 2ème métrique : poids
+    # cell2 = l1_col2.container(border=True)
+    # poids_total_categorise = f"{poids_total_categorise:,.0f}".replace(",", " ")
+    # # poids_total = f"{poids_total:,.0f}".replace(",", " ")
+    # cell2.metric(
+    #     "Poids estimé de déchets categorisés",
+    #     f"{poids_total_categorise} kg",
+    # )
 
     # 3ème métrique : nombre de relevés
     cell3 = l1_col3.container(border=True)
     # nb_collectes = f"{nb_collectes:,.0f}".replace(",", " ")
-    cell3.metric("Nombre de collectes réalisées", f"{nb_collectes}")
+    cell3.metric("Nombre de collectes comptabilisées", f"{nb_collectes}")
 
     # Ligne 2 : graphique top déchets
 
-    # Préparation des datas pour l'onglet 2
-    df_top = df_nb_dechet.copy()
-
-    df_top_data_releves = df_other.copy()
     # Filtration des données pour nb_dechets
     df_top10 = pd.merge(df_top, df_top_data_releves, on="ID_RELEVE", how="inner")
     # Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
@@ -561,6 +544,7 @@ with tab2:
         color="Materiau",
         color_discrete_map=colors_map,
         category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
+        text_auto=True,
     )
     fig.update_layout(yaxis_type="log")
     # Amélioration du visuel du graphique
@@ -631,6 +615,12 @@ with tab2:
                 value = f"{row['nb_dechet']:,.0f}".replace(",", " ")
                 st.metric(label=row["categorie"], value=value)
 
+        st.write("")
+        st.caption(
+            f"Note : Analyse basée sur les collectes qui ont fait l'objet d'un comptage détaillé par déchet,\
+             soit {volume_total_categorise} litres équivalent à {pct_volume_categorise:.0%} du volume collecté\
+                sur le territoire."
+        )
     with st.container():
         # Ajout de la selectbox
         selected_dechet = st.selectbox(
@@ -681,7 +671,7 @@ with tab2:
         st_folium = st.components.v1.html
         st_folium(
             folium.Figure().add_child(map_paca).render(),  # , width=1400
-            height=1000,
+            height=750,
         )
 
 
@@ -697,7 +687,7 @@ with tab3:
     # Étape 1: Création des filtres
     selected_annee_onglet_3 = st.selectbox(
         "Choisir une année:",
-        options=["Aucune sélection"] + list(df_other["ANNEE"].unique()),
+        options=["Aucune sélection"] + list(df_other["ANNEE"].sort_values().unique()),
         key="année_select",
     )
     if selected_annee_onglet_3 != "Aucune sélection":
@@ -875,15 +865,17 @@ with tab3:
         title="Top 10 des secteurs les plus ramassés",
         orientation="h",
         color_discrete_map=colors_map_secteur,
+        text_auto=True,
     )
     # add log scale to x axis
     fig_secteur.update_layout(xaxis_type="log")
-    fig_secteur.update_traces(
-        # texttemplate="%{text:.2f}",
-        textposition="outside"
-    )
+    fig_secteur.update_traces(texttemplate="%{value:.0f}", textposition="inside")
     fig_secteur.update_layout(
-        width=800, height=500, uniformtext_minsize=8, uniformtext_mode="hide"
+        width=800,
+        height=500,
+        uniformtext_mode="hide",
+        showlegend=False,
+        yaxis_title=None,
     )
     with st.container(border=True):
         st.plotly_chart(fig_secteur, use_container_width=True)
@@ -926,16 +918,18 @@ with tab3:
         color="Marque",
         orientation="h",
         color_discrete_map=colors_map_marque,
+        text_auto=False,
     )
     # add log scale to x axis
     fig_marque.update_layout(xaxis_type="log")
-    fig_marque.update_traces(
-        # texttemplate="%{text:.2f}",
-        textposition="outside"
-    )
+    fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
     fig_marque.update_layout(
-        width=800, height=500, uniformtext_minsize=8, uniformtext_mode="hide"
+        width=800,
+        height=500,
+        uniformtext_minsize=8,
+        uniformtext_mode="hide",
+        yaxis_title=None,
     )
 
     with st.container(border=True):
