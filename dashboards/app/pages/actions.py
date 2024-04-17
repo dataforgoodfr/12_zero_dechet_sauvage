@@ -1,12 +1,8 @@
 import pandas as pd
 from datetime import datetime, timedelta
-
 import plotly.express as px
-
 import streamlit as st
 import folium
-
-# from folium import IFrame
 
 # Page setting : wide layout
 st.set_page_config(
@@ -19,6 +15,51 @@ session_state = st.session_state
 # Récupérer les filtres géographiques s'ils ont été fixés
 filtre_niveau = st.session_state.get("niveau_admin", "")
 filtre_collectivite = st.session_state.get("collectivite", "")
+
+# Définition d'une fonction pour charger les données du nombre de déchets
+@st.cache_data
+def load_df_dict_corr_dechet_materiau():
+    return pd.read_csv(
+        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
+        "exploration-des-donn%C3%A9es/Exploration_visualisation/data/dict_de"
+        "chet_groupe_materiau.csv"
+    )
+
+
+@st.cache_data
+def load_df_nb_dechet():
+    return pd.read_csv(
+        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
+        "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
+        "sation/data/data_releve_nb_dechet.csv"
+    )
+
+
+# Définition d'une fonction pour charger les autres données
+@st.cache_data
+def load_df_other():
+    df = pd.read_csv(
+        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
+        "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
+        "sation/data/data_zds_enriched.csv"
+    )
+
+    # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
+    df["DEP_CODE_NOM"] = df["DEP"] + " - " + df["DEPARTEMENT"]
+    df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["commune"]
+
+    return df
+
+
+# Appel des fonctions pour charger les données
+df_nb_dechet = load_df_nb_dechet()
+# df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
+
+# Appeler le dataframe filtré depuis le session state
+if "df_other_filtre" in st.session_state:
+    df_other = st.session_state["df_other_filtre"].copy()
+else:
+    df_other = load_df_other()
 
 # Titre de l'onglet
 st.markdown(
@@ -43,53 +84,6 @@ with tab1:
         )
     else:
         st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
-
-    # Définition d'une fonction pour charger les données du nombre de déchets
-    @st.cache_data
-    def load_df_dict_corr_dechet_materiau():
-        return pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
-            "exploration-des-donn%C3%A9es/Exploration_visualisation/data/dict_de"
-            "chet_groupe_materiau.csv"
-        )
-
-    @st.cache_data
-    def load_df_nb_dechet():
-        return pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-            "sation/data/data_releve_nb_dechet.csv"
-        )
-
-    # Définition d'une fonction pour charger les autres données
-    @st.cache_data
-    def load_df_other():
-        df = pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-            "sation/data/data_zds_enriched.csv"
-        )
-
-        # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
-        df["DEP_CODE_NOM"] = df["DEP"] + " - " + df["DEPARTEMENT"]
-        df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["commune"]
-
-        return df
-
-    # Appel des fonctions pour charger les données
-    df_nb_dechet = load_df_nb_dechet()
-    # df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
-
-    # Appeler le dataframe filtré depuis le session state
-    if "df_other_filtre" in st.session_state:
-        df_other = st.session_state["df_other_filtre"].copy()
-    else:
-        df_other = load_df_other()
-
-    if "df_other_metrics_raw" in st.session_state:
-        df_other_metrics_raw = st.session_state["df_other_metrics_raw"].copy()
-    else:
-        df_other_metrics_raw = load_df_other()
 
     ####################
     # @Valerie : J'ai comment pour éviter les errreur
@@ -133,66 +127,25 @@ with tab1:
 
     annee_liste = sorted(df_other["ANNEE"].unique().tolist(), reverse=True)
 
-    # Transformation du dataframe pour les graphiques
-    # Variables à conserver en ligne
-    cols_identifiers = [
-        "ANNEE",
-        "TYPE_MILIEU",
-        "INSEE_COM",
-        "DEP",
-        "REG",
-        "EPCI",
-        "BV2022",
-    ]
+    # Filtre par année:
+    options = ["Aucune sélection"] + list(df_other["ANNEE"].unique())
+    annee_choisie = st.selectbox("Choisissez l'année:", options, index=0)
 
-    # variables à décroiser de la base de données correspondant aux Volume global de chaque matériau
-    cols_volume = [k for k in df_other.columns if "GLOBAL_VOLUME_" in k]
+    if annee_choisie == "Aucune sélection":
+        df_other_filtre = df_other.copy()
+
+    if annee_choisie != "Aucune sélection":
+        df_other_filtre = df_other[df_other["ANNEE"] == annee_choisie].copy()
 
     # Copie des données pour transfo
-    df_volume = df_other.copy()
+    df_events = df_other_filtre.copy()
 
     # Calcul des indicateurs clés de haut de tableau avant transformation
-    volume_total = df_volume["VOLUME_TOTAL"].sum()
-    poids_total = df_volume["POIDS_TOTAL"].sum()
-    volume_total_categorise = df_volume[cols_volume].sum().sum()
-    pct_volume_categorise = volume_total_categorise / volume_total
-    nb_collectes = len(df_volume)
-
-    # estimation du poids categorisée en utilisant pct_volume_categorise
-    poids_total_categorise = round(poids_total * pct_volume_categorise)
-
-    # Dépivotage du tableau pour avoir une base de données exploitable
-    df_volume = df_volume.melt(
-        id_vars=cols_identifiers,
-        value_vars=cols_volume,
-        var_name="Matériau",
-        value_name="Volume",
-    )
-
-    # Nettoyer le nom du Type déchet pour le rendre plus lisible
-    df_volume["Matériau"] = (
-        df_volume["Matériau"].str.replace("GLOBAL_VOLUME_", "").str.title()
-    )
-
-    # Grouper par type de matériau pour les visualisations
-    df_totals_sorted = df_volume.groupby(["Matériau"], as_index=False)["Volume"].sum()
-    df_totals_sorted = df_totals_sorted.sort_values(["Volume"], ascending=False)
-
-    # Charte graphique MERTERRE :
-    colors_map = {
-        "Textile": "#C384B1",
-        "Papier": "#CAA674",
-        "Metal": "#A0A0A0",
-        "Verre": "#3DCE89",
-        "Autre": "#F3B900",
-        "Plastique": "#48BEF0",
-        "Caoutchouc": "#364E74",
-        "Bois": "#673C11",
-        "Papier/Carton": "#CAA674",
-        "Métal": "#A0A0A0",
-        "Verre/Céramique": "#3DCE89",
-        "Autre": "#F3B900",
-    }
+    volume_total = df_events["VOLUME_TOTAL"].sum()
+    poids_total = df_events["POIDS_TOTAL"].sum()
+    nombre_participants = df_events["NB_PARTICIPANTS"].sum()
+    nb_collectes = len(df_events)
+    nombre_structures = df_events["ID_STRUCTURE"].nunique()
 
     # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
     l1_col1, l1_col2, l1_col3 = st.columns(3)
@@ -203,135 +156,77 @@ with tab1:
     cell1.metric("Nombre de collectes réalisées", f"{nb_collectes}")
 
     # 2ème métrique : Nombre de Participants
-    # cell2 = l1_col2.container(border=True)
-    # poids_total = f"{poids_total:,.0f}".replace(",", " ")
-
-    # cell2.metric("Poids total collecté", f"{poids_total} kg")
+    cell2 = l1_col2.container(border=True)
+    nombre_participants = f"{nombre_participants:,.0f}".replace(",", " ")
+    cell2.metric("Nombre de participants", f"{nombre_participants}")
 
     # 3ème métrique : Nombre de Structures
-    # cell3 = l1_col3.container(border=True)
-    # nb_collectes = f"{nb_collectes:,.0f}".replace(",", " ")
-    # cell3.metric("Nombre de collectes réalisées", f"{nb_collectes}")
+    cell3 = l1_col3.container(border=True)
+    nombre_structures = f"{nombre_structures:,.0f}".replace(",", " ")
+    cell3.metric("Nombre de structures", f"{nombre_structures}")
 
-    # Ligne 2 : 2 cellules avec les indicateurs clés en haut de page
-    l2_col1, l2_col2 = st.columns(2)
+    # Ligne 2 : Carte
 
-    # 1ère métrique : volume total de déchets collectés
-    cell4 = l2_col1.container(border=True)
-    # Trick pour séparer les milliers
-    volume_total = f"{volume_total:,.0f}".replace(",", " ")
-    cell4.metric("Volume de déchets collectés", f"{volume_total} litres")
+    # Ligne 3 : 1 graphique donut chart et un graphique barplot horizontal nombre de relevés par types de milieux
+    # préparation du dataframe et figure niveaux de caracterisation
 
-    # 2ème métrique : poids
-    cell5 = l2_col2.container(border=True)
-    poids_total = f"{poids_total:,.0f}".replace(",", " ")
+    df_carac = df_other_filtre.copy()
+    df_carac_counts = df_carac["NIVEAU_CARAC"].value_counts().reset_index()
+    df_carac_counts.columns = ["NIVEAU_CARAC", "counts"]
 
-    cell5.metric("Poids total collecté", f"{poids_total} kg")
+    fig1_actions = px.pie(
+        df_carac_counts,
+        values="counts",
+        names="NIVEAU_CARAC",
+        title="Répartition des niveaux de caractérisation",
+        hole=0.5,
+    )
+    fig1_actions.update_traces(textposition="inside", textinfo="percent+label")
+
+    # préparation du dataframe et figure releves types de milieux
+
+    df_milieux = df_other_filtre.copy()
+    df_milieux_counts = df_milieux["TYPE_MILIEU"].value_counts().reset_index()
+    df_milieux_counts.columns = ["TYPE_MILIEU", "counts"]
+    df_milieux_counts_sorted = df_milieux_counts.sort_values(
+        by="counts", ascending=True
+    )
+
+    fig2_actions = px.bar(
+        df_milieux_counts_sorted,
+        y="TYPE_MILIEU",
+        x="counts",
+        title="Nombre de relevés par types de milieux",
+        text="counts",
+        orientation="h",
+    )
+
+    l3_col1, l3_col2 = st.columns(2)
+    cell4 = l3_col1.container(border=True)
+    cell5 = l3_col2.container(border=True)
+
+    # Affichage donut
+    with cell4:
+        st.plotly_chart(fig1_actions, use_container_width=True)
+
+    # Affichage barplot
+    with cell5:
+        st.plotly_chart(fig2_actions, use_container_width=True)
 
     # Ligne 3 : 2 graphiques en ligne : carte relevés et bar chart matériaux
     l3_col1, l3_col2 = st.columns(2)
     cell6 = l3_col1.container(border=True)
     cell7 = l3_col2.container(border=True)
 
-    # with cell6:
-    # Création de la carte
-
-    with cell7:
-        # Création du graphique en barres avec Plotly Express
-        fig2 = px.bar(
-            df_totals_sorted,
-            x="Matériau",
-            y="Volume",
-            text="Volume",
-            title="Volume total par materiau (en litres)",
-            color="Matériau",
-            color_discrete_map=colors_map,
-        )
-
-        # Amélioration du graphique
-        fig2.update_traces(texttemplate="%{text:.2s}", textposition="inside")
-        fig2.update_layout(
-            autosize=True,
-            uniformtext_minsize=8,
-            uniformtext_mode="hide",
-            xaxis_tickangle=90,
-            showlegend=False,
-        )
-
-        # Affichage du graphique
-        st.plotly_chart(fig2, use_container_width=True)
-
-        st.write("")
-        st.caption(
-            f"Note : Cette analyse se base sur les déchets qui ont pu être classés par matériau : {volume_total_categorise:.0f} Litres, soit {pct_volume_categorise:.0%} du volume total collecté."
-        )
-
     # Ligne 4 : 2 graphiques en ligne : bar chart milieux et bar chart types déchets
     l4_col1, l4_col2 = st.columns(2)
     cell8 = l4_col1.container(border=True)
     cell9 = l4_col2.container(border=True)
 
-    # with cell8:
-    #    # Création du graphique en barres avec Plotly Express
-    #    fig3 = px.bar(
-    #        df_volume,
-    #        x="TYPE_MILIEU",
-    #        y="nb_collectes",
-    #        text="Nombre de Collectes",
-    #        title="Nombre de Collectes par Types de Milieux",
-    #        color="#48BEF0",
-    #        color_discrete_map=colors_map,
-    #        orientation='h',
-    #    )
-
-    # Amélioration du graphique
-    #    fig3.update_traces(texttemplate="%{text:.2s}", textposition="inside")
-    #    fig3.update_layout(
-    #        autosize=True,
-    #        uniformtext_minsize=8,
-    #        uniformtext_mode="hide",
-    #        xaxis_tickangle=90,
-    #        showlegend=False,
-    #    )
-
-    # Affichage du graphique
-    #    st.plotly_chart(fig3, use_container_width=True)
-
-    # with cell9:
-    #    # Création du graphique en barres avec Plotly Express
-    #    fig4 = px.bar(
-    #        df_volume,
-    #        x="TYPE_DECHET",
-    #        y="nb_collectes",
-    #        text="Nombre de Collectes",
-    #        title="Nombre de Collectes par Types de Déchets",
-    #        color="#48BEF0",
-    #        color_discrete_map=colors_map,
-    #    )
-
-    #    # Amélioration du graphique
-    #    fig4.update_traces(texttemplate="%{text:.2s}", textposition="inside")
-    #    fig4.update_layout(
-    #        autosize=True,
-    #        uniformtext_minsize=8,
-    #        uniformtext_mode="hide",
-    #        xaxis_tickangle=90,
-    #        showlegend=False,
-    #    )
-
-    #    # Affichage du graphique
-    #    st.plotly_chart(fig4, use_container_width=True)
-
     # Ligne 5 : 2 graphiques en ligne : line chart volume + nb collectes et Pie niveau de caractérisation
     l5_col1, l5_col2 = st.columns(2)
     cell10 = l5_col1.container(border=True)
     cell11 = l5_col2.container(border=True)
-
-    # with cell10:
-    # Création du graphique en barres volume + ligne nb de relevées avec Plotly Express
-
-    # with cell11:
-    # Création du graphique en donut avec Plotly Express
 
 
 # onglet Evenements a venir
