@@ -6,7 +6,8 @@ if "test" not in globals():
 
 @transformer
 def execute_transformer_action(df, *args, **kwargs) -> None:
-    """Fitler on distance"""
+    """Filtering table to get communes which are not too far from geo point
+    to avoid attributing foreign geopoints to french communes"""
     df = df.loc[df["distance"] < 0.1, :]
 
     return df

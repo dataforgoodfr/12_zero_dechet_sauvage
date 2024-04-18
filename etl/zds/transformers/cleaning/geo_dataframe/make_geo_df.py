@@ -11,8 +11,13 @@ if "test" not in globals():
 def transform(data, data_2, *args, **kwargs):
     """Turn cleaned dataframe into a geo dataframe"""
 
+    if "LIEU_COORD_GPS_X" in data.columns:
+        data.rename(columns={"LIEU_COORD_GPS_X": "latitude"}, inplace=True)
+    if "LIEU_COORD_GPS_Y" in data.columns:
+        data.rename(columns={"LIEU_COORD_GPS_X": "longitude"}, inplace=True)
+
     # Make GPS points
-    geometry = [Point(xy) for xy in zip(data.LIEU_COORD_GPS_X, data.LIEU_COORD_GPS_Y)]
+    geometry = [Point(xy) for xy in zip(data.latitude, data.longitude)]
 
     # Attach points to corrected data
     gdf_data_zds = gpd.GeoDataFrame(data, geometry=geometry, crs=data_2.crs)

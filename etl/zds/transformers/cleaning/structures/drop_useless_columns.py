@@ -1,5 +1,3 @@
-import geopandas as gpd
-
 if "transformer" not in globals():
     from mage_ai.data_preparation.decorators import transformer
 if "test" not in globals():
@@ -7,12 +5,18 @@ if "test" not in globals():
 
 
 @transformer
-def transform(data, data_2, *args, **kwargs):
-    """Join every data to make a new table"""
-
-    full_table = gpd.sjoin_nearest(data, data_2, distance_col="distance", how="left")
-
-    return full_table
+def transform(data, *args, **kwargs):
+    """remove useless columns"""
+    data = data.drop(columns=["geometry", "distance"])
+    data.rename(
+        columns={
+            "NOM_right": "COMMUNE",
+            "NOM_left": "NOM_structure",
+            "region_1": "region",
+        },
+        inplace=True,
+    )
+    return data
 
 
 @test
