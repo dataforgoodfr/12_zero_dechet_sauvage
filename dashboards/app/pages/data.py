@@ -566,6 +566,7 @@ with tab2:
         uniformtext_minsize=8,
         uniformtext_mode="hide",
         xaxis_tickangle=90,
+        legend=dict(x=1, y=0, xanchor="right", yanchor="bottom"),
     )
 
     # Suppression de la colonne categorie
@@ -601,7 +602,7 @@ with tab2:
         min_lon = df_map_data["LIEU_COORD_GPS_X"].min()
         max_lon = df_map_data["LIEU_COORD_GPS_X"].max()
 
-        map_paca = folium.Map(
+        map_data = folium.Map(
             location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
             zoom_start=8,
             tiles="OpenStreetMap",
@@ -615,7 +616,7 @@ with tab2:
             radius = row["nb_dechet"] / normalisation_facteur
 
             # Application d'une limite minimale pour le rayon si nécessaire
-            radius = max(radius, 1)
+            radius = max(radius, 5)
 
             folium.CircleMarker(
                 location=(row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]),
@@ -624,12 +625,12 @@ with tab2:
                 color="#3186cc",
                 fill=True,
                 fill_color="#3186cc",
-            ).add_to(map_paca)
+            ).add_to(map_data)
 
         # Affichage de la carte Folium dans Streamlit
         st_folium = st.components.v1.html
         st_folium(
-            folium.Figure().add_child(map_paca).render(),  # , width=1400
+            folium.Figure().add_child(map_data).render(),  # , width=1400
             height=750,
         )
 
