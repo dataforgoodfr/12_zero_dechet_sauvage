@@ -105,7 +105,7 @@ with tab1:
     poids_total = df_volume["POIDS_TOTAL"].sum()
     volume_total_categorise = df_volume[cols_volume].sum().sum()
     pct_volume_categorise = volume_total_categorise / volume_total
-    nb_collectes = len(df_volume)
+    nb_collectes_int = len(df_volume)
 
     # estimation du poids categorisée en utilisant pct_volume_categorise
     poids_total_categorise = round(poids_total * pct_volume_categorise)
@@ -162,8 +162,22 @@ with tab1:
 
     # 3ème métrique : nombre de relevés
     cell3 = l1_col3.container(border=True)
-    nb_collectes = f"{nb_collectes:,.0f}".replace(",", " ")
+    nb_collectes = f"{nb_collectes_int:,.0f}".replace(",", " ")
     cell3.metric("Nombre de collectes réalisées", f"{nb_collectes}")
+
+    # Message d'avertissement nb de collectes en dessous de 5
+    if nb_collectes_int == 1:
+        st.warning(
+            "⚠️ Il n'y a qu' "
+            + str(nb_collectes_int)
+            + " collecte considérées dans les données présentées."
+        )
+    elif nb_collectes_int <= 5:
+        st.warning(
+            "⚠️ Il n'y a que "
+            + str(nb_collectes_int)
+            + " collectes considérées dans les données présentées."
+        )
 
     # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
 
@@ -241,8 +255,8 @@ with tab1:
         color_discrete_map=colors_map,
     )
     fig3.update_layout(bargap=0.2, height=500)
-
     fig3.update_layout(yaxis_title="% du volume collecté", xaxis_title=None)
+    fig3.update_xaxes(tickangle=-45)
 
     # Afficher le graphique
     with st.container(border=True):
@@ -398,6 +412,20 @@ with tab1:
     nombre_collectes_filtered = f"{len(df_filtered):,.0f}".replace(",", " ")
     cell8.metric("Nombre de collectes", f"{nombre_collectes_filtered}")
 
+    # Message d'avertissement nb de collectes en dessous de 5
+    if len(df_filtered) == 1:
+        st.warning(
+            "⚠️ Il n'y a qu' "
+            + str(len(df_filtered))
+            + " collecte considérées dans les données présentées."
+        )
+    elif len(df_filtered) <= 5:
+        st.warning(
+            "⚠️ Il n'y a que "
+            + str(len(df_filtered))
+            + " collectes considérées dans les données présentées."
+        )
+
     # Étape 3: Preparation dataframe pour graphe
     # Copie des données pour transfo
     df_volume2 = df_filtered.copy()
@@ -430,41 +458,26 @@ with tab1:
     df_totals_sorted2 = df_totals_sorted2.sort_values(["Volume"], ascending=False)
 
     # Étape 4: Création du Graphique
-    if not df_filtered.empty:
-        fig4 = px.pie(
-            df_totals_sorted2,
-            values="Volume",
-            names="Matériau",
-            title="Répartition des matériaux en volume",
-            hole=0.4,
-            color="Matériau",
-            color_discrete_map=colors_map,
-        )
 
-        # Amélioration de l'affichage
-        fig4.update_traces(textinfo="percent")
-        fig4.update_layout(autosize=True, legend_title_text="Matériau")
-        with st.container(border=True):
-            st.plotly_chart(fig4, use_container_width=True)
-    else:
-        st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
-
-    # 2ème option de graphique, à choisir
     if not df_filtered.empty:
-        fig5 = px.treemap(
+        fig4 = px.treemap(
             df_totals_sorted2,
             path=["Matériau"],
             values="Volume",
-            title="2ème option : treemap de répartition des matériaux en volume",
+            title="Répartition des matériaux en volume",
             color="Matériau",
             color_discrete_map=colors_map,
         )
-        fig5.update_layout(
+        fig4.update_layout(
             margin=dict(t=50, l=25, r=25, b=25), autosize=True, height=600
         )
-        fig5.update_traces(textinfo="label+value")
+        fig4.update_traces(
+            textinfo="label+value",
+            textfont=dict(size=16, family="Arial", color="black"),
+        )
         with st.container(border=True):
-            st.plotly_chart(fig5, use_container_width=True)
+            st.plotly_chart(fig4, use_container_width=True)
+
     else:
         st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
 
@@ -500,15 +513,6 @@ with tab2:
         f"{volume_total_categorise} litres",
     )
 
-    # # 2ème métrique : poids
-    # cell2 = l1_col2.container(border=True)
-    # poids_total_categorise = f"{poids_total_categorise:,.0f}".replace(",", " ")
-    # # poids_total = f"{poids_total:,.0f}".replace(",", " ")
-    # cell2.metric(
-    #     "Poids estimé de déchets categorisés",
-    #     f"{poids_total_categorise} kg",
-    # )
-
     # 3ème métrique : nombre de relevés
     cell3 = l1_col3.container(border=True)
     # nb_collectes = f"{nb_collectes:,.0f}".replace(",", " ")
@@ -536,48 +540,27 @@ with tab2:
     # Preparation de la figure barplot
     df_top10_dechets.reset_index(inplace=True)
     # Création du graphique en barres avec Plotly Express
-    fig = px.bar(
-        df_top10_dechets,
-        x="categorie",
-        y="nb_dechet",
-        labels={"categorie": "Dechet", "nb_dechet": "Nombre total"},
-        title="Top 10 dechets ramassés",
-        color="Materiau",
-        color_discrete_map=colors_map,
-        category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
-        text_auto=True,
-    )
-    fig.update_layout(yaxis_type="log")
-    # Amélioration du visuel du graphique
 
-    fig.update_layout(
-        width=1400,
-        height=900,
-        uniformtext_minsize=8,
-        uniformtext_mode="hide",
-        xaxis_tickangle=90,
-    )
-
-    fig_alt = px.bar(
+    fig5 = px.bar(
         df_top10_dechets,
         y="categorie",
         x="nb_dechet",
         labels={"categorie": "Dechet", "nb_dechet": "Nombre total"},
-        title="Top 10 dechets ramassés (alternative)",
+        title="Top 10 dechets ramassés ",
         text="nb_dechet",
         color="Materiau",
         color_discrete_map=colors_map,
         category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
     )
-    fig_alt.update_layout(xaxis_type="log")
+    fig5.update_layout(xaxis_type="log")
     # Amélioration du visuel du graphique
-    fig_alt.update_traces(
+    fig5.update_traces(
         # texttemplate="%{text:.2f}",
         textposition="inside",
         textfont_color="white",
         textfont_size=20,
     )
-    fig_alt.update_layout(
+    fig5.update_layout(
         width=1400,
         height=900,
         uniformtext_minsize=8,
@@ -589,17 +572,7 @@ with tab2:
     del df_top10_dechets["Materiau"]
 
     with st.container(border=True):
-        col1, col2 = st.columns([3, 1])
-
-        with col1:
-            st.plotly_chart(fig, use_container_width=True)
-            st.plotly_chart(fig_alt, use_container_width=True)
-
-        with col2:
-            st.write("Nombre ramassé pour chaque déchet")
-            for index, row in df_top10_dechets.iterrows():
-                value = f"{row['nb_dechet']:,.0f}".replace(",", " ")
-                st.metric(label=row["categorie"], value=value)
+        st.plotly_chart(fig5, use_container_width=True)
 
         st.write("")
         st.caption(
