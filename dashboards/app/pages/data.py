@@ -53,6 +53,7 @@ if ("df_other_filtre" not in st.session_state) or (
             dans l'onglet Home pour afficher les données. :warning:
             """
     )
+    st.stop()
 else:
     df_other = st.session_state["df_other_filtre"].copy()
     df_nb_dechet = st.session_state["df_nb_dechets_filtre"].copy()
