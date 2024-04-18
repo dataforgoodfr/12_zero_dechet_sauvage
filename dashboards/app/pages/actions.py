@@ -166,6 +166,45 @@ with tab1:
     cell3.metric("Nombre de structures", f"{nombre_structures}")
 
     # Ligne 2 : Carte
+    with st.container():
+        # Création du DataFrame de travail pour la carte
+        df_map_evnenements = df_other_filtre.copy()
+        # Création de la carte centrée autour d'une localisation
+        # Calcul des limites à partir de vos données
+        min_lat = df_map_evnenements["LIEU_COORD_GPS_Y"].min()
+        max_lat = df_map_evnenements["LIEU_COORD_GPS_Y"].max()
+        min_lon = df_map_evnenements["LIEU_COORD_GPS_X"].min()
+        max_lon = df_map_evnenements["LIEU_COORD_GPS_X"].max()
+
+        map_evenements = folium.Map(
+            location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
+            zoom_start=8,
+            tiles="OpenStreetMap",
+        )
+        # Facteur de normalisation pour ajuster la taille des bulles
+        normalisation_facteur = 100
+        for index, row in df_map_evnenements.iterrows():
+            # Application de la normalisation
+            radius = row["NB_PARTICIPANTS"] / normalisation_facteur
+
+            # Application d'une limite minimale pour le rayon si nécessaire
+            radius = max(radius, 5)
+
+            folium.CircleMarker(
+                location=(row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]),
+                radius=radius,  # Utilisation du rayon ajusté
+                popup=f"{row['NOM_ZONE']}, {row['LIEU_VILLE']}, {row['NOM_EVENEMENT']}, {row['DATE']}  : nombre de participants : {row['NB_PARTICIPANTS']}",
+                color="#3186cc",
+                fill=True,
+                fill_color="#3186cc",
+            ).add_to(map_evenements)
+
+        # Affichage de la carte Folium dans Streamlit
+        st_folium = st.components.v1.html
+        st_folium(
+            folium.Figure().add_child(map_evenements).render(),  # , width=1400
+            height=750,
+        )
 
     # Ligne 3 : 1 graphique donut chart et un graphique barplot horizontal nombre de relevés par types de milieux
     # préparation du dataframe et figure niveaux de caracterisation
