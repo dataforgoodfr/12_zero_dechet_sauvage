@@ -1,5 +1,19 @@
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
+
+
+# load and apply CSS styles
+def load_css(file_name: str) -> None:
+    with Path.open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+# Load and apply the CSS file at the start of your app
+# local debug
+load_css("style.css")
+
 
 st.markdown(
     """
