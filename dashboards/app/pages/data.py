@@ -196,8 +196,12 @@ with tab1:
             color_discrete_map=colors_map,
         )
 
-        # Amélioration de l'affichage
-        fig.update_traces(textinfo="percent")
+        # Réglage du texte affiché, format et taille de police
+        fig.update_traces(
+            textinfo="percent",
+            texttemplate="%{percent:.0%}",
+            textfont_size=14,
+        )
         fig.update_layout(autosize=True, legend_title_text="Matériau")
 
         # Affichage du graphique
@@ -216,13 +220,20 @@ with tab1:
         )
 
         # Amélioration du graphique
-        fig2.update_traces(texttemplate="%{text:.2s}", textposition="inside")
+        fig2.update_traces(
+            texttemplate="%{text:.2s}",
+            textposition="inside",
+            textfont_size=14,
+        )
         fig2.update_layout(
             autosize=True,
-            uniformtext_minsize=8,
+            # uniformtext_minsize=8,
             uniformtext_mode="hide",
-            xaxis_tickangle=90,
+            xaxis_tickangle=-45,
             showlegend=False,
+            yaxis_showgrid=False,
+            xaxis_title=None,
+            yaxis_title=None,
         )
 
         # Affichage du graphique
@@ -252,16 +263,27 @@ with tab1:
         barnorm="percent",
         title="Part de chaque matériau en volume selon le milieu de collecte",
         color_discrete_map=colors_map,
+        text_auto=True,
     )
-    fig3.update_layout(bargap=0.2, height=500)
-    fig3.update_layout(yaxis_title="% du volume collecté", xaxis_title=None)
-    fig3.update_xaxes(tickangle=-45)
+    # Format d'affichage
+    fig3.update_layout(
+        bargap=0.2,
+        height=600,
+        yaxis_title="Part du volume collecté (en %)",
+        xaxis_title=None,
+    )
+    fig3.update_xaxes(tickangle=-30)
+    # Etiquettes et formats de nombres
+    fig3.update_traces(
+        texttemplate="%{y:.0f}%",
+        textposition="inside",
+        hovertemplate="<b>%{x}</b><br>Part du volume collecté dans ce milieu: %{y:.0f} %",
+        textfont_size=14,
+    )
 
     # Afficher le graphique
     with st.container(border=True):
         st.plotly_chart(fig3, use_container_width=True)
-
-    st.divider()
 
     # Ligne 3 : Graphe par milieu , lieu et année
     st.write("**Détail par milieu, lieu ou année**")
@@ -455,6 +477,11 @@ with tab1:
     # Grouper par type de matériau pour les visualisations
     df_totals_sorted2 = df_volume2.groupby(["Matériau"], as_index=False)["Volume"].sum()
     df_totals_sorted2 = df_totals_sorted2.sort_values(["Volume"], ascending=False)
+    df_totals_sorted2["Volume_"] = (
+        df_totals_sorted2["Volume"]
+        .apply(lambda x: "{0:,.0f}".format(x))
+        .replace(",", " ")
+    )
 
     # Étape 4: Création du Graphique
 
@@ -472,8 +499,11 @@ with tab1:
         )
         fig4.update_traces(
             textinfo="label+value",
-            textfont=dict(size=16, family="Arial", color="black"),
+            texttemplate="<b>%{label}</b><br>%{value:.0f} litres",
+            textfont=dict(size=16),
+            hovertemplate="<b>%{label}</b><br>Volume: %{value:.0f}",
         )
+
         with st.container(border=True):
             st.plotly_chart(fig4, use_container_width=True)
 

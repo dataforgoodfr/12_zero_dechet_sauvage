@@ -3,11 +3,20 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+# Configuration de la page
+st.set_page_config(
+    layout="wide",
+    page_title="Dashboard Zéro Déchet Sauvage",
+    page_icon=":dolphin:",
+    menu_items={
+        "About": "https://www.zero-dechet-sauvage.org/",
+    },
+)
 
 # load and apply CSS styles
 def load_css(file_name: str) -> None:
-    with Path.open(file_name) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    with Path(file_name).open() as f:
+        st.markdown(f"<style>{f.readline()}</style>", unsafe_allow_html=True)
 
 
 # Load and apply the CSS file at the start of your app
