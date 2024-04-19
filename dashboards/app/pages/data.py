@@ -24,9 +24,7 @@ Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à
 )
 
 if filtre_niveau == "" and filtre_collectivite == "":
-    st.write(
-        "Aucune sélection de territoire n'ayant été effectuée les données sont globales"
-    )
+    st.write("Aucune sélection de territoire n'a été effectuée")
 else:
     st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
@@ -164,7 +162,7 @@ with tab1:
     # 3ème métrique : nombre de relevés
     cell3 = l1_col3.container(border=True)
     nb_collectes = f"{nb_collectes_int:,.0f}".replace(",", " ")
-    cell3.metric("Nombre de collectes réalisées", f"{nb_collectes}")
+    cell3.metric("Nombre de collectes comptabilisées", f"{nb_collectes}")
 
     # Message d'avertissement nb de collectes en dessous de 5
     if nb_collectes_int == 1:
@@ -516,8 +514,21 @@ with tab2:
 
     # 3ème métrique : nombre de relevés
     cell3 = l1_col3.container(border=True)
-    # nb_collectes = f"{nb_collectes:,.0f}".replace(",", " ")
     cell3.metric("Nombre de collectes comptabilisées", f"{nb_collectes}")
+
+    # Message d'avertissement nb de collectes en dessous de 5
+    if nb_collectes_int == 1:
+        st.warning(
+            "⚠️ Il n'y a qu' "
+            + str(nb_collectes)
+            + " collecte considérées dans les données présentées."
+        )
+    elif nb_collectes_int <= 5:
+        st.warning(
+            "⚠️ Il n'y a que "
+            + str(nb_collectes)
+            + " collectes considérées dans les données présentées."
+        )
 
     # Ligne 2 : graphique top déchets
 
@@ -767,10 +778,11 @@ with tab3:
 
     nb_dechet_marque = marque_df["nb_dechet"].sum()
     nb_marques = len(top_marque_df["Marque"].unique())
+    collectes = len(df_filtered)
 
     # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
 
-    l1_col1, l1_col2 = st.columns(2)
+    l1_col1, l1_col2, l1_col3 = st.columns(3)
     # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
     # 1ère métrique : volume total de déchets collectés
     cell1 = l1_col1.container(border=True)
@@ -789,6 +801,30 @@ with tab3:
         "Nombre de secteurs identifiés lors des collectes",
         f"{nb_secteurs} secteurs",
     )
+
+    # 3ème métrique : nombre de collectes
+    cell3 = l1_col3.container(border=True)
+    collectes_formatted = f"{collectes:,.0f}".replace(",", " ")
+    cell3.metric(
+        "Nombre de collectes comptabilisées",
+        f"{collectes_formatted} collectes",
+    )
+
+    # Message d'avertissement nb de collectes en dessous de 5
+    if collectes == 1:
+        st.warning(
+            "⚠️ Il n'y a qu' "
+            + str(collectes)
+            + " collecte considérées dans les données présentées."
+        )
+    elif collectes <= 5:
+        st.warning(
+            "⚠️ Il n'y a que "
+            + str(collectes)
+            + " collectes considérées dans les données présentées."
+        )
+
+    # Ligne 2 : 3 cellules avec les indicateurs clés en bas de page
     colors_map_secteur = {
         "AGRICULTURE": "#156644",
         "ALIMENTATION": "#F7D156",
@@ -856,32 +892,22 @@ with tab3:
         "Nombre de marques identifiés lors des collectes",
         f"{nb_marques} marques",
     )
-    colors_map_marque = {
-        "HEINEKEN": "#F7D156",
-        "COCA-COLA": "#F7D156",
-        "MARLBORO": "#E9003F",
-        "CRISTALINE": "#F7D156",
-        "PHILIP MORRIS": "#E9003F",
-        "CAPRI-SUN": "#F7D156",
-        "OASIS": "#F7D156",
-        "1664": "#F7D156",
-        "WINSTON": "#E9003F",
-        "RED BULL": "#F7D156",
-    }
 
     fig_marque = px.bar(
-        top_marque_df.tail(10).sort_values(by="Nombre de déchets", ascending=False),
+        top_marque_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
         x="Nombre de déchets",
         y="Marque",
         title="Top 10 des marques les plus ramassées",
-        color="Marque",
+        color_discrete_sequence=["#1951A0"],
         orientation="h",
-        color_discrete_map=colors_map_marque,
         text_auto=False,
+        text=top_marque_df.tail(10)["Marque"]
+        + ": "
+        + top_marque_df.tail(10)["Nombre de déchets"].astype(str),
     )
     # add log scale to x axis
     fig_marque.update_layout(xaxis_type="log")
-    fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
+    #    fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
     fig_marque.update_layout(
         width=800,
