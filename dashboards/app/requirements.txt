@@ -5,6 +5,3 @@ duckdb==0.10.0
 streamlit==1.32.2
 streamlit-folium==0.19.1
 plotly==5.19.0
-streamlit-dynamic-filters==0.1.6
-streamlit-authenticator==0.3.2
-st-pages==0.4.5

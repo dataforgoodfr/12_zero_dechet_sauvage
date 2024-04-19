@@ -164,6 +164,3 @@ cython_debug/
 
 # Dossier sauvegarde Thibaut
 TG_sauv
-
-# Streamlit: credentials
-dashboards/app/.credentials.yml
