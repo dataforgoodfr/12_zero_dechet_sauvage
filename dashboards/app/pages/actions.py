@@ -1,12 +1,12 @@
-import streamlit as st
-import altair as alt
 import pandas as pd
-import duckdb
+from datetime import datetime, timedelta
+import plotly.express as px
+import streamlit as st
+import folium
 
-st.markdown(
-    """# 👊 Actions
-*Quels sont les actions mises en place par les acteurs ?*
-"""
+# Page setting : wide layout
+st.set_page_config(
+    layout="wide", page_title="Dashboard Zéro Déchet Sauvage : onglet Actions"
 )
 
 # Session state
