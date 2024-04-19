@@ -52,14 +52,18 @@ def load_df_other():
 
 
 # Appel des fonctions pour charger les données
-df_nb_dechet = load_df_nb_dechet()
-# df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
 
-# Appeler le dataframe filtré depuis le session state
-if "df_other_filtre" in st.session_state:
-    df_other = st.session_state["df_other_filtre"].copy()
+# Appeler les dataframes volumes et nb_dechets filtré depuis le session state
+if "df_other_filtre" not in st.session_state:
+    st.write(
+        """
+            ### :warning: Merci de sélectionner une collectivité\
+            dans l'onglet Home pour afficher les données. :warning:
+            """
+    )
+    st.stop()
 else:
-    df_other = load_df_other()
+    df_other = st.session_state["df_other_filtre"].copy()
 
 # Titre de l'onglet
 st.markdown(
@@ -239,6 +243,7 @@ with tab1:
         text="counts",
         orientation="h",
     )
+    fig2_actions.update_layout(xaxis_title="", yaxis_title="")
 
     l3_col1, l3_col2 = st.columns(2)
     cell4 = l3_col1.container(border=True)
