@@ -4,3 +4,5 @@ folium==0.16.0
 duckdb==0.10.0
 streamlit==1.32.2
 streamlit-folium
+folium==0.15.1
+plotly==5.19.0
