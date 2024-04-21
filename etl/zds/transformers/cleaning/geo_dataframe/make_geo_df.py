@@ -12,9 +12,9 @@ def transform(data, data_2, *args, **kwargs):
     """Turn cleaned dataframe into a geo dataframe"""
 
     if "LIEU_COORD_GPS_X" in data.columns:
-        data.rename(columns={"LIEU_COORD_GPS_X": "latitude"}, inplace=True)
-    if "LIEU_COORD_GPS_Y" in data.columns:
         data.rename(columns={"LIEU_COORD_GPS_X": "longitude"}, inplace=True)
+    if "LIEU_COORD_GPS_Y" in data.columns:
+        data.rename(columns={"LIEU_COORD_GPS_Y": "latitude"}, inplace=True)
 
     # Make GPS points
     geometry = [Point(xy) for xy in zip(data.latitude, data.longitude)]
