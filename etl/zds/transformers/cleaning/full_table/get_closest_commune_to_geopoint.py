@@ -13,8 +13,8 @@ def transform(data, data_2, *args, **kwargs):
     data -- shapefile
     data_2 -- geo_fataframe
     """
-    data = data[~data["latitude"].isna()]
-    full_table = gpd.sjoin_nearest(data, data_2, distance_col="distance", how="left")
+    data_2 = data_2[~data_2["latitude"].isna()]
+    full_table = gpd.sjoin_nearest(data_2, data, distance_col="distance", how="left")
 
     return full_table
 
