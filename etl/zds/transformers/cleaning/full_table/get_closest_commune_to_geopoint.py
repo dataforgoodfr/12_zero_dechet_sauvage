@@ -10,8 +10,8 @@ if "test" not in globals():
 def transform(data, data_2, *args, **kwargs):
     """Join table data with coordinates to closest commune
 
-    data -- geo_dataframe
-    data_2 -- shapefile
+    data -- shapefile
+    data_2 -- geo_fataframe
     """
     data = data[~data["latitude"].isna()]
     full_table = gpd.sjoin_nearest(data, data_2, distance_col="distance", how="left")
