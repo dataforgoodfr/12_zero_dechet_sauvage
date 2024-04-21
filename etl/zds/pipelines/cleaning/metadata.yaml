@@ -73,7 +73,7 @@ blocks:
   configuration: {}
   downstream_blocks:
   - cleaning/geo_dataframe/make_geo_df
-  - cleaning/full_table/make_table
+  - cleaning/full_table/get_closest_commune_to_geopoint
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -89,7 +89,7 @@ blocks:
   color: null
   configuration: {}
   downstream_blocks:
-  - cleaning/full_table/make_table
+  - cleaning/full_table/get_closest_commune_to_geopoint
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -118,7 +118,7 @@ blocks:
   timeout: null
   type: transformer
   upstream_blocks:
-  - cleaning/full_table/make_table
+  - cleaning/full_table/get_closest_commune_to_geopoint
   uuid: cleaning/full_table/filter_rows_on_distance
 - all_upstream_blocks_executed: true
   color: null
@@ -129,7 +129,7 @@ blocks:
   executor_type: local_python
   has_callback: false
   language: python
-  name: cleaning/full_table/make_table
+  name: cleaning/full_table/get_closest_commune_to_geopoint
   retry_config: null
   status: executed
   timeout: null
@@ -137,7 +137,7 @@ blocks:
   upstream_blocks:
   - open_data/read_communes_shapefile
   - cleaning/geo_dataframe/make_geo_df
-  uuid: cleaning/full_table/make_table
+  uuid: cleaning/full_table/get_closest_commune_to_geopoint
 - all_upstream_blocks_executed: true
   color: null
   configuration: {}
