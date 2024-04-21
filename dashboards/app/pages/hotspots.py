@@ -19,18 +19,10 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static, st_folium
 
-######################
-# Page configuration #
-######################
-st.set_page_config(
-    page_title="Hotspots",
-    layout="wide",
-    initial_sidebar_state="expanded"
-    )
 
-######################################
-# 0/ Parameters for the hotspots tab #
-######################################
+###################################
+# Parameters for the hotspots tab #
+###################################
 
 # Data path for the df_nb_dechets
 NB_DECHETS_PATH = (
@@ -71,32 +63,64 @@ DATA_SPOT = (
 ADOPTED_SPOTS_FILTERS_PARAMS = [
     {
         "filter_col": "REGION",
-        "filter_message": "Sélectionnez une région (par défaut votre région) :"
-        },
-    {
-        "filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"
-        },
-    {
-        "filter_col":"ANNEE", "filter_message": "Sélectionnez une année :"
-        }
+        "filter_message": "Sélectionnez une région (par défaut votre région) :",
+    },
+    {"filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"},
+    {"filter_col": "ANNEE", "filter_message": "Sélectionnez une année :"},
 ]
 
 # Params for the density graph filters
 DENSITY_FILTERS_PARAMS = [
     {
         "filter_col": "REGION",
-        "filter_message": "Sélectionnez une région (par défaut votre région) :"
-        },
-    {
-        "filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"
-        },
-    {
-        "filter_col": "TYPE_LIEU2", "filter_message": "Sélectionnez un lieu :"
-        },
-    {
-        "filter_col":"ANNEE", "filter_message": "Sélectionnez une année :"
-        }
+        "filter_message": "Sélectionnez une région (par défaut votre région) :",
+    },
+    {"filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"},
+    {"filter_col": "TYPE_LIEU2", "filter_message": "Sélectionnez un lieu :"},
+    {"filter_col": "ANNEE", "filter_message": "Sélectionnez une année :"},
 ]
+
+
+#########################
+# 0/ Page configuration #
+#########################
+
+# Session state
+session_state = st.session_state
+
+# Récupérer les filtres géographiques s'ils ont été fixés
+filtre_niveau = st.session_state.get("niveau_admin", "")
+filtre_collectivite = st.session_state.get("collectivite", "")
+
+# Set the streamlit page config
+st.set_page_config(
+    page_title="Hotspots", layout="wide", initial_sidebar_state="expanded"
+)
+
+# Execute code page if the authentication was complete
+if st.session_state["authentication_status"]:
+    # Check if the filtre for "niveau administratif" and for the "collectivité" were selected in the home tab
+    if filtre_niveau == "" and filtre_collectivite == "":
+        st.write("Aucune sélection de territoire n'a été effectuée")
+
+    else:
+        st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
+
+    # Call the dataframes data_zds and nb_dechets filtered from the session state
+    if ("df_other_filtre" not in st.session_state) or (
+        "df_nb_dechets_filtre" not in st.session_state
+    ):
+        st.write(
+            """
+                ### :warning: Merci de sélectionner une collectivité\
+                dans l'onglet Home pour afficher les données. :warning:
+                """
+        )
+        st.stop()
+    else:
+        data_zds = st.session_state["df_other_filtre"].copy()
+        df_nb_dechet = st.session_state["df_nb_dechets_filtre"].copy()
+
 
 ###########################################################################
 # 0 bis/ Fonctions utilitaires : peuvent être utilisées par tout le monde #
@@ -120,13 +144,17 @@ def construct_query_string(bound_word=" and ", **params) -> str:
             # Check if the parameter value is of type int
             if isinstance(param, int):
                 # If it's an integer, use integer comparison
-                query_sub_string = f'{param_key} == {param}'
+                query_sub_string = f"{param_key} == {param}"
 
             # Check if the parameter value is a list.
             elif isinstance(param, list):
                 # Handle list of values for multiselect queries.
-                param_values = ', '.join([f'"{value}"' for value in param])  # Prepare string of values enclosed in quotes.
-                query_sub_string = f'{param_key} in [{param_values}]'       # Use 'in' operator for lists.
+                param_values = ", ".join(
+                    [f'"{value}"' for value in param]
+                )  # Prepare string of values enclosed in quotes.
+                query_sub_string = (
+                    f"{param_key} in [{param_values}]"  # Use 'in' operator for lists.
+                )
 
             else:
                 # Create a query sub-string for other data types
@@ -142,7 +170,7 @@ def construct_query_string(bound_word=" and ", **params) -> str:
 def scalable_filters_single_select(
     data_zds: pd.DataFrame,
     filters_params=ADOPTED_SPOTS_FILTERS_PARAMS,
-    base_key="default_key"
+    base_key="default_key",
 ) -> dict:
     """Create streamlit select box filters as specified by the filters_params list.
     Create the filter dict used to filter the hotspots maps accordingly."""
@@ -175,10 +203,11 @@ def scalable_filters_single_select(
 
     return filter_dict
 
+
 def scalable_filters_multi_select(
     data_zds: pd.DataFrame,
     filters_params=DENSITY_FILTERS_PARAMS,
-    base_key="default_key"
+    base_key="default_key",
 ) -> dict:
     """Create streamlit select box filters as specified by the filters_params list.
     Create the filter dict used to filter the hotspots maps accordingly."""
@@ -195,20 +224,26 @@ def scalable_filters_multi_select(
         column, message = filter_params["filter_col"], filter_params["filter_message"]
 
         # Get unique values, convert to string and sort them
-        sorted_values = sorted(data_zds[column].dropna().astype(str).unique(), reverse=True)
+        sorted_values = sorted(
+            data_zds[column].dropna().astype(str).unique(), reverse=True
+        )
 
         # Generate a unique key for each multiselect widget
         unique_key = f"{base_key}_{column}_{i}"
 
         # Create the Streamlit multiselect with sorted values and a unique key
-        selected_values = columns[i].multiselect(message, sorted_values,
-                                                 default=sorted_values[0] if sorted_values else [],
-                                                 key=unique_key)
+        selected_values = columns[i].multiselect(
+            message,
+            sorted_values,
+            default=sorted_values[0] if sorted_values else [],
+            key=unique_key,
+        )
 
         # Fill the filter dict with the selected values
         filter_dict[column] = selected_values
 
     return filter_dict
+
 
 ##################
 # 1/ Import data #
@@ -218,21 +253,22 @@ def scalable_filters_multi_select(
 regions = gpd.read_file(REGION_GEOJSON_PATH)
 
 # nb dechets : Unused for now
-df_nb_dechets = pd.read_csv(NB_DECHETS_PATH)
+# df_nb_dechets = pd.read_csv(NB_DECHETS_PATH)
 
 # data_zds : main source of data for the hotspots tab
-data_zds = pd.read_csv(DATA_ZDS_PATH)
+# /!\ Already loaded from the streamlit session state defined in the home tab
+# data_zds = pd.read_csv(DATA_ZDS_PATH)
 
 # spot:
-#spot = pd.read_excel(DATA_SPOT)
+# spot = pd.read_excel(DATA_SPOT)
 
 # correction : corrected data for density map
 correction = pd.read_excel(CORRECTION)
 
 # Fusion and correction
-data_correct = pd.merge(data_zds, correction, on='ID_RELEVE', how='left')
-data_correct = data_correct[data_correct['SURFACE_OK'] == 'OUI']
-data_zds = data_correct[data_correct['VOLUME_TOTAL'] > 0]
+data_correct = pd.merge(data_zds, correction, on="ID_RELEVE", how="left")
+data_correct = data_correct[data_correct["SURFACE_OK"] == "OUI"]
+data_zds = data_correct[data_correct["VOLUME_TOTAL"] > 0]
 
 ##################
 # 2/ Hotspot tab #
@@ -252,7 +288,6 @@ st.markdown("""# 🔥 Hotspots : **Quelles sont les zones les plus impactées ?*
 ####################################################################################
 
 
-
 def density_lieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
     """
     Calculate and display the density of waste by type of location ('LIEU') for a selected region.
@@ -263,37 +298,47 @@ def density_lieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
 
     if selected_regions is not None:
         # Filter data for selected region
-        data_selected_region = data_zds[data_zds['LIEU_REGION'].isin(selected_regions)]
+        data_selected_region = data_zds[data_zds["LIEU_REGION"].isin(selected_regions)]
 
         # Calculate waste volume sum for each 'LIEU'
-        volume_total_lieu = data_selected_region.groupby('TYPE_LIEU2')['VOLUME_TOTAL'].sum().reset_index()
+        volume_total_lieu = (
+            data_selected_region.groupby("TYPE_LIEU2")["VOLUME_TOTAL"]
+            .sum()
+            .reset_index()
+        )
 
         # Remove duplicate data and calculate SURFACE total
-        data_unique = data_selected_region.drop_duplicates(subset=['LIEU_COORD_GPS'])
-        surface_total_lieu = data_unique.groupby('TYPE_LIEU2')['SURFACE'].sum().reset_index()
+        data_unique = data_selected_region.drop_duplicates(subset=["LIEU_COORD_GPS"])
+        surface_total_lieu = (
+            data_unique.groupby("TYPE_LIEU2")["SURFACE"].sum().reset_index()
+        )
 
         # Merge volume and surface data for 'LIEU', calculate density, and sort
-        data_lieu = pd.merge(volume_total_lieu, surface_total_lieu, on='TYPE_LIEU2')
-        data_lieu['DENSITE_LIEU'] = (data_lieu['VOLUME_TOTAL'] / data_lieu['SURFACE']).round(5)
+        data_lieu = pd.merge(volume_total_lieu, surface_total_lieu, on="TYPE_LIEU2")
+        data_lieu["DENSITE_LIEU"] = (
+            data_lieu["VOLUME_TOTAL"] / data_lieu["SURFACE"]
+        ).round(5)
         data_lieu_sorted = data_lieu.sort_values(by="DENSITE_LIEU", ascending=False)
 
         # Display sorted DataFrame with specific configuration for 'data_lieu_sorted'
-        lieu = st.markdown('##### Densité des déchets par type de lieu (L/m2)')
-        st.dataframe(data_lieu_sorted,
-                    column_order=("TYPE_LIEU2", "DENSITE_LIEU"),
-                    hide_index=True,
-                    width=None,
-                    column_config={
-                        "TYPE_LIEU2": st.column_config.TextColumn(
-                            "Lieu",
-                        ),
-                        "DENSITE_LIEU": st.column_config.ProgressColumn(
-                            "Densité",
-                            format="%f",
-                            min_value=0,
-                            max_value=max(data_lieu_sorted['DENSITE_LIEU']),
-                        )}
-                    )
+        lieu = st.markdown("##### Densité des déchets par type de lieu (L/m2)")
+        st.dataframe(
+            data_lieu_sorted,
+            column_order=("TYPE_LIEU2", "DENSITE_LIEU"),
+            hide_index=True,
+            width=None,
+            column_config={
+                "TYPE_LIEU2": st.column_config.TextColumn(
+                    "Lieu",
+                ),
+                "DENSITE_LIEU": st.column_config.ProgressColumn(
+                    "Densité",
+                    format="%f",
+                    min_value=0,
+                    max_value=max(data_lieu_sorted["DENSITE_LIEU"]),
+                ),
+            },
+        )
 
         return lieu
 
@@ -307,37 +352,51 @@ def density_milieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
 
     if selected_regions is not None:
         # Filter data for selected region
-        data_selected_region = data_zds[data_zds['LIEU_REGION'].isin(selected_regions)]
+        data_selected_region = data_zds[data_zds["LIEU_REGION"].isin(selected_regions)]
 
         # Calculate waste volume sum for each 'MILIEU'
-        volume_total_milieu = data_selected_region.groupby('TYPE_MILIEU')['VOLUME_TOTAL'].sum().reset_index()
+        volume_total_milieu = (
+            data_selected_region.groupby("TYPE_MILIEU")["VOLUME_TOTAL"]
+            .sum()
+            .reset_index()
+        )
 
         # Remove duplicate data and calculate SURFACE total
-        data_unique = data_selected_region.drop_duplicates(subset=['LIEU_COORD_GPS'])
-        surface_total_milieu = data_unique.groupby('TYPE_MILIEU')['SURFACE'].sum().reset_index()
+        data_unique = data_selected_region.drop_duplicates(subset=["LIEU_COORD_GPS"])
+        surface_total_milieu = (
+            data_unique.groupby("TYPE_MILIEU")["SURFACE"].sum().reset_index()
+        )
 
         # Merge volume and surface data for 'MILIEU', calculate density, and sort
-        data_milieu = pd.merge(volume_total_milieu, surface_total_milieu, on='TYPE_MILIEU')
-        data_milieu['DENSITE_MILIEU'] = (data_milieu['VOLUME_TOTAL'] / data_milieu['SURFACE']).round(5)
-        data_milieu_sorted = data_milieu.sort_values(by="DENSITE_MILIEU", ascending=False)
+        data_milieu = pd.merge(
+            volume_total_milieu, surface_total_milieu, on="TYPE_MILIEU"
+        )
+        data_milieu["DENSITE_MILIEU"] = (
+            data_milieu["VOLUME_TOTAL"] / data_milieu["SURFACE"]
+        ).round(5)
+        data_milieu_sorted = data_milieu.sort_values(
+            by="DENSITE_MILIEU", ascending=False
+        )
 
         # Display sorted DataFrame with specific configuration for 'data_milieu_sorted'
-        milieu = st.markdown('##### Densité des déchets par type de milieu (L/m2)')
-        st.dataframe(data_milieu_sorted,
-                    column_order=("TYPE_MILIEU", "DENSITE_MILIEU"),
-                    hide_index=True,
-                    width=None,
-                    column_config={
-                        "TYPE_MILIEU": st.column_config.TextColumn(
-                            "Milieu",
-                        ),
-                        "DENSITE_MILIEU": st.column_config.ProgressColumn(
-                            "Densité",
-                            format="%f",
-                            min_value=0,
-                            max_value=max(data_milieu_sorted['DENSITE_MILIEU']),
-                        )}
-                    )
+        milieu = st.markdown("##### Densité des déchets par type de milieu (L/m2)")
+        st.dataframe(
+            data_milieu_sorted,
+            column_order=("TYPE_MILIEU", "DENSITE_MILIEU"),
+            hide_index=True,
+            width=None,
+            column_config={
+                "TYPE_MILIEU": st.column_config.TextColumn(
+                    "Milieu",
+                ),
+                "DENSITE_MILIEU": st.column_config.ProgressColumn(
+                    "Densité",
+                    format="%f",
+                    min_value=0,
+                    max_value=max(data_milieu_sorted["DENSITE_MILIEU"]),
+                ),
+            },
+        )
 
         return milieu
 
@@ -346,62 +405,76 @@ def density_milieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
 # 2.3/ Carte choropleth densité de déchets en France #
 ######################################################
 
+
 def make_density_choropleth(data_zds, region_geojson_path):
     # Load all regions from the GeoJSON file
     regions_geojson = requests.get(region_geojson_path).json()
 
     # Extract region names from GeoJSON for later comparison
-    regions_from_geojson = [feature['properties']['nom'] for feature in regions_geojson['features']]
+    regions_from_geojson = [
+        feature["properties"]["nom"] for feature in regions_geojson["features"]
+    ]
 
     # Create a DataFrame from the GeoJSON region names
-    regions_df = pd.DataFrame(regions_from_geojson, columns=['nom'])
+    regions_df = pd.DataFrame(regions_from_geojson, columns=["nom"])
 
     # Data preparation
     # Calculate the total VOLUME_TOTAL for each region without removing duplicate data
-    volume_total_sums = data_zds.groupby('LIEU_REGION')['VOLUME_TOTAL'].sum().reset_index()
+    volume_total_sums = (
+        data_zds.groupby("LIEU_REGION")["VOLUME_TOTAL"].sum().reset_index()
+    )
 
     # Merge the waste data and the geographical data
-    volume_total_sums = pd.merge(regions_df, volume_total_sums, left_on='nom', right_on='LIEU_REGION', how='left')
+    volume_total_sums = pd.merge(
+        regions_df, volume_total_sums, left_on="nom", right_on="LIEU_REGION", how="left"
+    )
 
     # Identify regions with no available data
-    regions_no_data = volume_total_sums[volume_total_sums['VOLUME_TOTAL'].isna()]['nom'].tolist()
+    regions_no_data = volume_total_sums[volume_total_sums["VOLUME_TOTAL"].isna()][
+        "nom"
+    ].tolist()
     if regions_no_data:
-        st.info(f"Aucune donnée disponible pour les régions suivantes : {', '.join(regions_no_data)}", icon="⚠️")
+        st.info(
+            f"Aucune donnée disponible pour les régions suivantes : {', '.join(regions_no_data)}",
+            icon="⚠️",
+        )
 
     # Drop rows containing NaN to avoid errors in the choropleth
     volume_total_sums.dropna(inplace=True)
 
     # Remove duplicate data and calculate SURFACE total
-    data_unique = data_zds.drop_duplicates(subset=['LIEU_COORD_GPS'])
-    surface_total_sums = data_unique.groupby('LIEU_REGION')['SURFACE'].sum().reset_index()
+    data_unique = data_zds.drop_duplicates(subset=["LIEU_COORD_GPS"])
+    surface_total_sums = (
+        data_unique.groupby("LIEU_REGION")["SURFACE"].sum().reset_index()
+    )
 
     # Combine two datasets and calculate DENSITE
-    data_choropleth_sums = pd.merge(volume_total_sums, surface_total_sums, on='LIEU_REGION')
-    data_choropleth_sums['DENSITE'] = data_choropleth_sums['VOLUME_TOTAL'] / data_choropleth_sums['SURFACE']
+    data_choropleth_sums = pd.merge(
+        volume_total_sums, surface_total_sums, on="LIEU_REGION"
+    )
+    data_choropleth_sums["DENSITE"] = (
+        data_choropleth_sums["VOLUME_TOTAL"] / data_choropleth_sums["SURFACE"]
+    )
 
     # Set bins for the choropleth
-    min_density = data_choropleth_sums['DENSITE'].min()
-    max_density = data_choropleth_sums['DENSITE'].max()
+    min_density = data_choropleth_sums["DENSITE"].min()
+    max_density = data_choropleth_sums["DENSITE"].max()
 
     # Create the choropleth map using Plotly Express
     choropleth = px.choropleth(
         data_choropleth_sums,
         geojson=regions_geojson,
         featureidkey="properties.nom",
-        locations='LIEU_REGION',
-        color='DENSITE',
-        color_continuous_scale='Reds',
-        range_color=(min_density, max_density), # set range using log scale
-        labels={'DENSITE': 'Densité de Déchets(L/m2)'}
+        locations="LIEU_REGION",
+        color="DENSITE",
+        color_continuous_scale="Reds",
+        range_color=(min_density, max_density),  # set range using log scale
+        labels={"DENSITE": "Densité de Déchets(L/m2)"},
     )
 
     # Update layout to fit the map to the boundaries of the GeoJSON
     choropleth.update_layout(
-        geo=dict(
-            fitbounds="locations",
-            visible=False
-        ),
-        margin=dict(l=0, r=0, t=0, b=0)
+        geo=dict(fitbounds="locations", visible=False), margin=dict(l=0, r=0, t=0, b=0)
     )
 
     return choropleth
@@ -411,6 +484,7 @@ def make_density_choropleth(data_zds, region_geojson_path):
 # 2.1/ Line chart de l'évolution de la densité des déchets #
 #  par lieu et par milieu au fil des années spots adoptés  #
 ############################################################
+
 
 def line_chart_lieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
     # Get the selected region and milieu from the filter dictionary
@@ -423,13 +497,19 @@ def line_chart_lieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
         return
 
     # Filter data for the selected region
-    data_selected_region = data_zds[data_zds['LIEU_REGION'].isin(selected_regions)]
+    data_selected_region = data_zds[data_zds["LIEU_REGION"].isin(selected_regions)]
     if data_selected_region.empty:
-        st.warning(f"Aucune donnée disponible pour la région sélectionnée : {selected_regions}")
+        st.warning(
+            f"Aucune donnée disponible pour la région sélectionnée : {selected_regions}"
+        )
         return
 
     # Further filter data for the selected milieus
-    data_selected_lieu = data_selected_region[data_selected_region['TYPE_LIEU2'].isin(selected_lieu)] if selected_lieu else data_selected_region
+    data_selected_lieu = (
+        data_selected_region[data_selected_region["TYPE_LIEU2"].isin(selected_lieu)]
+        if selected_lieu
+        else data_selected_region
+    )
 
     # Check if there is any data left after filtering by milieu
     if data_selected_lieu.empty:
@@ -437,36 +517,56 @@ def line_chart_lieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
         return
 
     # Calculate waste volume sum for each 'LIEU' by 'ANNEE'
-    volume_total_annee = data_selected_lieu.groupby(['TYPE_LIEU2', 'ANNEE'])['VOLUME_TOTAL'].sum().reset_index()
+    volume_total_annee = (
+        data_selected_lieu.groupby(["TYPE_LIEU2", "ANNEE"])["VOLUME_TOTAL"]
+        .sum()
+        .reset_index()
+    )
 
     # Remove duplicate data and calculate SURFACE total
-    data_unique = data_selected_lieu.drop_duplicates(subset=['LIEU_COORD_GPS'])
-    surface_total_annee = data_unique.groupby(['TYPE_LIEU2', 'ANNEE'])['SURFACE'].sum().reset_index()
+    data_unique = data_selected_lieu.drop_duplicates(subset=["LIEU_COORD_GPS"])
+    surface_total_annee = (
+        data_unique.groupby(["TYPE_LIEU2", "ANNEE"])["SURFACE"].sum().reset_index()
+    )
 
     # Merge volume and surface data for 'MILIEU', calculate density, and sort
-    data_lieu = pd.merge(volume_total_annee, surface_total_annee, on=['TYPE_LIEU2', 'ANNEE'])
+    data_lieu = pd.merge(
+        volume_total_annee, surface_total_annee, on=["TYPE_LIEU2", "ANNEE"]
+    )
     if data_lieu.empty:
-        st.warning("Aucune donnée superposée pour les calculs de volume et de surface pour les lieux sélectionnés.")
+        st.warning(
+            "Aucune donnée superposée pour les calculs de volume et de surface pour les lieux sélectionnés."
+        )
         return
 
-    data_lieu['DENSITE_LIEU'] = (data_lieu['VOLUME_TOTAL'] / data_lieu['SURFACE']).round(5)
-    data_lieu_sorted = data_lieu.sort_values(by='ANNEE', ascending=False)
+    data_lieu["DENSITE_LIEU"] = (
+        data_lieu["VOLUME_TOTAL"] / data_lieu["SURFACE"]
+    ).round(5)
+    data_lieu_sorted = data_lieu.sort_values(by="ANNEE", ascending=False)
 
     # Create the plot
     fig = go.Figure()
-    for type_lieu in data_lieu_sorted['TYPE_LIEU2'].unique():
-        df_plot = data_lieu_sorted[data_lieu_sorted['TYPE_LIEU2'] == type_lieu]
-        fig.add_trace(go.Scatter(x=df_plot["ANNEE"], y=df_plot['DENSITE_LIEU'], mode='lines+markers', name=type_lieu))
+    for type_lieu in data_lieu_sorted["TYPE_LIEU2"].unique():
+        df_plot = data_lieu_sorted[data_lieu_sorted["TYPE_LIEU2"] == type_lieu]
+        fig.add_trace(
+            go.Scatter(
+                x=df_plot["ANNEE"],
+                y=df_plot["DENSITE_LIEU"],
+                mode="lines+markers",
+                name=type_lieu,
+            )
+        )
 
     # Update plot layout
     fig.update_layout(
         title=f"Densité des déchets par type de lieu",
         xaxis_title="Année",
         yaxis_title="Densité L/m2",
-        legend_title="Type de lieu"
+        legend_title="Type de lieu",
     )
 
     st.plotly_chart(fig)
+
 
 def line_chart_milieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
     # Get the selected region and milieu from the filter dictionary
@@ -479,13 +579,19 @@ def line_chart_milieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
         return
 
     # Filter data for the selected region
-    data_selected_region = data_zds[data_zds['LIEU_REGION'].isin(selected_regions)]
+    data_selected_region = data_zds[data_zds["LIEU_REGION"].isin(selected_regions)]
     if data_selected_region.empty:
-        st.warning(f"Aucune donnée disponible pour la région sélectionnée : {selected_regions}")
+        st.warning(
+            f"Aucune donnée disponible pour la région sélectionnée : {selected_regions}"
+        )
         return
 
     # Further filter data for the selected milieus
-    data_selected_milieu = data_selected_region[data_selected_region['TYPE_MILIEU'].isin(selected_milieu)] if selected_milieu else data_selected_region
+    data_selected_milieu = (
+        data_selected_region[data_selected_region["TYPE_MILIEU"].isin(selected_milieu)]
+        if selected_milieu
+        else data_selected_region
+    )
 
     # Check if there is any data left after filtering by milieu
     if data_selected_milieu.empty:
@@ -493,37 +599,55 @@ def line_chart_milieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
         return
 
     # Calculate waste volume sum for each 'MILIEU' by 'ANNEE'
-    volume_total_annee = data_selected_milieu.groupby(['TYPE_MILIEU', 'ANNEE'])['VOLUME_TOTAL'].sum().reset_index()
+    volume_total_annee = (
+        data_selected_milieu.groupby(["TYPE_MILIEU", "ANNEE"])["VOLUME_TOTAL"]
+        .sum()
+        .reset_index()
+    )
 
     # Remove duplicate data and calculate SURFACE total
-    data_unique = data_selected_milieu.drop_duplicates(subset=['LIEU_COORD_GPS'])
-    surface_total_annee = data_unique.groupby(['TYPE_MILIEU', 'ANNEE'])['SURFACE'].sum().reset_index()
+    data_unique = data_selected_milieu.drop_duplicates(subset=["LIEU_COORD_GPS"])
+    surface_total_annee = (
+        data_unique.groupby(["TYPE_MILIEU", "ANNEE"])["SURFACE"].sum().reset_index()
+    )
 
     # Merge volume and surface data for 'MILIEU', calculate density, and sort
-    data_milieu = pd.merge(volume_total_annee, surface_total_annee, on=['TYPE_MILIEU', 'ANNEE'])
+    data_milieu = pd.merge(
+        volume_total_annee, surface_total_annee, on=["TYPE_MILIEU", "ANNEE"]
+    )
     if data_milieu.empty:
-        st.warning("Aucune donnée superposée pour les calculs de volume et de surface pour les milieux sélectionnés.")
+        st.warning(
+            "Aucune donnée superposée pour les calculs de volume et de surface pour les milieux sélectionnés."
+        )
         return
 
-    data_milieu['DENSITE_MILIEU'] = (data_milieu['VOLUME_TOTAL'] / data_milieu['SURFACE']).round(5)
-    data_milieu_sorted = data_milieu.sort_values(by='ANNEE', ascending=False)
+    data_milieu["DENSITE_MILIEU"] = (
+        data_milieu["VOLUME_TOTAL"] / data_milieu["SURFACE"]
+    ).round(5)
+    data_milieu_sorted = data_milieu.sort_values(by="ANNEE", ascending=False)
 
     # Create the plot
     fig = go.Figure()
-    for type_milieu in data_milieu_sorted['TYPE_MILIEU'].unique():
-        df_plot = data_milieu_sorted[data_milieu_sorted['TYPE_MILIEU'] == type_milieu]
-        fig.add_trace(go.Scatter(x=df_plot["ANNEE"], y=df_plot['DENSITE_MILIEU'], mode='lines+markers', name=type_milieu))
+    for type_milieu in data_milieu_sorted["TYPE_MILIEU"].unique():
+        df_plot = data_milieu_sorted[data_milieu_sorted["TYPE_MILIEU"] == type_milieu]
+        fig.add_trace(
+            go.Scatter(
+                x=df_plot["ANNEE"],
+                y=df_plot["DENSITE_MILIEU"],
+                mode="lines+markers",
+                name=type_milieu,
+            )
+        )
 
     # Update plot layout
     fig.update_layout(
         title=f"Densité des déchets par type de milieu",
         xaxis_title="Année",
         yaxis_title="Densité L/m2",
-        legend_title="Type de milieu"
+        legend_title="Type de milieu",
     )
 
     st.plotly_chart(fig)
-
 
 
 ################################
@@ -626,26 +750,32 @@ def plot_adopted_waste_spots(
     return m
 
 
-
 ########################
 # Dashboard Main Panel #
 ########################
 
-
-tab1, tab2, tab3, tab4 = st.tabs(["Densité des déchets dans zone étudié",
-                                  "Évolution de la densité au fil du temps",
-                                  "Spots Adoptés",
-                                  "Aperçu à travers la France"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    [
+        "Densité des déchets dans zone étudié",
+        "Évolution de la densité au fil du temps",
+        "Spots Adoptés",
+        "Aperçu à travers la France",
+    ]
+)
 
 with tab1:
 
     # Select only the filters for 'REGION' and 'ANNEE'
-    selected_filters_1 = [f for f in DENSITY_FILTERS_PARAMS if f["filter_col"] in ["REGION", "ANNEE"]]
+    selected_filters_1 = [
+        f for f in DENSITY_FILTERS_PARAMS if f["filter_col"] in ["REGION", "ANNEE"]
+    ]
 
     # Use the selected filters for multi-select
-    multi_filter_dict_1 = scalable_filters_multi_select(data_zds, selected_filters_1, tab1)
+    multi_filter_dict_1 = scalable_filters_multi_select(
+        data_zds, selected_filters_1, tab1
+    )
 
-    col = st.columns((4, 4, 2), gap='medium')
+    col = st.columns((4, 4, 2), gap="medium")
 
     # Construct the map
     with col[0]:
@@ -655,19 +785,27 @@ with tab1:
         density_milieu(data_zds, multi_filter_dict_1)
 
     with col[2]:
-        with st.expander('Notice ℹ️', expanded=True):
-            st.write('''
+        with st.expander("Notice ℹ️", expanded=True):
+            st.write(
+                """
                 Explication des diffférences entre Lieu et Milieu
-            ''')
+            """
+            )
 
 with tab2:
     # Select only the filters for 'REGION' and 'ANNEE'
-    selected_filters_2 = [f for f in DENSITY_FILTERS_PARAMS if f["filter_col"] in ["REGION", "TYPE_LIEU2", "TYPE_MILIEU"]]
+    selected_filters_2 = [
+        f
+        for f in DENSITY_FILTERS_PARAMS
+        if f["filter_col"] in ["REGION", "TYPE_LIEU2", "TYPE_MILIEU"]
+    ]
 
     # Use the selected filters for multi-select
-    multi_filter_dict_2 = scalable_filters_multi_select(data_zds, selected_filters_2, tab2)
+    multi_filter_dict_2 = scalable_filters_multi_select(
+        data_zds, selected_filters_2, tab2
+    )
 
-    col = st.columns((7, 7), gap='medium')
+    col = st.columns((7, 7), gap="medium")
 
     with col[0]:
         line_chart_lieu(data_zds, multi_filter_dict_2)
@@ -677,15 +815,17 @@ with tab2:
 
 with tab3:
     # Use the selected filters
-    single_filter_dict_3 = scalable_filters_single_select(data_zds, ADOPTED_SPOTS_FILTERS_PARAMS, tab3)
+    single_filter_dict_3 = scalable_filters_single_select(
+        data_zds, ADOPTED_SPOTS_FILTERS_PARAMS, tab3
+    )
 
-    st.markdown('### Spots Adoptés')
+    st.markdown("### Spots Adoptés")
     m = plot_adopted_waste_spots(data_zds, single_filter_dict_3, REGION_GEOJSON_PATH)
     # Show the adopted spots map on the streamlit tab
     if m:
         folium_static(m)
 
 with tab4:
-    st.markdown('### Densité des déchets en France')
+    st.markdown("### Densité des déchets en France")
     choropleth = make_density_choropleth(data_zds, REGION_GEOJSON_PATH)
     st.plotly_chart(choropleth, use_container_width=True)
