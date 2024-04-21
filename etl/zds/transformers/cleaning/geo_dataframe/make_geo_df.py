@@ -17,7 +17,7 @@ def transform(data, data_2, *args, **kwargs):
         data.rename(columns={"LIEU_COORD_GPS_Y": "latitude"}, inplace=True)
 
     # Make GPS points
-    geometry = [Point(xy) for xy in zip(data.latitude, data.longitude)]
+    geometry = [Point(xy) for xy in zip(data.longitude, data.latitude)]
 
     # Attach points to corrected data
     gdf_data_zds = gpd.GeoDataFrame(data, geometry=geometry, crs=data_2.crs)
