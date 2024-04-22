@@ -24,6 +24,24 @@ from streamlit_folium import folium_static, st_folium
 # Parameters for the hotspots tab #
 ###################################
 
+# This dict map the name of the "niveaux admin" as define in the home tab and the
+# column name in the data_zds df. The "niveaux_admin" selection is store in the session state.
+NIVEAUX_ADMIN_DICT = {
+    "Région": "REGION",
+    "Département": "DEP_CODE_NOM",
+    "EPCI": "LIBEPCI",
+    "Commune": "COMMUNE_CODE_NOM",
+}
+
+# The name of the "niveau_admin" fetch from the session state
+NIVEAU_ADMIN = st.session_state["niveau_admin"]
+
+# The name of the "niveau_admin" column in the data_zds df
+NIVEAU_ADMIN_COL = NIVEAUX_ADMIN_DICT[NIVEAU_ADMIN]
+
+# The value selected for the "niveau_admin" column fetch from the session state
+NIVEAU_ADMIN_SELECTION = st.session_state["collectivite"]
+
 # Data path for the df_nb_dechets
 NB_DECHETS_PATH = (
     "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
@@ -61,20 +79,12 @@ DATA_SPOT = (
 
 # Params for the adopted spots map filters
 ADOPTED_SPOTS_FILTERS_PARAMS = [
-    {
-        "filter_col": "REGION",
-        "filter_message": "Sélectionnez une région (par défaut votre région) :",
-    },
     {"filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"},
     {"filter_col": "ANNEE", "filter_message": "Sélectionnez une année :"},
 ]
 
 # Params for the density graph filters
 DENSITY_FILTERS_PARAMS = [
-    {
-        "filter_col": "REGION",
-        "filter_message": "Sélectionnez une région (par défaut votre région) :",
-    },
     {"filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"},
     {"filter_col": "TYPE_LIEU2", "filter_message": "Sélectionnez un lieu :"},
     {"filter_col": "ANNEE", "filter_message": "Sélectionnez une année :"},
@@ -139,7 +149,7 @@ def construct_query_string(bound_word=" and ", **params) -> str:
     # Iterate over the params to construct the query string
     for param_key, param in params.items():
         # Construct the param sub string if the param is not 'None'
-        if param is not None:
+        if param:
 
             # Check if the parameter value is of type int
             if isinstance(param, int):
@@ -243,6 +253,30 @@ def scalable_filters_multi_select(
         filter_dict[column] = selected_values
 
     return filter_dict
+
+
+def construct_admin_lvl_boundaries(
+    admin_lvl: str, single_filter_dict: dict, admin_lvl_geojson_path_dict: dict
+) -> any:
+    """"""
+
+    # Unpack the admin level geojson path
+    admin_lvl_geojson_path = admin_lvl_geojson_path_dict[f"{admin_lvl}"]
+
+    # Unpack the region name
+    admin_lvl_name = single_filter_dict[f"{admin_lvl}"]
+
+    # Load France regions from a GeoJSON file
+    admin_lvl_shapes = gpd.read_file(admin_lvl_geojson_path)
+
+    # Filter the region geodataframe for the specified region
+    selected_admin_lvl = admin_lvl_shapes[
+        admin_lvl_shapes["nom"].str.lower() == admin_lvl_name.lower()
+    ]
+    if selected_admin_lvl.empty:
+        raise KeyError(f"Administrative level '{admin_lvl_name}' not found.")
+
+    return selected_admin_lvl
 
 
 ##################
@@ -666,7 +700,6 @@ def plot_adopted_waste_spots(
     - data_zds: The waste dataframe
     - filter_dict: dictionary mapping the name of the column in the waste df and the value you want to filter by
     """
-    print("Filter Dictionary:", single_filter_dict)  # Check the filter dictionary
 
     # 1/ Create the waste geodataframe #
     # Create a GeoDataFrame for waste points
@@ -684,7 +717,6 @@ def plot_adopted_waste_spots(
 
     # Construct the query string
     query_string = construct_query_string(**single_filter_dict)
-    print("Query String:", query_string)  # Check the constructed query string
 
     # Filter the geodataframe by region and by environment
     gdf_filtered = gdf.query(query_string)
@@ -695,7 +727,6 @@ def plot_adopted_waste_spots(
 
     # Load France regions from a GeoJSON file
     regions = gpd.read_file(region_geojson_path)
-    regions = regions.loc[regions["nom"] == region, :]
 
     # Filter the region geodataframe for the specified region
     selected_region = regions[regions["nom"].str.lower() == region.lower()]
