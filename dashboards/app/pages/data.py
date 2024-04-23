@@ -15,7 +15,6 @@ session_state = st.session_state
 # Récupérer les filtres géographiques s'ils ont été fixés
 filtre_niveau = st.session_state.get("niveau_admin", "")
 filtre_collectivite = st.session_state.get("collectivite", "")
-# zoom_niveau  = st.session_state.get("niveau_admin", "Région")
 
 # Titre de l'onglet
 st.markdown(
@@ -649,7 +648,7 @@ if st.session_state["authentication_status"]:
             elif filtre_niveau == "EPCI":
                 zoom_admin = 13
             elif filtre_niveau == "Département":
-                zoom_admin = 11
+                zoom_admin = 10
             else:
                 zoom_admin = 8
 
