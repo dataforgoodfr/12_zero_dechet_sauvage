@@ -847,12 +847,12 @@ if st.session_state["authentication_status"]:
             df_vide_indetermine = top_secteur_df[top_secteur_df["Secteur"] == "VIDE"]
             nb_vide_indetermine = df_vide_indetermine["Nombre de déchets"].sum()
             top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "VIDE"]
-        elif "INDERTERMINE" in top_secteur_df["Secteur"].unique():
+        elif "INDERTERMINÉ" in top_secteur_df["Secteur"].unique():
             df_vide_indetermine = top_secteur_df[
-                top_secteur_df["Secteur"] == "INDERTERMINE"
+                top_secteur_df["Secteur"] == "INDERTERMINÉ"
             ]
             nb_vide_indetermine += df_vide_indetermine["Nombre de déchets"].sum()
-            top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "INDERTERMINE"]
+            top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "INDERTERMINÉ"]
         else:
             pass
 
@@ -935,7 +935,7 @@ if st.session_state["authentication_status"]:
             x="Nombre de déchets",
             y="Secteur",
             color="Secteur",
-            title="Top 10 des secteurs les plus ramassés",
+            title="Top 10 des secteurs économiques qui ont pu être déterminés parmis les dechets comptés",
             orientation="h",
             color_discrete_map=colors_map_secteur,
             text_auto=True,
@@ -1007,6 +1007,16 @@ if st.session_state["authentication_status"]:
         with st.container(border=True):
             st.plotly_chart(fig_marque, use_container_width=True)
 
+        with st.container(border=True):
+            st.write(
+                "La Responsabilité Élargie du Producteur (REP) est une obligation qui impose aux entreprises de payer une contribution financière"
+                + " pour la prise en charge de la gestion des déchets issus des produits qu’ils mettent sur le marché selon le principe pollueur-payeur."
+                + " Pour ce faire, elles doivent contribuer financièrement à la collecte, du tri et au recyclage de ces produits, "
+                + "généralement à travers les éco-organismes privés, agréés par l’Etat, comme CITEO pour les emballages. "
+                + "L’État a depuis 1993 progressivement mis en place 25 filières REP, qui regroupent de grandes familles de produits "
+                + "(emballages ménagers, tabac, textile, ameublement, …)."
+            )
+
         # Metriques et graphes Responsabilité elargie producteurs
         l3_col1, l3_col2 = st.columns(2)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
@@ -1015,7 +1025,7 @@ if st.session_state["authentication_status"]:
         # Trick pour séparer les milliers
         nb_dechet_rep = f"{nb_dechet_rep:,.0f}".replace(",", " ")
         cell6.metric(
-            "Nombre de déchets catégorisés par responsabilités",
+            "Nombre de déchets catégorisés par filière REP",
             f"{nb_dechet_rep} dechets",
         )
 
@@ -1023,8 +1033,8 @@ if st.session_state["authentication_status"]:
         cell7 = l3_col2.container(border=True)
         nb_rep = f"{nb_rep:,.0f}".replace(",", " ")
         cell7.metric(
-            "Nombre de responsabilités identifiés lors des collectes",
-            f"{nb_rep} Responsabilités",
+            "Nombre de filières REP identifiées lors des collectes",
+            f"{nb_rep} REP",
         )
 
         fig_rep = px.bar(
