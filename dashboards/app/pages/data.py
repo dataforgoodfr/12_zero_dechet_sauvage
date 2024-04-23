@@ -46,9 +46,9 @@ if st.session_state["authentication_status"]:
     ):
         st.write(
             """
-                ### :warning: Merci de sélectionner une collectivité\
-                dans l'onglet Accueil pour afficher les données. :warning:
-                """
+        ### :warning: Merci de sélectionner une collectivité\
+        dans l'onglet Accueil pour afficher les données. :warning:
+        """
         )
         st.stop()
     else:
@@ -624,8 +624,8 @@ if st.session_state["authentication_status"]:
             st.write("")
             st.caption(
                 f"Note : Analyse basée sur les collectes qui ont fait l'objet d'un comptage détaillé par déchet,\
-                 soit {volume_total_categorise} litres équivalent à {pct_volume_categorise:.0%} du volume collecté\
-                    sur le territoire."
+         soit {volume_total_categorise} litres équivalent à {pct_volume_categorise:.0%} du volume collecté\
+          sur le territoire."
             )
         with st.container():
             # Ajout de la selectbox
@@ -661,7 +661,7 @@ if st.session_state["authentication_status"]:
             map_data = folium.Map(
                 location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
                 zoom_start=zoom_admin,
-                #    zoom_start=8,
+                #  zoom_start=8,
                 tiles="OpenStreetMap",
             )
 
@@ -823,7 +823,7 @@ if st.session_state["authentication_status"]:
         top_marque_df = top_marque_df.reset_index()
         top_marque_df.columns = ["Marque", "Nombre de déchets"]
 
-        # Data pour le plot responsabilitéz
+        # Data pour le plot responsabilités
         rep_df = df_init[df_init["type_regroupement"].isin(["REP"])]
         top_rep_df = (
             rep_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
@@ -994,7 +994,7 @@ if st.session_state["authentication_status"]:
         # add log scale to x axis
         fig_marque.update_layout(xaxis_type="log")
         fig_marque.update_yaxes(showticklabels=False)
-        #    fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
+        #  fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
         fig_marque.update_layout(
             width=800,
@@ -1043,7 +1043,7 @@ if st.session_state["authentication_status"]:
         fig_rep.update_layout(xaxis_type="log")
         # Masquer les labels de l'axe des ordonnées
         fig_rep.update_yaxes(showticklabels=False)
-        #    fig_rep.update_traces(texttemplate="%{value:.0f}", textposition="inside")
+        #  fig_rep.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
         fig_rep.update_layout(
             width=800,
