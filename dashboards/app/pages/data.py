@@ -47,7 +47,7 @@ if st.session_state["authentication_status"]:
         st.write(
             """
                 ### :warning: Merci de sélectionner une collectivité\
-                dans l'onglet Home pour afficher les données. :warning:
+                dans l'onglet Accueil pour afficher les données. :warning:
                 """
         )
         st.stop()

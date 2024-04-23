@@ -49,10 +49,10 @@ if st.session_state["authentication_status"]:
     show_pages(
         [
             Page("home.py", "Accueil", "🏠"),
+            Page("pages/structures.py", "Structures", "🔭"),
             Page("pages/actions.py", "Actions", "👊"),
             Page("pages/data.py", "Data", "🔍"),
             Page("pages/hotspots.py", "Hotspots", "🔥"),
-            Page("pages/structures.py", "Structures", "🔭"),
         ],
     )
 
@@ -134,8 +134,8 @@ if st.session_state["authentication_status"]:
             liste_collectivites,
             index=index_collec,
         )
-
-    if st.button("Enregistrer la sélection"):
+    button_disabled = not select_niveauadmin or not select_collectivite
+    if st.button("Enregistrer la sélection", disabled=button_disabled):
         # Enregistrer les valeurs sélectionnées dans le session.state
         st.session_state["niveau_admin"] = select_niveauadmin
         st.session_state["index_admin"] = list(niveaux_admin_dict.keys()).index(
