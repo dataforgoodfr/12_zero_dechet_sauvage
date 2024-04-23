@@ -957,7 +957,7 @@ if st.session_state["authentication_status"]:
             st.warning(
                 "⚠️ Il y a "
                 + str(nb_vide_indetermine)
-                + " dechets dont le secteur n'a pas été determiné dans le top 10 des secteurs"
+                + " dechets dont le secteur n'a pas été determiné dans la totalité des dechets du top 10 des secteurs"
             )
 
         # Metriques et graphes marques
@@ -993,6 +993,7 @@ if st.session_state["authentication_status"]:
         )
         # add log scale to x axis
         fig_marque.update_layout(xaxis_type="log")
+        fig_marque.update_yaxes(showticklabels=False)
         #    fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
         fig_marque.update_layout(
@@ -1040,6 +1041,8 @@ if st.session_state["authentication_status"]:
         )
         # add log scale to x axis
         fig_rep.update_layout(xaxis_type="log")
+        # Masquer les labels de l'axe des ordonnées
+        fig_rep.update_yaxes(showticklabels=False)
         #    fig_rep.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
         fig_rep.update_layout(
