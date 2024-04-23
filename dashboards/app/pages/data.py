@@ -942,13 +942,14 @@ if st.session_state["authentication_status"]:
         l2_col1, l2_col2 = st.columns(2)
         cell4 = l2_col1.container(border=True)
 
+        # 1er métrique : nombre de dechets categorises par marques
         # Trick pour séparer les milliers
         nb_dechet_marque = f"{nb_dechet_marque:,.0f}".replace(",", " ")
         cell4.metric(
             "Nombre de déchets catégorisés par marque", f"{nb_dechet_marque} dechets"
         )
 
-        # 2ème métrique : poids
+        # 2ème métrique : nombre de marques identifiées lors des collectes
         cell5 = l2_col2.container(border=True)
         nb_marques = f"{nb_marques:,.0f}".replace(",", " ")
         cell5.metric(
@@ -986,7 +987,7 @@ if st.session_state["authentication_status"]:
         # Metriques et graphes Responsabilité elargie producteurs
         l3_col1, l3_col2 = st.columns(2)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
-        # 1ère métrique : volume total de déchets collectés
+        # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
         cell6 = l3_col1.container(border=True)
         # Trick pour séparer les milliers
         nb_dechet_rep = f"{nb_dechet_rep:,.0f}".replace(",", " ")
@@ -995,7 +996,7 @@ if st.session_state["authentication_status"]:
             f"{nb_dechet_rep} dechets",
         )
 
-        # 2ème métrique : poids
+        # 2ème métrique : nombre de responsabilités
         cell7 = l3_col2.container(border=True)
         nb_rep = f"{nb_rep:,.0f}".replace(",", " ")
         cell7.metric(
