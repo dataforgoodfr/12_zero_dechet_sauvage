@@ -63,7 +63,7 @@ if st.session_state["authentication_status"]:
         [
             "Matériaux :wood:",
             "Top Déchets :wastebasket:",
-            "Secteurs et marques :womans_clothes:",
+            "Secteurs, marques et responsabilités élargies producteurs :womans_clothes:",
         ]
     )
 
@@ -839,9 +839,24 @@ if st.session_state["authentication_status"]:
         collectes = len(df_filtered)
         nb_dechet_rep = rep_df["nb_dechet"].sum()
         nb_rep = len(top_rep_df["Responsabilité élargie producteur"].unique())
-        # Metriques et graphs secteurs
-        # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
 
+        # Metriques et graphs secteurs
+        # Retrait des categoriés "VIDE" et "INDERTERMINE" si présentes et recupération des valeurs
+        nb_vide_indetermine = 0
+        if "VIDE" in top_secteur_df["Secteur"].unique():
+            df_vide_indetermine = top_secteur_df[top_secteur_df["Secteur"] == "VIDE"]
+            nb_vide_indetermine = df_vide_indetermine["Nombre de déchets"].sum()
+            top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "VIDE"]
+        elif "INDERTERMINE" in top_secteur_df["Secteur"].unique():
+            df_vide_indetermine = top_secteur_df[
+                top_secteur_df["Secteur"] == "INDERTERMINE"
+            ]
+            nb_vide_indetermine += df_vide_indetermine["Nombre de déchets"].sum()
+            top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "INDERTERMINE"]
+        else:
+            pass
+
+        # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2, l1_col3 = st.columns(3)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
         # 1ère métrique : volume total de déchets collectés
@@ -937,6 +952,13 @@ if st.session_state["authentication_status"]:
         )
         with st.container(border=True):
             st.plotly_chart(fig_secteur, use_container_width=True)
+
+        if nb_vide_indetermine != 0:
+            st.warning(
+                "⚠️ Il y a "
+                + str(nb_vide_indetermine)
+                + " dechets dont le secteur n'a pas été determiné dans le top 10 des secteurs"
+            )
 
         # Metriques et graphes marques
         l2_col1, l2_col2 = st.columns(2)
