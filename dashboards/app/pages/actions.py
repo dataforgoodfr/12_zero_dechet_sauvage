@@ -168,6 +168,16 @@ if st.session_state["authentication_status"]:
         cell3.metric("Nombre de structures", f"{nombre_structures}")
 
         # Ligne 2 : Carte
+        # Initialisation du zoom sur la carte
+        if filtre_niveau == "Commune":
+            zoom_admin = 12
+        elif filtre_niveau == "EPCI":
+            zoom_admin = 13
+        elif filtre_niveau == "Département":
+            zoom_admin = 10
+        else:
+            zoom_admin = 8
+
         with st.container():
             # Création du DataFrame de travail pour la carte
             df_map_evnenements = df_other_filtre.copy()
@@ -180,7 +190,8 @@ if st.session_state["authentication_status"]:
 
             map_evenements = folium.Map(
                 location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
-                zoom_start=8,
+                zoom_start=zoom_admin,
+                #    zoom_start=8,
                 tiles="OpenStreetMap",
             )
             # Facteur de normalisation pour ajuster la taille des bulles
