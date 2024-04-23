@@ -823,14 +823,23 @@ if st.session_state["authentication_status"]:
         top_marque_df = top_marque_df.reset_index()
         top_marque_df.columns = ["Marque", "Nombre de déchets"]
 
+        # Data pour le plot responsabilitéz
+        rep_df = df_init[df_init["type_regroupement"].isin(["REP"])]
+        top_rep_df = (
+            rep_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
+        )
+        top_rep_df = top_rep_df.reset_index()
+        top_rep_df.columns = ["Responsabilité élargie producteur", "Nombre de déchets"]
+
         # Chiffres clés
         nb_dechet_secteur = secteur_df["nb_dechet"].sum()
         nb_secteurs = len(top_secteur_df["Secteur"].unique())
-
         nb_dechet_marque = marque_df["nb_dechet"].sum()
         nb_marques = len(top_marque_df["Marque"].unique())
         collectes = len(df_filtered)
-
+        nb_dechet_rep = rep_df["nb_dechet"].sum()
+        nb_rep = len(top_rep_df["Responsabilité élargie producteur"].unique())
+        # Metriques et graphs secteurs
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
 
         l1_col1, l1_col2, l1_col3 = st.columns(3)
@@ -929,19 +938,20 @@ if st.session_state["authentication_status"]:
         with st.container(border=True):
             st.plotly_chart(fig_secteur, use_container_width=True)
 
-        l1_col1, l1_col2 = st.columns(2)
-        cell1 = l1_col1.container(border=True)
+        # Metriques et graphes marques
+        l2_col1, l2_col2 = st.columns(2)
+        cell4 = l2_col1.container(border=True)
 
         # Trick pour séparer les milliers
         nb_dechet_marque = f"{nb_dechet_marque:,.0f}".replace(",", " ")
-        cell1.metric(
+        cell4.metric(
             "Nombre de déchets catégorisés par marque", f"{nb_dechet_marque} dechets"
         )
 
         # 2ème métrique : poids
-        cell2 = l1_col2.container(border=True)
+        cell5 = l2_col2.container(border=True)
         nb_marques = f"{nb_marques:,.0f}".replace(",", " ")
-        cell2.metric(
+        cell5.metric(
             "Nombre de marques identifiés lors des collectes",
             f"{nb_marques} marques",
         )
@@ -972,5 +982,52 @@ if st.session_state["authentication_status"]:
 
         with st.container(border=True):
             st.plotly_chart(fig_marque, use_container_width=True)
+
+        # Metriques et graphes Responsabilité elargie producteurs
+        l3_col1, l3_col2 = st.columns(2)
+        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+        # 1ère métrique : volume total de déchets collectés
+        cell6 = l3_col1.container(border=True)
+        # Trick pour séparer les milliers
+        nb_dechet_rep = f"{nb_dechet_rep:,.0f}".replace(",", " ")
+        cell6.metric(
+            "Nombre de déchets catégorisés par responsabilités",
+            f"{nb_dechet_rep} dechets",
+        )
+
+        # 2ème métrique : poids
+        cell7 = l3_col2.container(border=True)
+        nb_rep = f"{nb_rep:,.0f}".replace(",", " ")
+        cell7.metric(
+            "Nombre de responsabilités identifiés lors des collectes",
+            f"{nb_rep} Responsabilités",
+        )
+
+        fig_rep = px.bar(
+            top_rep_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
+            x="Nombre de déchets",
+            y="Responsabilité élargie producteur",
+            title="Top 10 des Responsabilités élargies producteurs relatives aux dechets les plus ramassés",
+            color_discrete_sequence=["#1951A0"],
+            orientation="h",
+            text_auto=False,
+            text=top_rep_df.tail(10)["Responsabilité élargie producteur"]
+            + ": "
+            + top_rep_df.tail(10)["Nombre de déchets"].astype(str),
+        )
+        # add log scale to x axis
+        fig_rep.update_layout(xaxis_type="log")
+        #    fig_rep.update_traces(texttemplate="%{value:.0f}", textposition="inside")
+
+        fig_rep.update_layout(
+            width=800,
+            height=500,
+            uniformtext_minsize=8,
+            uniformtext_mode="hide",
+            yaxis_title=None,
+        )
+
+        with st.container(border=True):
+            st.plotly_chart(fig_rep, use_container_width=True)
 else:
     st.markdown("## 🚨 Veuillez vous connecter pour accéder à l'onglet 🚨")
