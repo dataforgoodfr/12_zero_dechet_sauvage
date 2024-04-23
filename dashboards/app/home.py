@@ -49,10 +49,6 @@ if st.session_state["authentication_status"]:
     show_pages(
         [
             Page("home.py", "Accueil", "🏠"),
-            Page("pages/structures.py", "Structures", "🔭"),
-            Page("pages/actions.py", "Actions", "👊"),
-            Page("pages/data.py", "Data", "🔍"),
-            Page("pages/hotspots.py", "Hotspots", "🔥"),
         ],
     )
 
@@ -149,6 +145,15 @@ if st.session_state["authentication_status"]:
 
         # Afficher la collectivité sélectionnée
         st.write(f"Vous avez sélectionné : {select_niveauadmin} {select_collectivite}.")
+        show_pages(
+            [
+                Page("home.py", "Accueil", "🏠"),
+                Page("pages/structures.py", "Structures", "🔭"),
+                Page("pages/actions.py", "Actions", "👊"),
+                Page("pages/data.py", "Data", "🔍"),
+                Page("pages/hotspots.py", "Hotspots", "🔥"),
+            ],
+        )
 
         # Filtrer et enregistrer le DataFrame dans un session state pour la suite
         colonne_filtre = niveaux_admin_dict[select_niveauadmin]

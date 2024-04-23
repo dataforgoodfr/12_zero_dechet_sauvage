@@ -15,6 +15,7 @@ session_state = st.session_state
 # Récupérer les filtres géographiques s'ils ont été fixés
 filtre_niveau = st.session_state.get("niveau_admin", "")
 filtre_collectivite = st.session_state.get("collectivite", "")
+# zoom_niveau  = st.session_state.get("niveau_admin", "Région")
 
 # Titre de l'onglet
 st.markdown(
@@ -642,6 +643,16 @@ if st.session_state["authentication_status"]:
             )
 
             # Création de la carte centrée autour d'une localisation
+            # Initialisation du zoom sur la carte
+            if filtre_niveau == "Commune":
+                zoom_admin = 12
+            elif filtre_niveau == "EPCI":
+                zoom_admin = 13
+            elif filtre_niveau == "Département":
+                zoom_admin = 11
+            else:
+                zoom_admin = 8
+
             # Calcul des limites à partir de vos données
             min_lat = df_map_data["LIEU_COORD_GPS_Y"].min()
             max_lat = df_map_data["LIEU_COORD_GPS_Y"].max()
@@ -650,7 +661,8 @@ if st.session_state["authentication_status"]:
 
             map_data = folium.Map(
                 location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
-                zoom_start=8,
+                zoom_start=zoom_admin,
+                #    zoom_start=8,
                 tiles="OpenStreetMap",
             )
 
@@ -679,7 +691,6 @@ if st.session_state["authentication_status"]:
                 folium.Figure().add_child(map_data).render(),  # , width=1400
                 height=750,
             )
-
     # Onglet 3 : Secteurs et marques
     with tab3:
         st.write("")
