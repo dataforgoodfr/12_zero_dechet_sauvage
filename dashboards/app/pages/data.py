@@ -846,15 +846,16 @@ if st.session_state["authentication_status"]:
         if "VIDE" in top_secteur_df["Secteur"].unique():
             df_vide_indetermine = top_secteur_df[top_secteur_df["Secteur"] == "VIDE"]
             nb_vide_indetermine = df_vide_indetermine["Nombre de déchets"].sum()
-            top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "VIDE"]
-        elif "INDERTERMINÉ" in top_secteur_df["Secteur"].unique():
+        elif "INDÉTERMINÉ" in secteur_df["Secteur"].unique():
             df_vide_indetermine = top_secteur_df[
-                top_secteur_df["Secteur"] == "INDERTERMINÉ"
+                top_secteur_df["Secteur"] == "INDÉTERMINÉ"
             ]
             nb_vide_indetermine += df_vide_indetermine["Nombre de déchets"].sum()
-            top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "INDERTERMINÉ"]
         else:
             pass
+
+        top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "INDÉTERMINÉ"]
+        top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "VIDE"]
 
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2, l1_col3 = st.columns(3)
@@ -957,7 +958,7 @@ if st.session_state["authentication_status"]:
             st.warning(
                 "⚠️ Il y a "
                 + str(nb_vide_indetermine)
-                + " dechets dont le secteur n'a pas été determiné dans la totalité des dechets du top 10 des secteurs"
+                + " dechets dont le secteur n'a pas été determiné dans la totalité des dechets"
             )
 
         # Metriques et graphes marques
@@ -993,7 +994,6 @@ if st.session_state["authentication_status"]:
         )
         # add log scale to x axis
         fig_marque.update_layout(xaxis_type="log")
-        fig_marque.update_yaxes(showticklabels=False)
         #  fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
         fig_marque.update_layout(
