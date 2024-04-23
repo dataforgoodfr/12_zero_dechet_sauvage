@@ -33,6 +33,17 @@ NIVEAUX_ADMIN_DICT = {
     "Commune": "COMMUNE_CODE_NOM",
 }
 
+# This is a copy of the previous dict, with just the "EPCI" value modified with the
+# name of the "COMMUNE_CODE_NOM" column in the data_zds df, in order to trigger the display
+# of the "EPCI" level boundaries without an "EPCI" geojson map, knowing that one EPCI is
+# made of one or multiple "communes"
+NIVEAUX_ADMIN_DICT_ALTERED = {
+    "Région": "REGION",
+    "Département": "DEP_CODE_NOM",
+    "EPCI": "COMMUNE_CODE_NOM",
+    "Commune": "COMMUNE_CODE_NOM",
+}
+
 # The name of the "niveau_admin" fetch from the session state
 NIVEAU_ADMIN = st.session_state["niveau_admin"]
 
@@ -56,12 +67,19 @@ DATA_ZDS_PATH = (
     "sation/data/data_zds_enriched.csv"
 )
 
-# Data path for the France regions geojson
-REGION_GEOJSON_PATH = (
+# Root data path for the France administrative levels geojson
+NIVEAUX_ADMIN_GEOJSON_ROOT_PATH = (
     "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
-    "exploration-des-donn%C3%A9es/Exploration_visualisation/regions"
-    "-avec-outre-mer.geojson"
+    "exploration-des-donn%C3%A9es/Exploration_visualisation/data/"
 )
+
+# Dict containing the path of the administrative levels geojson referenced by the names of these adminitrative levels
+NIVEAUX_ADMIN_GEOJSON_PATH_DICT = {
+    "Région": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}regions-avec-outre-mer.geojson",
+    "Département": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}departements-avec-outre-mer.geojson",
+    "EPCI": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}communes-avec-outre-mer.geojson",
+    "Commune": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}communes-avec-outre-mer.geojson",
+}
 
 # Data path for Correction
 CORRECTION = (
@@ -255,28 +273,55 @@ def scalable_filters_multi_select(
     return filter_dict
 
 
+def construct_admin_lvl_filter_list(
+    data_zds: pd.DataFrame,
+    admin_lvl: str,
+    admin_lvl_dict_altered=NIVEAUX_ADMIN_DICT_ALTERED,
+) -> list:
+    """Create a list of names for a given admin level. This function was created
+    in order to trigger the display of the 'EPCI' level boundaries without an
+    'EPCI' geojson map, knowing that one EPCI is made of one or multiple 'communes'
+    Arguments:
+    - data_zds: the dataframe containing waste data and administrative levels columns
+    - admin_lvl: the common name of the target administrative level
+    Params:
+    - admin_lvl_dict_altered: a dict mapping admin levels common names and the names
+    of the columns corresponding in the data_zds df"""
+
+    # Unpack the column name of the admin level
+    admin_lvl_col_name = admin_lvl_dict_altered[f"{admin_lvl}"]
+
+    # Return the list of uniques administrative names corresponding to the selection made in the home tab
+    return data_zds[f"{admin_lvl_col_name}"].str.lower().unique().to_list()
+
+
 def construct_admin_lvl_boundaries(
-    admin_lvl: str, single_filter_dict: dict, admin_lvl_geojson_path_dict: dict
+    data_zds: pd.DataFrame, admin_lvl: str, admin_lvl_geojson_path_dict: dict
 ) -> any:
-    """"""
+    """Return a filtered geodataframe with shapes of a target administrative level.
+    Arguments:
+    - data_zds: the dataframe containing waste data and administrative levels columns
+    - admin_lvl: the common name of the target administrative level
+    - admin_lvl_geojson_path_dict: a dict mapping administrative levels common
+    names and the paths of the geojson administrative levels shapes"""
 
     # Unpack the admin level geojson path
     admin_lvl_geojson_path = admin_lvl_geojson_path_dict[f"{admin_lvl}"]
 
     # Unpack the region name
-    admin_lvl_name = single_filter_dict[f"{admin_lvl}"]
+    admin_lvl_names = construct_admin_lvl_filter_list(data_zds, admin_lvl)
 
     # Load France regions from a GeoJSON file
     admin_lvl_shapes = gpd.read_file(admin_lvl_geojson_path)
 
     # Filter the region geodataframe for the specified region
-    selected_admin_lvl = admin_lvl_shapes[
-        admin_lvl_shapes["nom"].str.lower() == admin_lvl_name.lower()
+    selected_admin_lvl_shapes = admin_lvl_shapes[
+        admin_lvl_shapes["nom"].str.lower().isin(admin_lvl_names)
     ]
-    if selected_admin_lvl.empty:
-        raise KeyError(f"Administrative level '{admin_lvl_name}' not found.")
+    if selected_admin_lvl_shapes.empty:
+        raise KeyError
 
-    return selected_admin_lvl
+    return selected_admin_lvl_shapes
 
 
 ##################
@@ -284,7 +329,7 @@ def construct_admin_lvl_boundaries(
 ##################
 
 # Load all regions from the GeoJSON file
-regions = gpd.read_file(REGION_GEOJSON_PATH)
+# regions = gpd.read_file(REGION_GEOJSON_PATH) # Unused, keep as archive
 
 # nb dechets : Unused for now
 # df_nb_dechets = pd.read_csv(NB_DECHETS_PATH)
@@ -692,7 +737,6 @@ def line_chart_milieu(data_zds: pd.DataFrame, multi_filter_dict: dict):
 def plot_adopted_waste_spots(
     data_zds: pd.DataFrame,
     single_filter_dict: dict,
-    region_geojson_path: str,
 ) -> folium.Map:
     """Show a folium innteractive map of adopted spots within a selected region,
     filtered by environments of deposit.
@@ -722,16 +766,9 @@ def plot_adopted_waste_spots(
     gdf_filtered = gdf.query(query_string)
 
     # 2/ Create the regions geodataframe #
-    # Unpack the region name
-    region = single_filter_dict["REGION"]
-
-    # Load France regions from a GeoJSON file
-    regions = gpd.read_file(region_geojson_path)
-
-    # Filter the region geodataframe for the specified region
-    selected_region = regions[regions["nom"].str.lower() == region.lower()]
-    if selected_region.empty:
-        raise KeyError(f"Region '{region}' not found.")
+    selected_admin_lvl = construct_admin_lvl_boundaries(
+        data_zds, NIVEAU_ADMIN, NIVEAUX_ADMIN_GEOJSON_PATH_DICT
+    )
 
     # 3/ Initialize folium map #
     # Initialize a folium map, centered around the mean location of the waste points
@@ -770,7 +807,7 @@ def plot_adopted_waste_spots(
     # 5/ Add the region boundary #
     # Add the region boundary to the map for context
     folium.GeoJson(
-        selected_region,
+        selected_admin_lvl,
         name="Region Boundary",
         style_function=lambda feature: {
             "weight": 2,
@@ -851,12 +888,14 @@ with tab3:
     )
 
     st.markdown("### Spots Adoptés")
-    m = plot_adopted_waste_spots(data_zds, single_filter_dict_3, REGION_GEOJSON_PATH)
+    m = plot_adopted_waste_spots(data_zds, single_filter_dict_3)
     # Show the adopted spots map on the streamlit tab
     if m:
         folium_static(m)
 
 with tab4:
     st.markdown("### Densité des déchets en France")
-    choropleth = make_density_choropleth(data_zds, REGION_GEOJSON_PATH)
+    choropleth = make_density_choropleth(
+        data_zds, NIVEAUX_ADMIN_GEOJSON_PATH_DICT["Région"]
+    )
     st.plotly_chart(choropleth, use_container_width=True)
