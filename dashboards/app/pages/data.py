@@ -881,7 +881,7 @@ if st.session_state["authentication_status"]:
         if "VIDE" in top_secteur_df["Secteur"].unique():
             df_vide_indetermine = top_secteur_df[top_secteur_df["Secteur"] == "VIDE"]
             nb_vide_indetermine = df_vide_indetermine["Nombre de déchets"].sum()
-        elif "INDÉTERMINÉ" in secteur_df["Secteur"].unique():
+        elif "INDÉTERMINÉ" in top_secteur_df["Secteur"].unique():
             df_vide_indetermine = top_secteur_df[
                 top_secteur_df["Secteur"] == "INDÉTERMINÉ"
             ]
