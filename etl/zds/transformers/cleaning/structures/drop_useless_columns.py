@@ -7,7 +7,7 @@ if "test" not in globals():
 @transformer
 def transform(data, *args, **kwargs):
     """remove useless columns"""
-    data = data.drop(columns=["geometry", "distance"])
+    data = data.drop(columns=["geometry", "distance", "index_righ"])
     data.rename(
         columns={
             "NOM_right": "COMMUNE",
