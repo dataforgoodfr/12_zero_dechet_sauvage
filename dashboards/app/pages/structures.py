@@ -118,26 +118,28 @@ with st.container():
     st.markdown(""" **Cartographie des structures du territoire**""")
 
     # Création de la carte centrée autour d'une localisation
-    # Initialisation du zoom sur la carte
-    if filtre_niveau == "Commune":
-        zoom_admin = 12
-    elif filtre_niveau == "EPCI":
-        zoom_admin = 13
-    elif filtre_niveau == "Département":
-        zoom_admin = 10
-    else:
-        zoom_admin = 8
+    # # Initialisation du zoom sur la carte
+    # if filtre_niveau == "Commune":
+    #     zoom_admin = 12
+    # elif filtre_niveau == "EPCI":
+    #     zoom_admin = 13
+    # elif filtre_niveau == "Département":
+    #     zoom_admin = 10
+    # else:
+    #     zoom_admin = 8
 
     # Calcul des limites à partir de vos données
-    min_lat = df_structures["latitude"].min()
-    max_lat = df_structures["latitude"].max()
-    min_lon = df_structures["longitude"].min()
-    max_lon = df_structures["longitude"].max()
+    # min_lat = df_structures["latitude"].min()
+    # max_lat = df_structures["latitude"].max()
+    # min_lon = df_structures["longitude"].min()
+    # max_lon = df_structures["longitude"].max()
+
+    sw = df_structures[["latitude", "longitude"]].min().values.tolist()
+    ne = df_structures[["latitude", "longitude"]].max().values.tolist()
 
     map_data = folium.Map(
-        location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
-        zoom_start=zoom_admin,
-        #  zoom_start=8,
+        # zoom_start=zoom_admin,
+        zoom_start=8,
         tiles="OpenStreetMap",
     )
 
@@ -157,6 +159,8 @@ with st.container():
                 f"{row['NOM_structure']}\n ({row['COMMUNE']})", max_width=100
             ),
         ).add_to(map_data)
+
+    map_data.fit_bounds([sw, ne])
 
     # Affichage de la carte Folium dans Streamlit
     st_folium = st.components.v1.html
