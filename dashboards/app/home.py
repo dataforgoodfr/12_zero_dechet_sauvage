@@ -30,12 +30,17 @@ def load_df_other() -> pd.DataFrame:
 # Table des structures
 @st.cache_data
 def load_structures() -> pd.DataFrame:
-    return pd.read_excel(
-        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-        "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-        "sation/data/export_structures_29022024%20(1).xlsx",
+    df = pd.read_csv(
+        "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/4-"
+        "onglet-structures/Exploration_visuali"
+        "sation/data/structures_export_cleaned.csv",
         index_col=0,
     )
+    # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE
+    # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
+    df["DEP_CODE_NOM"] = df["dep"] + " - " + df["departement"]
+    df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["COMMUNE"]
+    return df
 
 
 # Appel des fonctions pour charger les données
@@ -103,7 +108,10 @@ if st.button("Enregistrer la sélection"):
     st.session_state["df_other_filtre"] = df_other_filtre
 
     # Filtrer dataframe structures et enregistrer dans le session.state
-    st.session_state["structures"] = df_structures
+    df_structures_filtre = df_structures[
+        df_other[colonne_filtre] == select_collectivite
+    ]
+    st.session_state["structures_filtre"] = df_structures_filtre
 
     # Filtrer et enregistrer le dataframe nb_dechets dans session.State
     # Récuperer la liste des relevés

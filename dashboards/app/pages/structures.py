@@ -23,7 +23,7 @@ filtre_collectivite = st.session_state.get("collectivite", "")
 
 
 # Appeler les dataframes filtrés depuis le session state
-if "structures" not in st.session_state:
+if "structures_filtre" not in st.session_state:
     st.write(
         """
             ### :warning: Merci de sélectionner une collectivité\
@@ -32,46 +32,20 @@ if "structures" not in st.session_state:
     )
     st.stop()
 else:
-    df_structures = st.session_state["structures"]
+    df_structures = st.session_state["structures_filtre"]
 
-# # df_nb_dechet = pd.read_csv(
-# #     (
-# #         "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-# #         "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-# #         "sation/data/data_releve_nb_dechet.csv"
-# #     )
-# # )
+# Appeler les dataframes filtrés depuis le session state
+if "df_other_filtre" not in st.session_state:
+    st.write(
+        """
+            ### :warning: Merci de sélectionner une collectivité\
+            dans l'onglet Home pour afficher les données. :warning:
+            """
+    )
+    st.stop()
+else:
+    df_releves = st.session_state["df_other_filtre"]
 
-# # df_other = pd.read_csv(
-# #     (
-# #         "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-# #         "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-# #         "sation/data/data_zds_enriched.csv"
-# #     )
-# # )
-
-# # res_aggCategory_filGroup = duckdb.query(
-# #     (
-# #         "SELECT categorie, sum(nb_dechet) AS total_dechet "
-# #         "FROM df_nb_dechet "
-# #         "WHERE type_regroupement = 'GROUPE' "
-# #         "GROUP BY categorie "
-# #         "HAVING sum(nb_dechet) > 10000 "
-# #         "ORDER BY total_dechet DESC;"
-# #     )
-# # ).to_df()
-
-# # st.bar_chart(data=res_aggCategory_filGroup, x="categorie", y="total_dechet")
-
-# st.altair_chart(
-#     alt.Chart(res_aggCategory_filGroup)
-#     .mark_bar()
-#     .encode(
-#         x=alt.X("categorie", sort=None, title=""),
-#         y=alt.Y("total_dechet", title="Total de déchet"),
-#     ),
-#     use_container_width=True,
-# )
 
 if filtre_niveau == "" and filtre_collectivite == "":
     st.write("Aucune sélection de territoire n'a été effectuée")
@@ -92,7 +66,7 @@ cell1.metric("Acteurs présents sur le territoire", nb_acteurs)
 
 # 2ème métrique : nb de spots adoptés
 cell2 = l1_col2.container(border=True)
-nb_spots_adoptes = df_structures["A1S_NB_SPOTS_ADOPTES"].sum()
+nb_spots_adoptes = df_structures["A1S_NB_SPO"].sum()
 cell2.metric("Spots adoptés", nb_spots_adoptes)
 
 
@@ -148,9 +122,13 @@ with st.container():
     st.markdown(""" **Structures du territoire**""")
     df_struct_simplifie = duckdb.query(
         (
-            "SELECT NOM as Nom, TYPE, ACTION_RAMASSAGE AS 'Nombre de collectes', A1S_NB_SPOTS_ADOPTES as 'Nombre de spots adoptés' "
-            "FROM df_structures "
-            "ORDER BY Nom DESC;"
+            """SELECT 
+                    NOM_structure as Nom, 
+                    TYPE, 
+                    ACTION_RAM AS 'Nombre de collectes', 
+                    A1S_NB_SPO as 'Nombre de spots adoptés'
+            FROM df_structures 
+            ORDER BY Nom DESC;"""
         )
     ).to_df()
 
