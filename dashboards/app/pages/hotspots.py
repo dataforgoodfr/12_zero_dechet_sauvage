@@ -586,7 +586,7 @@ def plot_adopted_waste_spots(
         # Catch ValueError if the filtered geodataframe contain no rows
         try:
             m = folium.Map(
-                location=map_center, zoom_start=5
+                location=map_center
             )  # Adjust zoom_start as needed for the best initial view
 
         # Return None if ValueError
