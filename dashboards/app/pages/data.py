@@ -954,6 +954,7 @@ if st.session_state["authentication_status"]:
         with st.container(border=True):
             st.plotly_chart(fig_secteur, use_container_width=True)
 
+        # Message d'avertissement Nombre de dechets dont le secteur n'a pas été determine
         if nb_vide_indetermine != 0:
             st.warning(
                 "⚠️ Il y a "
@@ -1020,6 +1021,19 @@ if st.session_state["authentication_status"]:
         # Metriques et graphes Responsabilité elargie producteurs
         l3_col1, l3_col2 = st.columns(2)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+        # Suppression de la catégorie "VIDE"
+        nb_vide_rep = 0
+        if "VIDE" in top_rep_df["Responsabilité élargie producteur"].unique():
+            df_vide_rep = top_rep_df[
+                top_rep_df["Responsabilité élargie producteur"] == "VIDE"
+            ]
+            nb_vide_rep = df_vide_rep["Nombre de déchets"].sum()
+        else:
+            pass
+        top_rep_df = top_rep_df[
+            top_rep_df["Responsabilité élargie producteur"] != "VIDE"
+        ]
+
         # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
         cell6 = l3_col1.container(border=True)
         # Trick pour séparer les milliers
@@ -1037,33 +1051,36 @@ if st.session_state["authentication_status"]:
             f"{nb_rep} REP",
         )
 
-        fig_rep = px.bar(
+        # Treemap REP
+        figreptree = px.treemap(
             top_rep_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
-            x="Nombre de déchets",
-            y="Responsabilité élargie producteur",
+            path=["Responsabilité élargie producteur"],
+            values="Nombre de déchets",
             title="Top 10 des Responsabilités élargies producteurs relatives aux dechets les plus ramassés",
-            color_discrete_sequence=["#1951A0"],
-            orientation="h",
-            text_auto=False,
-            text=top_rep_df.tail(10)["Responsabilité élargie producteur"]
-            + ": "
-            + top_rep_df.tail(10)["Nombre de déchets"].astype(str),
+            color="Responsabilité élargie producteur",
+            color_discrete_sequence=px.colors.qualitative.Set2,
         )
-        # add log scale to x axis
-        fig_rep.update_layout(xaxis_type="log")
-        # Masquer les labels de l'axe des ordonnées
-        fig_rep.update_yaxes(showticklabels=False)
-        #  fig_rep.update_traces(texttemplate="%{value:.0f}", textposition="inside")
-
-        fig_rep.update_layout(
-            width=800,
-            height=500,
-            uniformtext_minsize=8,
-            uniformtext_mode="hide",
-            yaxis_title=None,
+        figreptree.update_layout(
+            margin=dict(t=50, l=25, r=25, b=25), autosize=True, height=600
+        )
+        figreptree.update_traces(
+            textinfo="label+value",
+            texttemplate="<b>%{label}</b><br>%{value:.0f} litres",
+            textfont=dict(size=16),
+            hovertemplate="<b>%{label}</b><br>Volume: %{value:.0f}",
         )
 
         with st.container(border=True):
-            st.plotly_chart(fig_rep, use_container_width=True)
+            st.plotly_chart(figreptree, use_container_width=True)
+
+        # Message d'avertissement Nombre de dechets dont la REP n'a pas été determine
+        if nb_vide_rep != 0:
+            st.warning(
+                "⚠️ Il y a "
+                + str(nb_vide_rep)
+                + " dechets dont la responsabilité producteur n'a pas été determiné dans la totalité des dechets comptabilisés"
+            )
+
+
 else:
     st.markdown("## 🚨 Veuillez vous connecter pour accéder à l'onglet 🚨")
