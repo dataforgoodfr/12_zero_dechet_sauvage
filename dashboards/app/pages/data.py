@@ -299,7 +299,7 @@ if st.session_state["authentication_status"]:
             texttemplate="%{y:.0f}%",
             textposition="inside",
             hovertemplate="<b>%{x}</b><br>Part du volume collecté dans ce milieu: %{y:.0f} %",
-            textfont_size=10,
+            textfont_size=12,
         )
 
         # Afficher le graphique
@@ -642,7 +642,7 @@ if st.session_state["authentication_status"]:
             # texttemplate="%{text:.2f}",
             textposition="inside",
             textfont_color="white",
-            textfont_size=20,
+            textfont_size=18,
         )
 
         # Suppression de la colonne categorie
@@ -983,7 +983,7 @@ if st.session_state["authentication_status"]:
             textfont_size=14,
         )
         fig_secteur.update_layout(
-            height=500,
+            height=700,
             uniformtext_mode="hide",
             showlegend=False,
             yaxis_title=None,
@@ -1036,7 +1036,7 @@ if st.session_state["authentication_status"]:
         fig_marque.update_layout(xaxis_type="log")
         fig_marque.update_traces(textfont_size=14)
         fig_marque.update_layout(
-            height=500,
+            height=700,
             uniformtext_minsize=8,
             uniformtext_mode="hide",
             yaxis_title=None,
