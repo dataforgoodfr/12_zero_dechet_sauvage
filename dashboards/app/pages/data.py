@@ -268,6 +268,13 @@ if st.session_state["authentication_status"]:
             ["TYPE_MILIEU", "Volume"], ascending=False
         )
 
+        # Raccourcir les étiquettes trop longues
+        df_typemilieu = df_typemilieu.replace(
+            {
+                "Zone naturelle ou rurale (hors littoral et montagne)": "Zone naturelle ou rurale"
+            }
+        )
+
         # Graphique à barre empilées du pourcentage de volume collecté par an et type de matériau
         fig3 = px.histogram(
             df_typemilieu,
@@ -442,7 +449,7 @@ if st.session_state["authentication_status"]:
         volume_total_filtered = df_filtered_metrics["VOLUME_TOTAL"].sum()
 
         cell6.metric(
-            "Volume de dechets collectés", frenchify(volume_total_filtered) + " litres"
+            "Volume de déchets collectés", frenchify(volume_total_filtered) + " litres"
         )
 
         cell7.metric("Poids total collecté", frenchify(poids_total_filtered) + " kg")
@@ -509,7 +516,7 @@ if st.session_state["authentication_status"]:
                 df_totals_sorted2,
                 path=["Matériau"],
                 values="Volume",
-                title="Répartition des matériaux en volume",
+                title="Répartition des matériaux en volume dans le milieu ou le lieu choisi",
                 color="Matériau",
                 color_discrete_map=colors_map,
             )
@@ -519,7 +526,7 @@ if st.session_state["authentication_status"]:
             fig4.update_traces(
                 textinfo="label+value",
                 texttemplate="<b>%{label}</b><br>%{value:.0f} litres",
-                textfont=dict(size=16),
+                textfont_size=16,
                 hovertemplate="<b>%{label}</b><br>Volume: %{value:.0f}",
             )
 
@@ -607,7 +614,7 @@ if st.session_state["authentication_status"]:
                 "categorie": "Dechet",
                 "nb_dechet": "Nombre total de déchets (échelle logarithmique)",
             },
-            title="Top 10 dechets ramassés (échelle logarithmique) ",
+            title="Top 10 des déchets ramassés",
             text="nb_dechet",
             color="Materiau",
             color_discrete_map=colors_map,
@@ -960,14 +967,21 @@ if st.session_state["authentication_status"]:
             x="Nombre de déchets",
             y="Secteur",
             color="Secteur",
-            title="Top 10 secteurs économiques identifiés dans les déchets comptés (échelle logarithmique)",
+            title="Top 10 des secteurs économiques identifiés dans les déchets comptés",
+            labels={
+                "Nombre de déchets": "Nombre total de déchets (échelle logarithmique)",
+            },
             orientation="h",
             color_discrete_map=colors_map_secteur,
             text_auto=True,
         )
         # add log scale to x axis
         fig_secteur.update_layout(xaxis_type="log")
-        fig_secteur.update_traces(texttemplate="%{value:.0f}", textposition="inside")
+        fig_secteur.update_traces(
+            texttemplate="%{value:.0f}",
+            textposition="inside",
+            textfont_size=14,
+        )
         fig_secteur.update_layout(
             height=500,
             uniformtext_mode="hide",
@@ -981,8 +995,8 @@ if st.session_state["authentication_status"]:
         if nb_vide_indetermine != 0:
             st.warning(
                 "⚠️ Il y a "
-                + str(nb_vide_indetermine)
-                + " dechets dont le secteur n'a pas été determiné dans la totalité des dechets"
+                + str(frenchify(nb_vide_indetermine))
+                + " déchets dont le secteur n'a pas été determiné dans les déchets collectés."
             )
 
         # Metriques et graphes marques
@@ -1007,18 +1021,20 @@ if st.session_state["authentication_status"]:
             top_marque_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
             x="Nombre de déchets",
             y="Marque",
-            title="Top 10 des marques les plus ramassées (échelle logarithmique)",
+            title="Top 10 des marques identifiées dans les déchets comptés",
+            labels={
+                "Nombre de déchets": "Nombre total de déchets (échelle logarithmique)",
+            },
             color_discrete_sequence=["#1951A0"],
             orientation="h",
             text_auto=False,
             text=top_marque_df.tail(10)["Marque"]
-            + ": "
+            + " : "
             + top_marque_df.tail(10)["Nombre de déchets"].astype(str),
         )
         # add log scale to x axis
         fig_marque.update_layout(xaxis_type="log")
-        #  fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
-
+        fig_marque.update_traces(textfont_size=14)
         fig_marque.update_layout(
             height=500,
             uniformtext_minsize=8,
@@ -1074,7 +1090,7 @@ if st.session_state["authentication_status"]:
             top_rep_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
             path=["Responsabilité élargie producteur"],
             values="Nombre de déchets",
-            title="Top 10 des Responsabilités élargies producteurs relatives aux dechets les plus ramassés",
+            title="Top 10 des filières REP relatives aux déchets les plus ramassés",
             color="Responsabilité élargie producteur",
             color_discrete_sequence=px.colors.qualitative.Set2,
         )
@@ -1091,12 +1107,12 @@ if st.session_state["authentication_status"]:
         with st.container(border=True):
             st.plotly_chart(figreptree, use_container_width=True)
 
-        # Message d'avertissement Nombre de dechets dont la REP n'a pas été determine
+        # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
         if nb_vide_rep != 0:
             st.warning(
                 "⚠️ Il y a "
-                + str(nb_vide_rep)
-                + " dechets dont la responsabilité producteur n'a pas été determiné dans la totalité des dechets comptabilisés"
+                + str(frenchify(nb_vide_rep))
+                + " déchets dont la filière REP n'a pas été determinée dans les déchets collectés."
             )
 
 
