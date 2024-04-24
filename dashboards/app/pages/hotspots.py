@@ -366,21 +366,50 @@ st.markdown("""# 🔥 Hotspots : **Quelles sont les zones les plus impactées ?*
 
 
 def calculate_and_display_metrics(data, indicator_col1, indicator_col2, indicator_col3):
-    # Calculate density
-    data["DENSITE"] = data["VOLUME_TOTAL"] / data["SURFACE"]
-    data = data[
-        data["DENSITE"] < 20
-    ]  # Remove rows with anomalously high density values
 
-    # Display metrics in specified UI containers
-    cell1 = indicator_col1.container(border=True)
-    cell1.metric("Densité Moyenne :", f"{data['DENSITE'].mean().round(4)} L/m²")
+    if data.empty:
+        st.write("Aucune donnée disponible pour la région sélectionnée.")
 
-    cell2 = indicator_col2.container(border=True)
-    cell2.metric("Volume Moyen :", f"{data['VOLUME_TOTAL'].mean().round(2)} Litres")
+    else:
+        # Calculate density
+        data["DENSITE"] = data["VOLUME_TOTAL"] / data["SURFACE"]
+        data = data[
+            data["DENSITE"] < 20
+        ]  # Remove rows with anomalously high density values
 
-    cell3 = indicator_col3.container(border=True)
-    cell3.metric("Surface Moyenne :", f"{data['SURFACE'].mean().round(2):,} m²")
+        # Calculate the mean of DENSITE
+        mean_density = data['DENSITE'].mean()
+
+        # Check if the result is a float and then apply round
+        if isinstance(mean_density, float):
+            rounded_mean_density = round(mean_density, 4)
+        else:
+            # Handle the unexpected type here, maybe set to a default value or raise an error
+            rounded_mean_density = 0  # Example default value
+
+        # Display metrics in specified UI containers
+        cell1 = indicator_col1.container(border=True)
+        cell1.metric("Densité Moyenne :", f"{rounded_mean_density} L/m²")
+
+        # Calculate the mean of VOLUME_TOTAL and check its type
+        mean_volume_total = data['VOLUME_TOTAL'].mean()
+        if isinstance(mean_volume_total, float):
+            rounded_mean_volume_total = round(mean_volume_total, 2)
+        else:
+            rounded_mean_volume_total = 0  # Example default value
+
+        cell2 = indicator_col2.container(border=True)
+        cell2.metric("Volume Moyen :", f"{rounded_mean_volume_total} Litres")
+
+        # Calculate the mean of SURFACE and check its type
+        mean_surface = data['SURFACE'].mean()
+        if isinstance(mean_surface, float):
+            rounded_mean_surface = round(mean_surface, 2)
+        else:
+            rounded_mean_surface = 0  # Example default value
+
+        cell3 = indicator_col3.container(border=True)
+        cell3.metric("Surface Moyenne :", f"{rounded_mean_surface:,} m²")
 
     return data
 
@@ -409,49 +438,52 @@ def plot_density_map(
     region_geojson_path: str,
 ) -> folium.Map:
 
-    # Read geographic data from a GeoJSON file
-    gdf = gpd.read_file(region_geojson_path)
+    if data_zds.empty:
+        st.write("Aucune donnée disponible pour la région sélectionnée.")
+        # Initialize a basic map without any data-specific layers
+        m = folium.Map(location=[46.6358, 2.5614], zoom_start=5)
 
-    # Calculate density
-    data_zds["DENSITE"] = data_zds["VOLUME_TOTAL"] / data_zds["SURFACE"]
-    data_zds = data_zds[
-        data_zds["DENSITE"] < 20
-    ]  # Remove rows with anomalously high density values
+    else:
+        # Calculate density
+        data_zds["DENSITE"] = data_zds["VOLUME_TOTAL"] / data_zds["SURFACE"]
+        data_zds = data_zds[
+            data_zds["DENSITE"] < 20
+        ]  # Remove rows with anomalously high density values
 
-    # Round density values for display
-    data_zds["DENSITE"] = data_zds["DENSITE"].round(4)
-    # Round surface values for display
-    data_zds["SURFACE_ROND"] = data_zds["SURFACE"].round(2)
+        # Round density values for display
+        data_zds["DENSITE"] = data_zds["DENSITE"].round(4)
+        # Round surface values for display
+        data_zds["SURFACE_ROND"] = data_zds["SURFACE"].round(2)
 
-    # Initialize a map centered at the mean coordinates of locations
-    m = folium.Map(
-        location=[
-            data_zds["LIEU_COORD_GPS_Y"].mean(),
-            data_zds["LIEU_COORD_GPS_X"].mean(),
-        ]
-    )
+        # Initialize a map centered at the mean coordinates of locations
+        m = folium.Map(
+            location=[
+                data_zds["LIEU_COORD_GPS_Y"].mean(),
+                data_zds["LIEU_COORD_GPS_X"].mean(),
+            ]
+        )
 
-    # Loop over each row in the DataFrame to place markers
-    for index, row in data_zds.iterrows():
-        popup_html = f"""
-        <div style="width: 300px; height: 170px;">
-            <h4>Densité: {row['DENSITE']} L/m²</h4>
-            <h4>Volume total : {row['VOLUME_TOTAL']} litres</h4>
-            <h4>Surface total : {row['SURFACE_ROND']} m²</h4>
-            <h4>Type de milieu : {row['TYPE_MILIEU']}</h4>
-            <h4>Type de lieu : {row['TYPE_LIEU']}</h4>
-        </div>
-        """
-        lgd_txt = '<span style="color: {col};">{txt}</span>'
-        color = couleur_milieu(row["TYPE_MILIEU"])
-        folium.CircleMarker(
-            fg=folium.FeatureGroup(name=lgd_txt.format(txt=["TYPE_MILIEU"], col=color)),
-            location=[row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]],
-            radius=np.log(row["DENSITE"] + 1) * 15,
-            popup=folium.Popup(popup_html, max_width=300),
-            color=color,
-            fill=True,
-        ).add_to(m)
+        # Loop over each row in the DataFrame to place markers
+        for index, row in data_zds.iterrows():
+            popup_html = f"""
+            <div style="width: 300px; height: 170px;">
+                <h4>Densité: {row['DENSITE']} L/m²</h4>
+                <h4>Volume total : {row['VOLUME_TOTAL']} litres</h4>
+                <h4>Surface total : {row['SURFACE_ROND']} m²</h4>
+                <h4>Type de milieu : {row['TYPE_MILIEU']}</h4>
+                <h4>Type de lieu : {row['TYPE_LIEU']}</h4>
+            </div>
+            """
+            lgd_txt = '<span style="color: {col};">{txt}</span>'
+            color = couleur_milieu(row["TYPE_MILIEU"])
+            folium.CircleMarker(
+                fg=folium.FeatureGroup(name=lgd_txt.format(txt=["TYPE_MILIEU"], col=color)),
+                location=[row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]],
+                radius=np.log(row["DENSITE"] + 1) * 15,
+                popup=folium.Popup(popup_html, max_width=300),
+                color=color,
+                fill=True,
+            ).add_to(m)
 
     folium_static(m)
 
@@ -461,37 +493,41 @@ def plot_density_map(
 
 def density_table(data_zds: pd.DataFrame):
 
-    # Calculate density
-    data_zds["DENSITE"] = data_zds["VOLUME_TOTAL"] / data_zds["SURFACE"]
-    # Remove rows with anomalously high density values
-    data_zds = data_zds[data_zds["DENSITE"] < 20]
+    if data_zds.empty:
+        st.write("Aucune donnée disponible pour la région sélectionnée.")
 
-    # Group by 'TYPE_MILIEU', calculate mean density, sort, and round the density
-    table_milieu = (
-        data_zds.groupby("TYPE_MILIEU")["DENSITE"]
-        .mean()
-        .reset_index()
-        .sort_values(by="DENSITE", ascending=False)
-    )
-    table_milieu["DENSITE"] = table_milieu["DENSITE"].round(4)
+    else:
+        # Calculate density
+        data_zds["DENSITE"] = data_zds["VOLUME_TOTAL"] / data_zds["SURFACE"]
+        # Remove rows with anomalously high density values
+        data_zds = data_zds[data_zds["DENSITE"] < 20]
 
-    st.dataframe(
-        table_milieu,
-        column_order=("TYPE_MILIEU", "DENSITE"),
-        hide_index=True,
-        width=800,
-        column_config={
-            "TYPE_MILIEU": st.column_config.TextColumn(
-                "Milieu",
-            ),
-            "DENSITE": st.column_config.NumberColumn(
-                "Densité (L/m²)",
-                format="%f",
-                min_value=0,
-                max_value=max(table_milieu["DENSITE"]),
-            ),
-        },
-    )
+        # Group by 'TYPE_MILIEU', calculate mean density, sort, and round the density
+        table_milieu = (
+            data_zds.groupby("TYPE_MILIEU")["DENSITE"]
+            .mean()
+            .reset_index()
+            .sort_values(by="DENSITE", ascending=False)
+        )
+        table_milieu["DENSITE"] = table_milieu["DENSITE"].round(4)
+
+        st.dataframe(
+            table_milieu,
+            column_order=("TYPE_MILIEU", "DENSITE"),
+            hide_index=True,
+            width=800,
+            column_config={
+                "TYPE_MILIEU": st.column_config.TextColumn(
+                    "Milieu",
+                ),
+                "DENSITE": st.column_config.NumberColumn(
+                    "Densité (L/m²)",
+                    format="%f",
+                    min_value=0,
+                    max_value=max(table_milieu["DENSITE"]),
+                ),
+            },
+        )
 
 
 ################################
@@ -509,75 +545,78 @@ def plot_adopted_waste_spots(
     - data_zds: The waste dataframe
     - filter_dict: dictionary mapping the name of the column in the waste df and the value you want to filter by
     """
+    if data_zds.empty:
+        st.write("Aucune donnée disponible pour la région sélectionnée.")
 
-    # 1/ Create the waste geodataframe #
-    # Create a GeoDataFrame for waste points
-    gdf = gpd.GeoDataFrame(
-        data_zds,
-        geometry=gpd.points_from_xy(
-            data_zds["LIEU_COORD_GPS_X"], data_zds["LIEU_COORD_GPS_Y"]
-        ),
-        crs="EPSG:4326",
-    )
-
-    # Construct the query string
-    query_string = construct_query_string(**single_filter_dict)
-
-    # Filter the geodataframe by region and by environment
-    gdf_filtered = gdf.query(query_string)
-
-    # 2/ Create the regions geodataframe #
-    selected_admin_lvl = construct_admin_lvl_boundaries(
-        data_zds, NIVEAU_ADMIN, NIVEAUX_ADMIN_GEOJSON_PATH_DICT
-    )
-
-    # 3/ Initialize folium map #
-    # Initialize a folium map, centered around the mean location of the waste points
-    map_center = [gdf_filtered.geometry.y.mean(), gdf_filtered.geometry.x.mean()]
-
-    # Catch ValueError if the filtered geodataframe contain no rows
-    try:
-        m = folium.Map(
-            location=map_center, zoom_start=5
-        )  # Adjust zoom_start as needed for the best initial view
-
-    # Return None if ValueError
-    except ValueError as e:
-        st.markdown(
-            "Il n'y a pas de hotspots pour les valeurs de filtres selectionnés !"
+    else:
+        # 1/ Create the waste geodataframe #
+        # Create a GeoDataFrame for waste points
+        gdf = gpd.GeoDataFrame(
+            data_zds,
+            geometry=gpd.points_from_xy(
+                data_zds["LIEU_COORD_GPS_X"], data_zds["LIEU_COORD_GPS_Y"]
+            ),
+            crs="EPSG:4326",
         )
-        st.markdown(f"{e}")
-        return
 
-    # 4/ Add the markers #
-    # Use MarkerCluster to manage markers if dealing with a large number of points
-    marker_cluster = MarkerCluster().add_to(m)
+        # Construct the query string
+        query_string = construct_query_string(**single_filter_dict)
 
-    # Add each waste point as a marker on the folium map
-    for _, row in gdf_filtered.iterrows():
-        # Define the marker color: green for adopted spots, red for others
-        marker_color = "darkgreen" if row["SPOT_A1S"] else "red"
-        # Define the icon: check-circle for adopted, info-sign for others
-        icon_type = "check-circle" if row["SPOT_A1S"] else "info-sign"
+        # Filter the geodataframe by region and by environment
+        gdf_filtered = gdf.query(query_string)
 
-        folium.Marker(
-            location=[row.geometry.y, row.geometry.x],
-            popup=f"Zone: {row['NOM_ZONE']}<br>Date: {row['DATE']}<br>Volume: {row['VOLUME_TOTAL']} litres",
-            icon=folium.Icon(color=marker_color, icon=icon_type, prefix="fa"),
-        ).add_to(marker_cluster)
+        # 2/ Create the regions geodataframe #
+        selected_admin_lvl = construct_admin_lvl_boundaries(
+            data_zds, NIVEAU_ADMIN, NIVEAUX_ADMIN_GEOJSON_PATH_DICT
+        )
 
-    # 5/ Add the region boundary #
-    # Add the region boundary to the map for context
-    folium.GeoJson(
-        selected_admin_lvl,
-        name="Region Boundary",
-        style_function=lambda feature: {
-            "weight": 2,
-            "fillOpacity": 0.1,
-        },
-    ).add_to(m)
+        # 3/ Initialize folium map #
+        # Initialize a folium map, centered around the mean location of the waste points
+        map_center = [gdf_filtered.geometry.y.mean(), gdf_filtered.geometry.x.mean()]
 
-    return m
+        # Catch ValueError if the filtered geodataframe contain no rows
+        try:
+            m = folium.Map(
+                location=map_center, zoom_start=5
+            )  # Adjust zoom_start as needed for the best initial view
+
+        # Return None if ValueError
+        except ValueError as e:
+            st.markdown(
+                "Il n'y a pas de hotspots pour les valeurs de filtres selectionnés !"
+            )
+            st.markdown(f"{e}")
+            return
+
+        # 4/ Add the markers #
+        # Use MarkerCluster to manage markers if dealing with a large number of points
+        marker_cluster = MarkerCluster().add_to(m)
+
+        # Add each waste point as a marker on the folium map
+        for _, row in gdf_filtered.iterrows():
+            # Define the marker color: green for adopted spots, red for others
+            marker_color = "darkgreen" if row["SPOT_A1S"] else "red"
+            # Define the icon: check-circle for adopted, info-sign for others
+            icon_type = "check-circle" if row["SPOT_A1S"] else "info-sign"
+
+            folium.Marker(
+                location=[row.geometry.y, row.geometry.x],
+                popup=f"Zone: {row['NOM_ZONE']}<br>Date: {row['DATE']}<br>Volume: {row['VOLUME_TOTAL']} litres",
+                icon=folium.Icon(color=marker_color, icon=icon_type, prefix="fa"),
+            ).add_to(marker_cluster)
+
+        # 5/ Add the region boundary #
+        # Add the region boundary to the map for context
+        folium.GeoJson(
+            selected_admin_lvl,
+            name="Region Boundary",
+            style_function=lambda feature: {
+                "weight": 2,
+                "fillOpacity": 0.1,
+            },
+        ).add_to(m)
+
+        return m
 
 
 ########################
