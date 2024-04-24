@@ -350,7 +350,10 @@ correction = pd.read_excel(CORRECTION)
 # Fusion and correction
 data_correct = pd.merge(data_zds, correction, on="ID_RELEVE", how="left")
 data_correct = data_correct[data_correct["SURFACE_OK"] == "OUI"]
-data_zds = data_correct[data_correct["VOLUME_TOTAL"] > 0]
+data_zds_correct = data_correct[data_correct["VOLUME_TOTAL"] > 0]
+
+# Filter data_zds for data point which have volume > 0
+data_zds = data_zds[data_zds["VOLUME_TOTAL"] > 0]
 
 ##################
 # 2/ Hotspot tab #
@@ -378,7 +381,7 @@ def calculate_and_display_metrics(data, indicator_col1, indicator_col2, indicato
         ]  # Remove rows with anomalously high density values
 
         # Calculate the mean of DENSITE
-        mean_density = data['DENSITE'].mean()
+        mean_density = data["DENSITE"].mean()
 
         # Check if the result is a float and then apply round
         if isinstance(mean_density, float):
@@ -392,7 +395,7 @@ def calculate_and_display_metrics(data, indicator_col1, indicator_col2, indicato
         cell1.metric("Densité Moyenne :", f"{rounded_mean_density} L/m²")
 
         # Calculate the mean of VOLUME_TOTAL and check its type
-        mean_volume_total = data['VOLUME_TOTAL'].mean()
+        mean_volume_total = data["VOLUME_TOTAL"].mean()
         if isinstance(mean_volume_total, float):
             rounded_mean_volume_total = round(mean_volume_total, 2)
         else:
@@ -402,7 +405,7 @@ def calculate_and_display_metrics(data, indicator_col1, indicator_col2, indicato
         cell2.metric("Volume Moyen :", f"{rounded_mean_volume_total} Litres")
 
         # Calculate the mean of SURFACE and check its type
-        mean_surface = data['SURFACE'].mean()
+        mean_surface = data["SURFACE"].mean()
         if isinstance(mean_surface, float):
             rounded_mean_surface = round(mean_surface, 2)
         else:
@@ -477,7 +480,9 @@ def plot_density_map(
             lgd_txt = '<span style="color: {col};">{txt}</span>'
             color = couleur_milieu(row["TYPE_MILIEU"])
             folium.CircleMarker(
-                fg=folium.FeatureGroup(name=lgd_txt.format(txt=["TYPE_MILIEU"], col=color)),
+                fg=folium.FeatureGroup(
+                    name=lgd_txt.format(txt=["TYPE_MILIEU"], col=color)
+                ),
                 location=[row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]],
                 radius=np.log(row["DENSITE"] + 1) * 15,
                 popup=folium.Popup(popup_html, max_width=300),
@@ -537,7 +542,7 @@ def density_table(data_zds: pd.DataFrame):
 # Create the map of the adopted spots
 def plot_adopted_waste_spots(
     data_zds: pd.DataFrame,
-    single_filter_dict: dict,
+    multi_filter_dict: dict,
 ) -> folium.Map:
     """Show a folium innteractive map of adopted spots within a selected region,
     filtered by environments of deposit.
@@ -560,10 +565,14 @@ def plot_adopted_waste_spots(
         )
 
         # Construct the query string
-        query_string = construct_query_string(**single_filter_dict)
+        query_string = construct_query_string(**multi_filter_dict)
 
         # Filter the geodataframe by region and by environment
-        gdf_filtered = gdf.query(query_string)
+        try:
+            gdf_filtered = gdf.query(query_string)
+
+        except:
+            st.write("Aucune donnée disponible pour les valeurs sélectionnées.")
 
         # 2/ Create the regions geodataframe #
         selected_admin_lvl = construct_admin_lvl_boundaries(
@@ -599,9 +608,17 @@ def plot_adopted_waste_spots(
             # Define the icon: check-circle for adopted, info-sign for others
             icon_type = "check-circle" if row["SPOT_A1S"] else "info-sign"
 
+            # Create a folium iframe for the popup window
+            iframe = folium.IFrame(
+                f"Zone: {row['NOM_ZONE']}<br>Date: {row['DATE']}<br>Volume: {row['VOLUME_TOTAL']} litres<br>Structure: {row['NOM_STRUCTURE']}"
+            )
+
+            # Create the popup window based on the iframe
+            popup = folium.Popup(iframe, min_width=200, max_width=300)
+
             folium.Marker(
                 location=[row.geometry.y, row.geometry.x],
-                popup=f"Zone: {row['NOM_ZONE']}<br>Date: {row['DATE']}<br>Volume: {row['VOLUME_TOTAL']} litres",
+                popup=popup,
                 icon=folium.Icon(color=marker_color, icon=icon_type, prefix="fa"),
             ).add_to(marker_cluster)
 
@@ -617,6 +634,41 @@ def plot_adopted_waste_spots(
         ).add_to(m)
 
         return m
+
+
+def create_contributors_table(data_zds: pd.DataFrame, multi_filter_dict: dict) -> None:
+    """Create and show a streamlit table of the number of collects by contributors,
+    given a set of filters choosen by the user.
+    Arguments:
+    - data_zds: The waste dataframe
+    - filter_dict: dictionary mapping the name of the column in the waste df and the value you want to filter by"""
+
+    # Handle case if there is no data
+    if data_zds.empty:
+        st.write("Aucune donnée disponible pour la région sélectionnée.")
+
+    else:
+        # Construct the query string and filter the table of contributors given the user input
+        query_string = construct_query_string(**multi_filter_dict)
+        data_zds_filtered = data_zds.query(query_string)
+
+        # Create the table (pandas serie) of contributors
+        contributors_table = (
+            data_zds_filtered.groupby("NOM_STRUCTURE")
+            .count()
+            .loc[:, "ID_RELEVE"]
+            .sort_values(ascending=False)
+        )
+
+        # Create and show the table in streamlit
+        st.dataframe(
+            contributors_table,
+            width=800,
+            column_config={
+                "NOM_STRUCTURE": st.column_config.TextColumn("Structure"),
+                "ID_RELEVE": st.column_config.NumberColumn("Nombre de ramassages"),
+            },
+        )
 
 
 ########################
@@ -637,7 +689,7 @@ with tab1:
 
     # Call the function with the data and UI elements
     calculate_and_display_metrics(
-        data_zds, indicator_col1, indicator_col2, indicator_col3
+        data_zds_correct, indicator_col1, indicator_col2, indicator_col3
     )
 
     st.markdown("---")
@@ -646,11 +698,11 @@ with tab1:
 
     with left_column:
         st.markdown("### Carte des Densités")
-        plot_density_map(data_zds, NIVEAUX_ADMIN_GEOJSON_PATH_DICT["Région"])
+        plot_density_map(data_zds_correct, NIVEAUX_ADMIN_GEOJSON_PATH_DICT["Région"])
 
     with right_column:
         st.markdown("### Tableau des Densités par Milieu")
-        density_table(data_zds)
+        density_table(data_zds_correct)
 
 
 with tab2:
@@ -658,8 +710,6 @@ with tab2:
     single_filter_dict_3 = scalable_filters_multi_select(
         data_zds, filters_params=ADOPTED_SPOTS_FILTERS_PARAMS, base_key=tab2
     )
-
-    st.markdown("### Spots Adoptés")
 
     # Construct the adopted waste spots map
     m = plot_adopted_waste_spots(data_zds, single_filter_dict_3)
@@ -670,8 +720,10 @@ with tab2:
     # Show the adopted spots map on the streamlit tab
     with left_column:
         if m:
+            st.markdown("### Carte des spots adoptés")
             folium_static(m)
 
-
-# if __name__ == "__main__":
-#     construct_admin_lvl_filter_list(data_zds, NIVEAU_ADMIN)
+    # Show the contributors table on the second column
+    with right_column:
+        st.markdown("### Tableau du nombre de ramassages par acteur")
+        create_contributors_table(data_zds, single_filter_dict_3)
