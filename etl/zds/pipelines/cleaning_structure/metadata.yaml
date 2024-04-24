@@ -3,10 +3,28 @@ blocks:
   color: null
   configuration:
     file_source:
+      path: data_loaders/zds_db/read_administrations.py
+  downstream_blocks:
+  - cleaning/full_table/merge_nb_dechets_administration
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: zds_db/read_administrations
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_loader
+  upstream_blocks: []
+  uuid: zds_db/read_administrations
+- all_upstream_blocks_executed: true
+  color: null
+  configuration:
+    file_source:
       path: data_loaders/open_data/read_communes_shapefile.py
   downstream_blocks:
+  - commune_column_selector
   - cleaning/geo_dataframe/make_geo_df
-  - cleaning/full_table/get_closest_commune_to_geopoint
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -20,24 +38,21 @@ blocks:
   uuid: open_data/read_communes_shapefile
 - all_upstream_blocks_executed: true
   color: null
-  configuration:
-    file_source:
-      path: transformers/cleaning/geo_dataframe/make_geo_df.py
+  configuration: {}
   downstream_blocks:
   - cleaning/full_table/get_closest_commune_to_geopoint
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: cleaning/geo_dataframe/make_geo_df
+  name: commune_column_selector
   retry_config: null
   status: executed
   timeout: null
   type: transformer
   upstream_blocks:
-  - cleaning/structures/get_latitude_longitude
   - open_data/read_communes_shapefile
-  uuid: cleaning/geo_dataframe/make_geo_df
+  uuid: commune_column_selector
 - all_upstream_blocks_executed: true
   color: null
   configuration:
@@ -98,6 +113,26 @@ blocks:
   color: null
   configuration:
     file_source:
+      path: transformers/cleaning/geo_dataframe/make_geo_df.py
+  downstream_blocks:
+  - cleaning/full_table/get_closest_commune_to_geopoint
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/geo_dataframe/make_geo_df
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/structures/get_latitude_longitude
+  - open_data/read_communes_shapefile
+  uuid: cleaning/geo_dataframe/make_geo_df
+- all_upstream_blocks_executed: true
+  color: null
+  configuration:
+    file_source:
       path: transformers/cleaning/full_table/get_closest_commune_to_geopoint.py
   downstream_blocks:
   - cleaning/full_table/filter_rows_on_distance
@@ -111,8 +146,8 @@ blocks:
   timeout: null
   type: transformer
   upstream_blocks:
+  - commune_column_selector
   - cleaning/geo_dataframe/make_geo_df
-  - open_data/read_communes_shapefile
   uuid: cleaning/full_table/get_closest_commune_to_geopoint
 - all_upstream_blocks_executed: true
   color: null
@@ -157,21 +192,22 @@ blocks:
   color: null
   configuration:
     file_source:
-      path: data_loaders/zds_db/read_administrations.py
+      path: transformers/cleaning/structures/drop_useless_columns.py
   downstream_blocks:
-  - cleaning/full_table/merge_nb_dechets_administration
+  - mysql_zds/export_structures
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: zds_db/read_administrations
+  name: cleaning/structures/drop_useless_columns
   retry_config: null
   status: executed
   timeout: null
-  type: data_loader
-  upstream_blocks: []
-  uuid: zds_db/read_administrations
-- all_upstream_blocks_executed: false
+  type: transformer
+  upstream_blocks:
+  - cleaning/full_table/merge_nb_dechets_administration
+  uuid: cleaning/structures/drop_useless_columns
+- all_upstream_blocks_executed: true
   color: null
   configuration:
     file_source:
@@ -183,31 +219,12 @@ blocks:
   language: python
   name: mysql_zds/export_structures
   retry_config: null
-  status: failed
+  status: executed
   timeout: null
   type: data_exporter
   upstream_blocks:
   - cleaning/structures/drop_useless_columns
   uuid: mysql_zds/export_structures
-- all_upstream_blocks_executed: true
-  color: null
-  configuration:
-    file_source:
-      path: transformers/cleaning/structures/drop_useless_columns.py
-  downstream_blocks:
-  - mysql_zds/export_structures
-  executor_config: null
-  executor_type: local_python
-  has_callback: false
-  language: python
-  name: cleaning/structures/drop_useless_columns
-  retry_config: null
-  status: updated
-  timeout: null
-  type: transformer
-  upstream_blocks:
-  - cleaning/full_table/merge_nb_dechets_administration
-  uuid: cleaning/structures/drop_useless_columns
 cache_block_output_in_memory: false
 callbacks: []
 concurrency_config: {}

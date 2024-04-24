@@ -6,16 +6,24 @@ if "test" not in globals():
 
 @transformer
 def transform(data, *args, **kwargs):
-    """remove useless columns"""
-    data = data.drop(columns=["geometry", "distance"])
-    data.rename(
-        columns={
-            "NOM_right": "COMMUNE",
-            "NOM_left": "NOM_structure",
-            "departemen": "departement",
-        },
-        inplace=True,
+    """
+    Keep only usefull columns on commune shapefile file
+    """
+    # Specify your transformation logic here
+
+    data = data.drop(
+        columns=[
+            "NOM_M",
+            "STATUT",
+            "POPULATION",
+            "INSEE_CAN",
+            "INSEE_ARR",
+            "INSEE_DEP",
+            "INSEE_REG",
+            "SIREN_EPCI",
+        ]
     )
+
     return data
 
 

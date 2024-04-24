@@ -19,3 +19,4 @@ def test_output(output, *args) -> None:
     Template code for testing the output of the block.
     """
     assert output is not None, "The output is undefined"
+    assert len(output) > 0, "Te output doesn't have any rows left"

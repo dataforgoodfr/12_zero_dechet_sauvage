@@ -18,8 +18,6 @@ def execute_transformer_action(df: DataFrame, *args, **kwargs) -> DataFrame:
         "TYPE",
         "ADRESSE",
         "CODE_POSTAL",
-        "DEPT",
-        "REGION",
         "DATE_INSCRIPTION",
         "ACTION_RAMASSAGE",
         "A1S_NB_SPOTS_ADOPTES",
