@@ -1,4 +1,5 @@
 pandas==2.0.3
+numpy==1.26
 geopandas==0.14.3
 folium==0.16.0
 duckdb==0.10.0

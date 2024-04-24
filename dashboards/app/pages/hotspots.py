@@ -33,6 +33,17 @@ NIVEAUX_ADMIN_DICT = {
     "Commune": "COMMUNE_CODE_NOM",
 }
 
+# This is a copy of the previous dict, with just the "EPCI" value modified with the
+# name of the "COMMUNE_CODE_NOM" column in the data_zds df, in order to trigger the display
+# of the "EPCI" level boundaries without an "EPCI" geojson map, knowing that one EPCI is
+# made of one or multiple "communes"
+NIVEAUX_ADMIN_DICT_ALTERED = {
+    "Région": "REGION",
+    "Département": "DEPARTEMENT",
+    "EPCI": "commune",
+    "Commune": "commune",
+}
+
 # The name of the "niveau_admin" fetch from the session state
 NIVEAU_ADMIN = st.session_state["niveau_admin"]
 
@@ -56,12 +67,19 @@ DATA_ZDS_PATH = (
     "sation/data/data_zds_enriched.csv"
 )
 
-# Data path for the France regions geojson
-REGION_GEOJSON_PATH = (
-    "https://raw.githubusercontent.com/dataforgoodfr/"
-    "12_zero_dechet_sauvage/1-exploration-des-donn%C3%A9es/"
-    "Exploration_visualisation/data/regions-avec-outre-mer.geojson"
+# Root data path for the France administrative levels geojson
+NIVEAUX_ADMIN_GEOJSON_ROOT_PATH = (
+    "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
+    "exploration-des-donn%C3%A9es/Exploration_visualisation/data/"
 )
+
+# Dict containing the path of the administrative levels geojson referenced by the names of these adminitrative levels
+NIVEAUX_ADMIN_GEOJSON_PATH_DICT = {
+    "Région": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}regions-avec-outre-mer.geojson",
+    "Département": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}departements-avec-outre-mer.geojson",
+    "EPCI": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}communes-avec-outre-mer.geojson",
+    "Commune": f"{NIVEAUX_ADMIN_GEOJSON_ROOT_PATH}communes-avec-outre-mer.geojson",
+}
 
 # Data path for Correction
 CORRECTION = (
@@ -79,10 +97,6 @@ DATA_SPOT = (
 
 # Params for the adopted spots map filters
 ADOPTED_SPOTS_FILTERS_PARAMS = [
-     {
-        "filter_col": "REGION",
-        "filter_message": "Sélectionnez une région (par défaut votre région) :",
-    },
     {"filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"},
     {"filter_col": "ANNEE", "filter_message": "Sélectionnez une année :"},
 ]
@@ -90,7 +104,8 @@ ADOPTED_SPOTS_FILTERS_PARAMS = [
 # Params for the density graph filters
 DENSITY_FILTERS_PARAMS = [
     {"filter_col": "TYPE_MILIEU", "filter_message": "Sélectionnez un milieu :"},
-    {"filter_col": "TYPE_LIEU2", "filter_message": "Sélectionnez un lieu :"}
+    {"filter_col": "TYPE_LIEU2", "filter_message": "Sélectionnez un lieu :"},
+    {"filter_col": "ANNEE", "filter_message": "Sélectionnez une année :"},
 ]
 
 
@@ -155,7 +170,7 @@ def construct_query_string(bound_word=" and ", **params) -> str:
         if param:
 
             # Check if the parameter value is of type int
-            if isinstance(param, int):
+            if isinstance(param, (int, np.int64)):
                 # If it's an integer, use integer comparison
                 query_sub_string = f"{param_key} == {param}"
 
@@ -163,7 +178,12 @@ def construct_query_string(bound_word=" and ", **params) -> str:
             elif isinstance(param, list):
                 # Handle list of values for multiselect queries.
                 param_values = ", ".join(
-                    [f'"{value}"' for value in param]
+                    [
+                        f'"{value}"'
+                        if not isinstance(value, (int, np.int64))
+                        else f"{value}"
+                        for value in param
+                    ]
                 )  # Prepare string of values enclosed in quotes.
                 query_sub_string = (
                     f"{param_key} in [{param_values}]"  # Use 'in' operator for lists.
@@ -237,9 +257,7 @@ def scalable_filters_multi_select(
         column, message = filter_params["filter_col"], filter_params["filter_message"]
 
         # Get unique values, convert to string and sort them
-        sorted_values = sorted(
-            data_zds[column].dropna().astype(str).unique(), reverse=True
-        )
+        sorted_values = sorted(data_zds[column].dropna().unique(), reverse=True)
 
         # Generate a unique key for each multiselect widget
         unique_key = f"{base_key}_{column}_{i}"
@@ -258,28 +276,55 @@ def scalable_filters_multi_select(
     return filter_dict
 
 
+def construct_admin_lvl_filter_list(
+    data_zds: pd.DataFrame,
+    admin_lvl: str,
+    admin_lvl_dict_altered=NIVEAUX_ADMIN_DICT_ALTERED,
+) -> list:
+    """Create a list of names for a given admin level. This function was created
+    in order to trigger the display of the 'EPCI' level boundaries without an
+    'EPCI' geojson map, knowing that one EPCI is made of one or multiple 'communes'
+    Arguments:
+    - data_zds: the dataframe containing waste data and administrative levels columns
+    - admin_lvl: the common name of the target administrative level
+    Params:
+    - admin_lvl_dict_altered: a dict mapping admin levels common names and the names
+    of the columns corresponding in the data_zds df"""
+
+    # Unpack the column name of the admin level
+    admin_lvl_col_name = admin_lvl_dict_altered[f"{admin_lvl}"]
+
+    # Return the list of uniques administrative names corresponding to the selection made in the home tab
+    return list(data_zds[f"{admin_lvl_col_name}"].str.lower().unique())
+
+
 def construct_admin_lvl_boundaries(
-    admin_lvl: str, single_filter_dict: dict, admin_lvl_geojson_path_dict: dict
+    data_zds: pd.DataFrame, admin_lvl: str, admin_lvl_geojson_path_dict: dict
 ) -> any:
-    """"""
+    """Return a filtered geodataframe with shapes of a target administrative level.
+    Arguments:
+    - data_zds: the dataframe containing waste data and administrative levels columns
+    - admin_lvl: the common name of the target administrative level
+    - admin_lvl_geojson_path_dict: a dict mapping administrative levels common
+    names and the paths of the geojson administrative levels shapes"""
 
     # Unpack the admin level geojson path
     admin_lvl_geojson_path = admin_lvl_geojson_path_dict[f"{admin_lvl}"]
 
     # Unpack the region name
-    admin_lvl_name = single_filter_dict[f"{admin_lvl}"]
+    admin_lvl_names = construct_admin_lvl_filter_list(data_zds, admin_lvl)
 
     # Load France regions from a GeoJSON file
     admin_lvl_shapes = gpd.read_file(admin_lvl_geojson_path)
 
     # Filter the region geodataframe for the specified region
-    selected_admin_lvl = admin_lvl_shapes[
-        admin_lvl_shapes["nom"].str.lower() == admin_lvl_name.lower()
+    selected_admin_lvl_shapes = admin_lvl_shapes[
+        admin_lvl_shapes["nom"].str.lower().isin(admin_lvl_names)
     ]
-    if selected_admin_lvl.empty:
-        raise KeyError(f"Administrative level '{admin_lvl_name}' not found.")
+    if selected_admin_lvl_shapes.empty:
+        raise KeyError
 
-    return selected_admin_lvl
+    return selected_admin_lvl_shapes
 
 
 ##################
@@ -287,7 +332,7 @@ def construct_admin_lvl_boundaries(
 ##################
 
 # Load all regions from the GeoJSON file
-regions = gpd.read_file(REGION_GEOJSON_PATH)
+# regions = gpd.read_file(REGION_GEOJSON_PATH) # Unused, keep as archive
 
 # nb dechets : Unused for now
 # df_nb_dechets = pd.read_csv(NB_DECHETS_PATH)
@@ -319,12 +364,13 @@ st.markdown("""# 🔥 Hotspots : **Quelles sont les zones les plus impactées ?*
 # 2.1/ Carte densité de déchets sur les zones étudiées #
 ########################################################
 
+
 def calculate_and_display_metrics(data, indicator_col1, indicator_col2, indicator_col3):
     # Calculate density
-    data['DENSITE'] = data['VOLUME_TOTAL'] / data['SURFACE']
-    data = data[data['DENSITE'] < 20]  # Remove rows with anomalously high density values
-
-
+    data["DENSITE"] = data["VOLUME_TOTAL"] / data["SURFACE"]
+    data = data[
+        data["DENSITE"] < 20
+    ]  # Remove rows with anomalously high density values
 
     # Display metrics in specified UI containers
     cell1 = indicator_col1.container(border=True)
@@ -333,26 +379,29 @@ def calculate_and_display_metrics(data, indicator_col1, indicator_col2, indicato
     cell2 = indicator_col2.container(border=True)
     cell2.metric("Volume Moyen :", f"{data['VOLUME_TOTAL'].mean().round(2)} Litres")
 
-    cell3 =  indicator_col3.container(border=True)
+    cell3 = indicator_col3.container(border=True)
     cell3.metric("Surface Moyenne :", f"{data['SURFACE'].mean().round(2):,} m²")
 
     return data
 
+
 # Define the colors representing les différents 'Lieux' et 'Milieux'
-couleur =  {
-            'Littoral (terrestre)': 'lightblue',
-            'Mer - Océan': 'darkblue',
-            'Cours d\'eau': 'cyan',
-            'Zone naturelle ou rurale (hors littoral et montagne)': 'green',
-            'Zone urbaine': 'orange',
-            'Lagune et étang côtier': 'red',
-            'Multi-lieux': 'pink',
-            'Montagne': 'grey',
-            'Présent au sol (abandonné)': 'black'}
+couleur = {
+    "Littoral (terrestre)": "lightblue",
+    "Mer - Océan": "darkblue",
+    "Cours d'eau": "cyan",
+    "Zone naturelle ou rurale (hors littoral et montagne)": "green",
+    "Zone urbaine": "orange",
+    "Lagune et étang côtier": "red",
+    "Multi-lieux": "pink",
+    "Montagne": "grey",
+    "Présent au sol (abandonné)": "black",
+}
 
 # Function to retrieve the color associated with a given environment type
 def couleur_milieu(type):
-    return couleur.get(type, 'white') # Returns 'white' if the type is not found
+    return couleur.get(type, "white")  # Returns 'white' if the type is not found
+
 
 # Function to plot a density map
 def plot_density_map(
@@ -364,16 +413,23 @@ def plot_density_map(
     gdf = gpd.read_file(region_geojson_path)
 
     # Calculate density
-    data_zds['DENSITE'] = data_zds['VOLUME_TOTAL']/data_zds['SURFACE']
-    data_zds = data_zds[data_zds['DENSITE'] < 20] # Remove rows with anomalously high density values
+    data_zds["DENSITE"] = data_zds["VOLUME_TOTAL"] / data_zds["SURFACE"]
+    data_zds = data_zds[
+        data_zds["DENSITE"] < 20
+    ]  # Remove rows with anomalously high density values
 
     # Round density values for display
-    data_zds['DENSITE'] = data_zds['DENSITE'].round(4)
-     # Round surface values for display
-    data_zds['SURFACE_ROND'] = data_zds['SURFACE'].round(2)
+    data_zds["DENSITE"] = data_zds["DENSITE"].round(4)
+    # Round surface values for display
+    data_zds["SURFACE_ROND"] = data_zds["SURFACE"].round(2)
 
     # Initialize a map centered at the mean coordinates of locations
-    m = folium.Map(location=[data_zds['LIEU_COORD_GPS_Y'].mean(), data_zds['LIEU_COORD_GPS_X'].mean()])
+    m = folium.Map(
+        location=[
+            data_zds["LIEU_COORD_GPS_Y"].mean(),
+            data_zds["LIEU_COORD_GPS_X"].mean(),
+        ]
+    )
 
     # Loop over each row in the DataFrame to place markers
     for index, row in data_zds.iterrows():
@@ -387,52 +443,55 @@ def plot_density_map(
         </div>
         """
         lgd_txt = '<span style="color: {col};">{txt}</span>'
-        color = couleur_milieu(row['TYPE_MILIEU'])
+        color = couleur_milieu(row["TYPE_MILIEU"])
         folium.CircleMarker(
-            fg = folium.FeatureGroup(name= lgd_txt.format( txt= ['TYPE_MILIEU'], col= color)),
-            location=[row['LIEU_COORD_GPS_Y'], row['LIEU_COORD_GPS_X']],
-            radius=np.log(row['DENSITE'] + 1)*15,
+            fg=folium.FeatureGroup(name=lgd_txt.format(txt=["TYPE_MILIEU"], col=color)),
+            location=[row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]],
+            radius=np.log(row["DENSITE"] + 1) * 15,
             popup=folium.Popup(popup_html, max_width=300),
             color=color,
             fill=True,
-
         ).add_to(m)
 
     folium_static(m)
 
+
 # Function for 'milieu' density table
+
 
 def density_table(data_zds: pd.DataFrame):
 
     # Calculate density
-    data_zds['DENSITE'] = data_zds['VOLUME_TOTAL'] / data_zds['SURFACE']
+    data_zds["DENSITE"] = data_zds["VOLUME_TOTAL"] / data_zds["SURFACE"]
     # Remove rows with anomalously high density values
-    data_zds = data_zds[data_zds['DENSITE'] < 20]
+    data_zds = data_zds[data_zds["DENSITE"] < 20]
 
     # Group by 'TYPE_MILIEU', calculate mean density, sort, and round the density
     table_milieu = (
-        data_zds.groupby('TYPE_MILIEU')['DENSITE']
+        data_zds.groupby("TYPE_MILIEU")["DENSITE"]
         .mean()
         .reset_index()
-        .sort_values(by='DENSITE', ascending=False)
+        .sort_values(by="DENSITE", ascending=False)
     )
-    table_milieu['DENSITE'] = table_milieu['DENSITE'].round(4)
+    table_milieu["DENSITE"] = table_milieu["DENSITE"].round(4)
 
-    st.dataframe(table_milieu,
-                column_order=("TYPE_MILIEU", "DENSITE"),
-                hide_index=True,
-                width=800,
-                column_config={
-                    "TYPE_MILIEU": st.column_config.TextColumn(
-                        "Milieu",
-                    ),
-                    "DENSITE": st.column_config.NumberColumn(
-                        "Densité (L/m²)",
-                        format="%f",
-                        min_value=0,
-                        max_value=max(table_milieu['DENSITE']),
-                    )}
-                )
+    st.dataframe(
+        table_milieu,
+        column_order=("TYPE_MILIEU", "DENSITE"),
+        hide_index=True,
+        width=800,
+        column_config={
+            "TYPE_MILIEU": st.column_config.TextColumn(
+                "Milieu",
+            ),
+            "DENSITE": st.column_config.NumberColumn(
+                "Densité (L/m²)",
+                format="%f",
+                min_value=0,
+                max_value=max(table_milieu["DENSITE"]),
+            ),
+        },
+    )
 
 
 ################################
@@ -443,7 +502,6 @@ def density_table(data_zds: pd.DataFrame):
 def plot_adopted_waste_spots(
     data_zds: pd.DataFrame,
     single_filter_dict: dict,
-    region_geojson_path: str,
 ) -> folium.Map:
     """Show a folium innteractive map of adopted spots within a selected region,
     filtered by environments of deposit.
@@ -469,16 +527,9 @@ def plot_adopted_waste_spots(
     gdf_filtered = gdf.query(query_string)
 
     # 2/ Create the regions geodataframe #
-    # Unpack the region name
-    region = single_filter_dict["REGION"]
-
-    # Load France regions from a GeoJSON file
-    regions = gpd.read_file(region_geojson_path)
-
-    # Filter the region geodataframe for the specified region
-    selected_region = regions[regions["nom"].str.lower() == region.lower()]
-    if selected_region.empty:
-        raise KeyError(f"Region '{region}' not found.")
+    selected_admin_lvl = construct_admin_lvl_boundaries(
+        data_zds, NIVEAU_ADMIN, NIVEAUX_ADMIN_GEOJSON_PATH_DICT
+    )
 
     # 3/ Initialize folium map #
     # Initialize a folium map, centered around the mean location of the waste points
@@ -495,6 +546,7 @@ def plot_adopted_waste_spots(
         st.markdown(
             "Il n'y a pas de hotspots pour les valeurs de filtres selectionnés !"
         )
+        st.markdown(f"{e}")
         return
 
     # 4/ Add the markers #
@@ -517,7 +569,7 @@ def plot_adopted_waste_spots(
     # 5/ Add the region boundary #
     # Add the region boundary to the map for context
     folium.GeoJson(
-        selected_region,
+        selected_admin_lvl,
         name="Region Boundary",
         style_function=lambda feature: {
             "weight": 2,
@@ -532,12 +584,7 @@ def plot_adopted_waste_spots(
 # Dashboard Main Panel #
 ########################
 
-tab1, tab2 = st.tabs(
-    [
-        "Densité des déchets dans zone étudié",
-        "Spots Adoptés"
-    ]
-)
+tab1, tab2 = st.tabs(["Densité des déchets dans zone étudié", "Spots Adoptés"])
 
 with tab1:
 
@@ -550,7 +597,9 @@ with tab1:
     indicator_col1, indicator_col2, indicator_col3 = st.columns(3)
 
     # Call the function with the data and UI elements
-    calculate_and_display_metrics(data_zds, indicator_col1, indicator_col2, indicator_col3)
+    calculate_and_display_metrics(
+        data_zds, indicator_col1, indicator_col2, indicator_col3
+    )
 
     st.markdown("---")
 
@@ -558,7 +607,7 @@ with tab1:
 
     with left_column:
         st.markdown("### Carte des Densités")
-        plot_density_map(data_zds, REGION_GEOJSON_PATH)
+        plot_density_map(data_zds, NIVEAUX_ADMIN_GEOJSON_PATH_DICT["Région"])
 
     with right_column:
         st.markdown("### Tableau des Densités par Milieu")
@@ -567,12 +616,23 @@ with tab1:
 
 with tab2:
     # Use the selected filters
-    single_filter_dict_3 = scalable_filters_single_select(
-        data_zds, ADOPTED_SPOTS_FILTERS_PARAMS, tab2
+    single_filter_dict_3 = scalable_filters_multi_select(
+        data_zds, filters_params=ADOPTED_SPOTS_FILTERS_PARAMS, base_key=tab2
     )
 
     st.markdown("### Spots Adoptés")
-    m = plot_adopted_waste_spots(data_zds, single_filter_dict_3, REGION_GEOJSON_PATH)
+
+    # Construct the adopted waste spots map
+    m = plot_adopted_waste_spots(data_zds, single_filter_dict_3)
+
+    # Construct wo columns, one for the spots map the other for the tab of structures
+    left_column, right_column = st.columns([2, 1])
+
     # Show the adopted spots map on the streamlit tab
-    if m:
-        folium_static(m)
+    with left_column:
+        if m:
+            folium_static(m)
+
+
+# if __name__ == "__main__":
+#     construct_admin_lvl_filter_list(data_zds, NIVEAU_ADMIN)
