@@ -63,7 +63,7 @@ if st.session_state["authentication_status"]:
         [
             "Matériaux :wood:",
             "Top Déchets :wastebasket:",
-            "Secteurs, marques et responsabilités élargies producteurs :womans_clothes:",
+            "Secteurs, marques et filières REP :womans_clothes:",
         ]
     )
 
@@ -302,7 +302,7 @@ if st.session_state["authentication_status"]:
 
         selected_annee = st.selectbox(
             "Choisir une année:",
-            options=["Aucune sélection"] + list(df_other["ANNEE"].unique()),
+            options=["Aucune sélection"] + annee_liste,
         )
         if selected_annee != "Aucune sélection":
             filtered_data_milieu = df_other[df_other["ANNEE"] == selected_annee].copy()
@@ -705,8 +705,7 @@ if st.session_state["authentication_status"]:
         # Étape 1: Création des filtres
         selected_annee_onglet_3 = st.selectbox(
             "Choisir une année:",
-            options=["Aucune sélection"]
-            + list(df_other["ANNEE"].sort_values().unique()),
+            options=["Aucune sélection"] + annee_liste,
             key="année_select",
         )
         if selected_annee_onglet_3 != "Aucune sélection":
