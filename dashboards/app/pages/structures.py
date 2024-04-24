@@ -46,11 +46,36 @@ if "df_other_filtre" not in st.session_state:
 else:
     df_releves = st.session_state["df_other_filtre"]
 
+if "structures" not in st.session_state:
+    st.write(
+        """
+            ### :warning: Merci de sélectionner une collectivité\
+            dans l'onglet Home pour afficher les données. :warning:
+            """
+    )
+    st.stop()
+else:
+    df_structures_full = st.session_state["structures"]
 
 if filtre_niveau == "" and filtre_collectivite == "":
     st.write("Aucune sélection de territoire n'a été effectuée")
 else:
     st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
+
+dict_agg_df_releves = {"DATE": "max", "ID_RELEVE": "count"}
+df_releve_structure = (
+    df_releves.groupby(["ID_STRUCTURE"]).agg(dict_agg_df_releves).reset_index()
+)
+df_releve_structure.rename(
+    columns={"DATE": "Date dernière collecte", "ID_RELEVE": "Nombre de relevés"},
+    inplace=True,
+)
+
+df_structures = df_structures.merge(
+    df_releve_structure, how="left", left_on="ID_STRUCT", right_on="ID_STRUCTURE"
+)
+df_structures["Nombre de relevés"].fillna(0, inplace=True)
+df_structures["Date dernière collecte"].fillna(" ", inplace=True)
 
 
 # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
@@ -117,6 +142,12 @@ with st.container():
     st.markdown(""" **Cartographie des structures du territoire**""")
 
 
+@st.cache_data(show_spinner=False)
+def split_frame(input_df, rows):
+    df = [input_df.loc[i : i + rows - 1, :] for i in range(0, len(input_df), rows)]
+    return df
+
+
 # Affichage du dataframe
 with st.container():
     st.markdown(""" **Structures du territoire**""")
@@ -124,12 +155,46 @@ with st.container():
         (
             """SELECT 
                     NOM_structure as Nom, 
-                    TYPE, 
-                    ACTION_RAM AS 'Nombre de collectes', 
-                    A1S_NB_SPO as 'Nombre de spots adoptés'
+                    TYPE as Type, 
+                    "Nombre de relevés",
+                    A1S_NB_SPO as 'Nombre de spots adoptés',
+                    "Date dernière collecte"
             FROM df_structures 
             ORDER BY Nom DESC;"""
         )
     ).to_df()
+    top_menu = st.columns(2)
+    with top_menu[0]:
+        sort_field = st.selectbox(
+            "Trier par",
+            options=[
+                "Nombre de relevés",
+                "Type",
+                "Nombre de spots adoptés",
+                "Date dernière collecte",
+            ],
+        )
+    with top_menu[1]:
+        sort_direction = st.radio("Direction", options=["⬇️", "⬆️"], horizontal=True)
+    df_struct_simplifie = df_struct_simplifie.sort_values(
+        by=sort_field, ascending=sort_direction == "⬆️", ignore_index=True
+    )
+    pagination = st.container()
 
-    st.dataframe(df_struct_simplifie, hide_index=True)
+    bottom_menu = st.columns((4, 1, 1))
+    with bottom_menu[2]:
+        batch_size = st.selectbox("Taille Page", options=[10, 20])
+    with bottom_menu[1]:
+        total_pages = (
+            int(len(df_struct_simplifie) / batch_size)
+            if int(len(df_struct_simplifie) / batch_size) > 0
+            else 1
+        )
+        current_page = st.number_input(
+            "Page", min_value=1, max_value=total_pages, step=1
+        )
+    with bottom_menu[0]:
+        st.markdown(f"Page **{current_page}** sur **{total_pages}** ")
+
+    pages = split_frame(df_struct_simplifie, batch_size)
+    pagination.dataframe(data=pages[current_page - 1], use_container_width=True)

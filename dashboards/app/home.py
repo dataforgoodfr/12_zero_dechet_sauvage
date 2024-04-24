@@ -72,6 +72,7 @@ select_niveauadmin = st.selectbox(
     "Niveau administratif : ",
     niveaux_admin_dict.keys(),
     index=index_admin,
+    placeholder="Choisir une option",
 )
 
 if select_niveauadmin is not None:
@@ -84,6 +85,7 @@ if select_niveauadmin is not None:
         "Collectivité : ",
         liste_collectivites,
         index=index_collec,
+        placeholder="Choisir une collectivité",
     )
 
 
@@ -112,6 +114,7 @@ if st.button("Enregistrer la sélection"):
         df_other[colonne_filtre] == select_collectivite
     ]
     st.session_state["structures_filtre"] = df_structures_filtre
+    st.session_state["structures"] = df_structures_filtre
 
     # Filtrer et enregistrer le dataframe nb_dechets dans session.State
     # Récuperer la liste des relevés
