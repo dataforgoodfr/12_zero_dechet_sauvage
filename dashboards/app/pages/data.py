@@ -598,7 +598,10 @@ if st.session_state["authentication_status"]:
             df_top10_dechets,
             y="categorie",
             x="nb_dechet",
-            labels={"categorie": "Dechet", "nb_dechet": "Nombre total"},
+            labels={
+                "categorie": "Dechet",
+                "nb_dechet": "Nombre total de déchets (échelle logarithmique)",
+            },
             title="Top 10 dechets ramassés (échelle logarithmique) ",
             text="nb_dechet",
             color="Materiau",
@@ -607,16 +610,27 @@ if st.session_state["authentication_status"]:
         )
         fig5.update_layout(xaxis_type="log")
         # suppression de la légende des couleurs
-        fig5.update_layout(showlegend=False)
+        fig5.update_layout(
+            showlegend=True,
+            height=700,
+            uniformtext_minsize=8,
+            uniformtext_mode="hide",
+            yaxis_title=None,
+            # Position de la légende
+            legend=dict(
+                yanchor="bottom",
+                y=1.01,
+                xanchor="right",
+                x=0.95,
+            ),
+        )
+
         # Amélioration du visuel du graphique
         fig5.update_traces(
             # texttemplate="%{text:.2f}",
             textposition="inside",
             textfont_color="white",
             textfont_size=20,
-        )
-        fig5.update_layout(
-            width=1400, height=900, uniformtext_minsize=8, uniformtext_mode="hide"
         )
 
         # Suppression de la colonne categorie
@@ -954,7 +968,6 @@ if st.session_state["authentication_status"]:
         fig_secteur.update_layout(xaxis_type="log")
         fig_secteur.update_traces(texttemplate="%{value:.0f}", textposition="inside")
         fig_secteur.update_layout(
-            width=800,
             height=500,
             uniformtext_mode="hide",
             showlegend=False,
@@ -1007,7 +1020,6 @@ if st.session_state["authentication_status"]:
         #  fig_marque.update_traces(texttemplate="%{value:.0f}", textposition="inside")
 
         fig_marque.update_layout(
-            width=800,
             height=500,
             uniformtext_minsize=8,
             uniformtext_mode="hide",
