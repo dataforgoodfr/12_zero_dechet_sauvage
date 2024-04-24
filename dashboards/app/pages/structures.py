@@ -63,6 +63,7 @@ if filtre_niveau == "" and filtre_collectivite == "":
 else:
     st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
+# On constitue la table qu'on va afficher en bas en combinant la table des structures et des relevés
 dict_agg_df_releves = {"DATE": "max", "ID_RELEVE": "count"}
 df_releve_structure = (
     df_releves.groupby(["ID_STRUCTURE"]).agg(dict_agg_df_releves).reset_index()
@@ -75,25 +76,52 @@ df_releve_structure.rename(
 df_structures = df_structures.merge(
     df_releve_structure, how="left", left_on="ID_STRUCT", right_on="ID_STRUCTURE"
 )
-df_structures["Nombre de relevés"].fillna(0, inplace=True)
-df_structures["Date dernière collecte"].fillna(" ", inplace=True)
 
+
+structures_releves = [
+    c
+    for c in list(df_releve_structure["ID_STRUCTURE"].unique())
+    if c not in list(df_structures["ID_STRUCT"].unique())
+]
+
+df_structures_releves = df_structures_full.merge(
+    df_releve_structure[df_releve_structure["ID_STRUCTURE"].isin(structures_releves)],
+    how="right",
+    left_on="ID_STRUCT",
+    right_on="ID_STRUCTURE",
+)
+df_structures_territoire = pd.concat([df_structures, df_structures_releves])
+df_structures_territoire["Nombre de relevés"].fillna(0, inplace=True)
+df_structures_territoire["Date dernière collecte"].fillna(" ", inplace=True)
 
 # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
-l1_col1, l1_col2 = st.columns(2)
+l1_col1, l1_col2, l1_col3 = st.columns(3)
 
 # Pour avoir une  bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
 
 # 1ère métrique : nombre d'acteurs
 cell1 = l1_col1.container(border=True)
-nb_acteurs = len(df_structures)
+nb_acteurs = len(df_structures_territoire)
 # Trick pour séparer les milliers
-cell1.metric("Acteurs présents sur le territoire", nb_acteurs)
+cell1.metric("Acteurs* du territoire", nb_acteurs)
 
-# 2ème métrique : nb de spots adoptés
+# 2ème métrique : nombre d'acteurs actifs
 cell2 = l1_col2.container(border=True)
-nb_spots_adoptes = df_structures["A1S_NB_SPO"].sum()
-cell2.metric("Spots adoptés", nb_spots_adoptes)
+nb_acteurs_actifs = len(
+    df_structures_territoire[df_structures_territoire["Nombre de relevés"] > 0]
+)
+# Trick pour séparer les milliers
+cell2.metric("Acteurs ayant été actifs sur le territoire", nb_acteurs_actifs)
+
+# 3ème métrique : nb de spots adoptés
+cell3 = l1_col3.container(border=True)
+nb_spots_adoptes = df_structures_territoire["A1S_NB_SPO"].sum()
+cell3.metric("Spots adoptés par les acteurs du territoire", int(nb_spots_adoptes))
+
+st.markdown(
+    """*Acteurs * : acteurs dont l'adresse se trouve sur le territoire ou ayant réalisé un ramassage sur le territoire.*
+"""
+)
 
 
 # Ligne 2 : 2 graphiques en ligne : carte et pie chart type de structures
@@ -107,7 +135,7 @@ with st.container():
     df_aggType = duckdb.query(
         (
             "SELECT TYPE, count(TYPE) AS nb_structures "
-            "FROM df_structures "
+            "FROM df_structures_territoire "
             "GROUP BY TYPE "
             "ORDER BY nb_structures DESC;"
         )
@@ -142,6 +170,12 @@ with st.container():
 with st.container():
     st.markdown(""" **Cartographie des structures du territoire**""")
 
+    st.markdown(
+        """
+    *Ne sont représentés ici que les acteurs dont l'adresse se trouve sur le territoire.*
+    """
+    )
+
     # Création de la carte centrée autour d'une localisation
     # # Initialisation du zoom sur la carte
     # if filtre_niveau == "Commune":
@@ -159,8 +193,8 @@ with st.container():
     # min_lon = df_structures["longitude"].min()
     # max_lon = df_structures["longitude"].max()
 
-    sw = df_structures[["latitude", "longitude"]].min().values.tolist()
-    ne = df_structures[["latitude", "longitude"]].max().values.tolist()
+    sw = df_structures[["LATITUDE", "LONGITUDE"]].min().values.tolist()
+    ne = df_structures[["LATITUDE", "LONGITUDE"]].max().values.tolist()
 
     map_data = folium.Map(
         # zoom_start=zoom_admin,
@@ -177,11 +211,11 @@ with st.container():
         # Application d'une limite minimale pour le rayon si nécessaire
 
         folium.Marker(
-            location=(row["latitude"], row["longitude"]),
+            location=(row["LATITUDE"], row["LONGITUDE"]),
             color="#3186cc",
             icon=folium.Icon(color="blue"),
             popup=folium.Popup(
-                f"{row['NOM_structure']}\n ({row['COMMUNE']})", max_width=100
+                f"{row['NOM_STRUCTURE']}\n ({row['COMMUNE']})", max_width=100
             ),
         ).add_to(map_data)
 
@@ -207,12 +241,12 @@ with st.container():
     df_struct_simplifie = duckdb.query(
         (
             """SELECT 
-                    NOM_structure as Nom, 
+                    NOM_STRUCTURE as Nom, 
                     TYPE as Type, 
                     "Nombre de relevés",
                     A1S_NB_SPO as 'Nombre de spots adoptés',
                     "Date dernière collecte"
-            FROM df_structures 
+            FROM df_structures_territoire
             ORDER BY Nom DESC;"""
         )
     ).to_df()
@@ -228,7 +262,7 @@ with st.container():
             ],
         )
     with top_menu[1]:
-        sort_direction = st.radio("Direction", options=["⬇️", "⬆️"], horizontal=True)
+        sort_direction = st.radio("Ordre", options=["⬇️", "⬆️"], horizontal=True)
     df_struct_simplifie = df_struct_simplifie.sort_values(
         by=sort_field, ascending=sort_direction == "⬆️", ignore_index=True
     )

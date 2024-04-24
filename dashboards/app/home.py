@@ -86,6 +86,7 @@ if st.session_state["authentication_status"]:
         # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
         df["DEP_CODE_NOM"] = df["dep"] + " - " + df["departement"]
         df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["COMMUNE"]
+        df.columns = [c.upper() for c in df.columns]
         return df
 
     # Appel des fonctions pour charger les données
@@ -167,6 +168,7 @@ if st.session_state["authentication_status"]:
             df_structures[colonne_filtre] == select_collectivite
         ]
         st.session_state["structures_filtre"] = df_structures_filtre
+        st.session_state["structures"] = df_structures
 
         # Filtrer et enregistrer le dataframe nb_dechets dans session.State
         # Récuperer la liste des relevés
