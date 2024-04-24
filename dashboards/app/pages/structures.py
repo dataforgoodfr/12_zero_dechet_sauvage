@@ -1,8 +1,9 @@
 import streamlit as st
-import altair as alt
 import duckdb
 import pandas as pd
 import plotly.express as px
+import folium
+from folium import IFrame
 
 
 # Configuration de la page
@@ -116,6 +117,53 @@ with st.container():
 with st.container():
     st.markdown(""" **Cartographie des structures du territoire**""")
 
+    # Création de la carte centrée autour d'une localisation
+    # Initialisation du zoom sur la carte
+    if filtre_niveau == "Commune":
+        zoom_admin = 12
+    elif filtre_niveau == "EPCI":
+        zoom_admin = 13
+    elif filtre_niveau == "Département":
+        zoom_admin = 10
+    else:
+        zoom_admin = 8
+
+    # Calcul des limites à partir de vos données
+    min_lat = df_structures["latitude"].min()
+    max_lat = df_structures["latitude"].max()
+    min_lon = df_structures["longitude"].min()
+    max_lon = df_structures["longitude"].max()
+
+    map_data = folium.Map(
+        location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
+        zoom_start=zoom_admin,
+        #  zoom_start=8,
+        tiles="OpenStreetMap",
+    )
+
+    # Facteur de normalisation pour ajuster la taille des bulles
+    normalisation_facteur = 1000
+
+    for index, row in df_structures.iterrows():
+        # Application de la normalisation
+
+        # Application d'une limite minimale pour le rayon si nécessaire
+
+        folium.Marker(
+            location=(row["latitude"], row["longitude"]),
+            color="#3186cc",
+            icon=folium.Icon(color="blue"),
+            popup=folium.Popup(
+                f"{row['NOM_structure']}\n ({row['COMMUNE']})", max_width=100
+            ),
+        ).add_to(map_data)
+
+    # Affichage de la carte Folium dans Streamlit
+    st_folium = st.components.v1.html
+    st_folium(
+        folium.Figure().add_child(map_data).render(),  # , width=1400
+        height=750,
+    )
 
 # Affichage du dataframe
 with st.container():
@@ -123,7 +171,8 @@ with st.container():
     df_struct_simplifie = duckdb.query(
         (
             """SELECT 
-                    NOM_structure as Nom, 
+                    NOM_structure as Nom,
+                    COMMUNE, 
                     TYPE, 
                     ACTION_RAM AS 'Nombre de collectes', 
                     A1S_NB_SPO as 'Nombre de spots adoptés'
