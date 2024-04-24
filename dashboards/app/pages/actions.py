@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import plotly.express as px
 import streamlit as st
 import folium
+from babel.dates import format_date, Locale
 
 # Page setting : wide layout
 st.set_page_config(
@@ -60,19 +61,81 @@ if st.session_state["authentication_status"]:
         ]
     )
 
+    # Locale du package Babel
+    locale = Locale("fr", "FR")
+
     # Onglet 1 : Evènements
     with tab1:
+        # Convertit la colonne de date en datetime
+        df_other["DATE"] = pd.to_datetime(df_other["DATE"])
+
+        # Liste des années pour le filtre
         annee_liste = sorted(df_other["ANNEE"].unique().tolist(), reverse=True)
 
         # Filtre par année:
-        options = ["Toute la période"] + annee_liste
+        options = [
+            f"Toute la période ({min(annee_liste)}-{max(annee_liste)})"
+        ] + annee_liste
         annee_choisie = st.selectbox("Choisissez l'année:", options, index=0)
 
-        if annee_choisie == "Toute la période":
-            df_other_filtre = df_other.copy()
+        # Selection d'une année dans le filtre -> affichage du second filtre MOIS
+        if isinstance(annee_choisie, int):
 
-        if annee_choisie != "Toute la période":
-            df_other_filtre = df_other[df_other["ANNEE"] == annee_choisie].copy()
+            # Dict de mois
+            mois_dict = {
+                "January": 1,
+                "February": 2,
+                "March": 3,
+                "April": 4,
+                "May": 5,
+                "June": 6,
+                "July": 7,
+                "August": 8,
+                "September": 9,
+                "October": 10,
+                "November": 11,
+                "December": 12,
+            }
+
+            # Liste des mois uniques pour l'année sélectionnée
+            mois_liste = sorted(
+                df_other[df_other["ANNEE"] == annee_choisie]["DATE"]
+                .dt.strftime("%B")
+                .unique()
+                .tolist(),
+                key=lambda x: mois_dict[x],
+            )
+
+            # Plage des index pour le filtre par mois
+            range_mois_index = range(len(mois_liste) + 1)
+
+            # Creation du select avec les mois de l'année choisie
+            mois_choisi_index = st.selectbox(
+                "Choisissez le mois:",
+                range_mois_index,
+                format_func=lambda x: f"Tous les mois de {annee_choisie}"
+                if x == 0
+                else str.capitalize(
+                    format_date(
+                        datetime(2022, mois_dict[mois_liste[x - 1]], 1),
+                        format="MMMM",
+                        locale=locale,
+                    )
+                ),
+                index=0,
+            )
+
+            # Filtrer le DataFrame par année et mois sélectionnés
+            if mois_choisi_index != 0:  # mois choisi
+                mois_choisi = mois_liste[mois_choisi_index - 1]
+                df_other_filtre = df_other[
+                    (df_other["ANNEE"] == annee_choisie)
+                    & (df_other["DATE"].dt.month == mois_dict[mois_choisi])
+                ].copy()
+            else:  # que l'année choisie
+                df_other_filtre = df_other[df_other["ANNEE"] == annee_choisie].copy()
+        else:  # pas d'année choisie
+            df_other_filtre = df_other.copy()
 
         # Copie des données pour transfo
         df_ramassages = df_other_filtre.copy()
@@ -159,7 +222,9 @@ if st.session_state["authentication_status"]:
 
         df_carac = df_other_filtre.copy()
         df_carac_counts = df_carac["NIVEAU_CARAC"].value_counts().reset_index()
+        df_carac_counts = df_carac_counts.sort_values(by="NIVEAU_CARAC")
         df_carac_counts.columns = ["NIVEAU_CARAC", "counts"]
+        colors = px.colors.sequential.Blues[3:][::-1]
 
         fig1_actions = px.pie(
             df_carac_counts,
@@ -167,31 +232,28 @@ if st.session_state["authentication_status"]:
             names="NIVEAU_CARAC",
             title="Répartition des niveaux de caractérisation",
             hole=0.5,
+            color_discrete_sequence=colors,
+            category_orders={"NIVEAU_CARAC": [0, 1, 2, 3, 4]},
         )
-        fig1_actions.update_traces(textposition="inside", textinfo="percent+label")
-
-        # préparation du dataframe et figure releves types de milieux
-
-        df_milieux = df_other_filtre.copy()
-        df_milieux_counts = df_milieux["TYPE_MILIEU"].value_counts().reset_index()
-        df_milieux_counts.columns = ["TYPE_MILIEU", "counts"]
-        df_milieux_counts_sorted = df_milieux_counts.sort_values(
-            by="counts", ascending=True
-        )
-        # Retirer le texte entre parenthèses et les parenthèses elles-mêmes
-        df_milieux_counts_sorted.TYPE_MILIEU = (
-            df_milieux_counts_sorted.TYPE_MILIEU.str.replace(
-                r"\([^()]*\)", "", regex=True
-            ).str.strip()
+        fig1_actions.update_traces(
+            textposition="inside", texttemplate="%{label}<br>%{percent:.1%}"
         )
 
+        # préparation du dataframe et figure releves types de déchets
+        df_type_dechet = df_other_filtre.copy()
+        df_type_dechet_counts = (
+            df_type_dechet["TYPE_DECHET"].value_counts().reset_index()
+        )
+        df_type_dechet_counts.columns = ["TYPE_DECHET", "counts"]
+        df_type_dechet_counts_sorted = df_type_dechet_counts.sort_values(
+            by="counts", ascending=False
+        )
         fig2_actions = px.bar(
-            df_milieux_counts_sorted,
-            y="TYPE_MILIEU",
-            x="counts",
-            title="Nombre de relevés par types de milieux",
+            df_type_dechet_counts_sorted,
+            y="counts",
+            x="TYPE_DECHET",
+            title="Nombre de relevés par types de déchets",
             text="counts",
-            orientation="h",
         )
         fig2_actions.update_layout(xaxis_title="", yaxis_title="")
 
@@ -202,52 +264,99 @@ if st.session_state["authentication_status"]:
         # Affichage donut
         with cell4:
             st.plotly_chart(fig1_actions, use_container_width=True)
-
         # Affichage barplot
         with cell5:
             st.plotly_chart(fig2_actions, use_container_width=True)
 
-        # Ligne 4 : 2 graphiques en ligne : bar chart types déchets et line chart volume + nb collectes par mois
-        # préparation du dataframe et figure releves types de déchets
-        df_type_dechet = df_other_filtre.copy()
-        df_type_dechet_counts = (
-            df_type_dechet["TYPE_DECHET"].value_counts().reset_index()
+        # Ligne 4 : 2 graphiques en ligne : bar chart types milieux et bar chart types de lieux
+        # préparation du dataframe et figure releves types de milieux
+        df_milieux = df_other_filtre.copy()
+        df_milieux_counts = df_milieux["TYPE_MILIEU"].value_counts().reset_index()
+        df_milieux_counts.columns = ["TYPE_MILIEU", "counts"]
+        df_milieux_counts_sorted = df_milieux_counts.sort_values(
+            by="counts", ascending=True
         )
-        df_type_dechet_counts.columns = ["TYPE_DECHET", "counts"]
-        df_type_dechet_counts_sorted = df_type_dechet_counts.sort_values(
-            by="counts", ascending=False
+
+        # Retirer le texte entre parenthèses et les parenthèses elles-mêmes
+        df_milieux_counts_sorted.TYPE_MILIEU = (
+            df_milieux_counts_sorted.TYPE_MILIEU.str.replace(
+                r"\([^()]*\)", "", regex=True
+            ).str.strip()
         )
+
         fig3_actions = px.bar(
-            df_type_dechet_counts_sorted,
-            y="counts",
-            x="TYPE_DECHET",
-            title="Nombre de relevés par types de déchets",
+            df_milieux_counts_sorted,
+            y="TYPE_MILIEU",
+            x="counts",
+            title="Nombre de relevés par types de milieux",
             text="counts",
+            orientation="h",
         )
         fig3_actions.update_layout(xaxis_title="", yaxis_title="")
-        # préparation du dataframe et figure volume + nb collectes volume + nb collectes par mois
-        df_mois = df_other_filtre.copy()
-        df_mois["DATE"] = pd.to_datetime(df_mois["DATE"])
-        df_mois["MOIS"] = df_mois["DATE"].dt.month
-        df_mois_counts = df_mois["MOIS"].value_counts().reset_index()
-        df_mois_counts.columns = ["MOIS", "counts"]
+
+        # préparation du dataframe et figure releves types de lieux 2
+        df_type_lieu2 = df_other_filtre.copy()
+        df_type_lieu2_counts = df_type_lieu2["TYPE_LIEU2"].value_counts().reset_index()
+        df_type_lieu2_counts.columns = ["TYPE_LIEU2", "counts"]
+        df_type_lieu2_counts_sorted = df_type_lieu2_counts.sort_values(
+            by="counts", ascending=False
+        )
+
+        # Retirer le texte entre parenthèses et les parenthèses elles-mêmes
+        df_type_lieu2_counts_sorted.TYPE_LIEU2 = (
+            df_type_lieu2_counts_sorted.TYPE_LIEU2.str.replace(
+                r"\([^()]*\)", "", regex=True
+            ).str.strip()
+        )
+
         fig4_actions = px.bar(
-            df_mois_counts,
+            df_type_lieu2_counts_sorted,
             y="counts",
-            x="MOIS",
-            title="Nombre de relevés par mois",
+            x="TYPE_LIEU2",
+            title="Nombre de relevés par types de lieu",
             text="counts",
         )
         fig4_actions.update_layout(xaxis_title="", yaxis_title="")
+        fig4_actions.update_xaxes(tickangle=45)
+
         l4_col1, l4_col2 = st.columns(2)
         cell6 = l4_col1.container(border=True)
         cell7 = l4_col2.container(border=True)
+
         # Affichage barplot
         with cell6:
             st.plotly_chart(fig3_actions, use_container_width=True)
         # Affichage barplot
         with cell7:
             st.plotly_chart(fig4_actions, use_container_width=True)
+
+        # préparation du dataframe et figure volume + nb collectes volume + nb collectes par mois
+        # Créer une liste ordonnée des noms de mois dans l'ordre souhaité
+        mois_ordre = [
+            str.capitalize(format_date(dt, format="MMMM", locale=locale))
+            for dt in pd.date_range(start="2022-01-01", end="2022-12-01", freq="MS")
+        ]
+
+        df_mois = df_other_filtre.copy()
+        df_mois["DATE"] = pd.to_datetime(df_mois["DATE"])
+        df_mois["MOIS"] = df_mois["DATE"].dt.month
+        df_mois_counts = df_mois["MOIS"].value_counts().reset_index()
+        df_mois_counts.columns = ["MOIS", "counts"]
+
+        fig5_actions = px.bar(
+            df_mois_counts,
+            y="counts",
+            x="MOIS",
+            title="Nombre de relevés par mois",
+            text="counts",
+        )
+        fig5_actions.update_layout(xaxis_title="", yaxis_title="")
+        # Utiliser la liste mois_ordre comme étiquettes sur l'axe x
+        fig5_actions.update_xaxes(tickvals=list(range(1, 13)), ticktext=mois_ordre)
+
+        with st.container(border=True):
+            # Affichage barplot
+            st.plotly_chart(fig5_actions, use_container_width=True)
 
     # onglet Evenements a venir
     with tab2:
@@ -300,7 +409,7 @@ if st.session_state["authentication_status"]:
                         </div>
                         <br>
                         <div style="font-weight: bold; color: gray;">
-                            {row.DATE.strftime("%A %d %B %Y")}
+                            {str.capitalize(format_date(row.DATE, format="full", locale=locale))}
                         </div>
                     </p>
                     <p>
@@ -342,7 +451,7 @@ if st.session_state["authentication_status"]:
                 for idx, row in df_events_a_venir.iterrows():
                     with st.container(border=True):
                         # Bloc contenant la date
-                        date_block = f"<div style='font-weight:bold; color:{color_ZDS_rouge}; text-align: center;'>{row.DATE.day}<br>{row.DATE.strftime('%b')}</div>"
+                        date_block = f"<div style='font-weight:bold; color:{color_ZDS_rouge}; text-align: center;'>{row.DATE.day}<br>{str.capitalize(locale.months['format']['wide'][row.DATE.month - 1])}</div>"
                         # Bloc contenant le nom de l'événement
                         event_block = (
                             f"<div style='font-weight:bold;'>{row.NOM_EVENEMENT}</div>"
@@ -357,5 +466,6 @@ if st.session_state["authentication_status"]:
                             f"<div style='display:flex;'>{date_block}<div style='margin-left:10px;'>{event_block}<span>{type_structure_block}</span></div></div>",
                             unsafe_allow_html=True,
                         )
+
 else:
     st.markdown("## 🚨 Veuillez vous connecter pour accéder à l'onglet 🚨")
