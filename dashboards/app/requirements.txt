@@ -1,10 +1,15 @@
 pandas==2.0.3
+numpy==1.26
 geopandas==0.14.3
 folium==0.16.0
 duckdb==0.10.0
 streamlit==1.32.2
+openpyxl==3.1.2
 streamlit-folium==0.19.1
-streamlit-authenticator==0.3.2
 plotly==5.19.0
 openpyxl==3.1.2
 st-pages==0.4.5
+streamlit-dynamic-filters==0.1.6
+streamlit-authenticator==0.3.2
+st-pages==0.4.5
+babel==2.11.0
