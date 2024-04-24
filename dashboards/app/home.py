@@ -161,7 +161,7 @@ if st.session_state["authentication_status"]:
 
         # Filtrer dataframe structures et enregistrer dans le session.state
         df_structures_filtre = df_structures[
-            df_other[colonne_filtre] == select_collectivite
+            df_structures[colonne_filtre] == select_collectivite
         ]
         st.session_state["structures_filtre"] = df_structures_filtre
 
