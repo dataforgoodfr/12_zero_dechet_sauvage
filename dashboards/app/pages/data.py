@@ -125,6 +125,13 @@ if st.session_state["authentication_status"]:
             "Volume"
         ].sum()
         df_totals_sorted = df_totals_sorted.sort_values(["Volume"], ascending=False)
+        # replace "Verre" with "Verre/Céramique" in df_totals_sorted
+        df_totals_sorted["Matériau"] = df_totals_sorted["Matériau"].replace(
+            "Verre", "Verre/Céramique"
+        )
+        df_totals_sorted["Matériau"] = df_totals_sorted["Matériau"].replace(
+            "Papier", "Papier/Carton"
+        )
 
         # Charte graphique MERTERRE :
         colors_map = {
@@ -261,7 +268,7 @@ if st.session_state["authentication_status"]:
             y="Volume",
             color="Matériau",
             barnorm="percent",
-            title="Part de chaque matériau en volume selon le milieu de collecte",
+            title="Proportion de chaque matériau en volume selon le milieu de collecte",
             color_discrete_map=colors_map,
             text_auto=True,
         )
@@ -269,7 +276,7 @@ if st.session_state["authentication_status"]:
         fig3.update_layout(
             bargap=0.2,
             height=600,
-            yaxis_title="Part du volume collecté (en %)",
+            yaxis_title="Proportion du volume collecté (en %)",
             xaxis_title=None,
         )
         fig3.update_xaxes(tickangle=-30)
@@ -278,7 +285,7 @@ if st.session_state["authentication_status"]:
             texttemplate="%{y:.0f}%",
             textposition="inside",
             hovertemplate="<b>%{x}</b><br>Part du volume collecté dans ce milieu: %{y:.0f} %",
-            textfont_size=14,
+            textfont_size=10,
         )
 
         # Afficher le graphique
@@ -592,13 +599,15 @@ if st.session_state["authentication_status"]:
             y="categorie",
             x="nb_dechet",
             labels={"categorie": "Dechet", "nb_dechet": "Nombre total"},
-            title="Top 10 dechets ramassés ",
+            title="Top 10 dechets ramassés (échelle logarithmique) ",
             text="nb_dechet",
             color="Materiau",
             color_discrete_map=colors_map,
             category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
         )
         fig5.update_layout(xaxis_type="log")
+        # suppression de la légende des couleurs
+        fig5.update_layout(showlegend=False)
         # Amélioration du visuel du graphique
         fig5.update_traces(
             # texttemplate="%{text:.2f}",
@@ -607,12 +616,7 @@ if st.session_state["authentication_status"]:
             textfont_size=20,
         )
         fig5.update_layout(
-            width=1400,
-            height=900,
-            uniformtext_minsize=8,
-            uniformtext_mode="hide",
-            xaxis_tickangle=90,
-            legend=dict(x=1, y=0, xanchor="right", yanchor="bottom"),
+            width=1400, height=900, uniformtext_minsize=8, uniformtext_mode="hide"
         )
 
         # Suppression de la colonne categorie
@@ -812,6 +816,9 @@ if st.session_state["authentication_status"]:
         )
         top_secteur_df = top_secteur_df.reset_index()
         top_secteur_df.columns = ["Secteur", "Nombre de déchets"]
+        top_secteur_df["Nombre de déchets"] = top_secteur_df[
+            "Nombre de déchets"
+        ].astype(int)
 
         # Data pour le plot marque
         marque_df = df_init[df_init["type_regroupement"].isin(["MARQUE"])]
@@ -822,6 +829,9 @@ if st.session_state["authentication_status"]:
         )
         top_marque_df = top_marque_df.reset_index()
         top_marque_df.columns = ["Marque", "Nombre de déchets"]
+        top_marque_df["Nombre de déchets"] = top_marque_df["Nombre de déchets"].astype(
+            int
+        )
 
         # Data pour le plot responsabilités
         rep_df = df_init[df_init["type_regroupement"].isin(["REP"])]
@@ -936,7 +946,7 @@ if st.session_state["authentication_status"]:
             x="Nombre de déchets",
             y="Secteur",
             color="Secteur",
-            title="Top 10 des secteurs économiques qui ont pu être déterminés parmis les dechets comptés",
+            title="Top 10 secteurs économiques identifiés dans les déchets comptés (échelle logarithmique)",
             orientation="h",
             color_discrete_map=colors_map_secteur,
             text_auto=True,
@@ -985,7 +995,7 @@ if st.session_state["authentication_status"]:
             top_marque_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
             x="Nombre de déchets",
             y="Marque",
-            title="Top 10 des marques les plus ramassées",
+            title="Top 10 des marques les plus ramassées (échelle logarithmique)",
             color_discrete_sequence=["#1951A0"],
             orientation="h",
             text_auto=False,
