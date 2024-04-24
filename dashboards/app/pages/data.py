@@ -58,6 +58,17 @@ if st.session_state["authentication_status"]:
     # Copier le df pour la partie filtrée par milieu/lieu/année
     df_other_metrics_raw = df_other.copy()
 
+    # Fonction pour améliorer l'affichage des nombres (milliers, millions, milliards)
+    def frenchify(x: int) -> str:
+        if x > 1e9:
+            y = x / 1e9
+            return f"{y:,.2f} milliards".replace(".", ",")
+        if x > 1e6:
+            y = x / 1e6
+            return f"{y:,.2f} millions".replace(".", ",")
+        else:
+            return f"{x:,.0f}".replace(",", " ")
+
     # 3 Onglets : Matériaux, Top déchets, Filières et marques
     tab1, tab2, tab3 = st.tabs(
         [
@@ -157,19 +168,15 @@ if st.session_state["authentication_status"]:
         # 1ère métrique : volume total de déchets collectés
         cell1 = l1_col1.container(border=True)
         # Trick pour séparer les milliers
-        volume_total = f"{volume_total:,.0f}".replace(",", " ")
-        cell1.metric("Volume de déchets collectés", f"{volume_total} litres")
+        cell1.metric("Volume de déchets collectés", frenchify(volume_total) + " litres")
 
         # 2ème métrique : poids
         cell2 = l1_col2.container(border=True)
-        poids_total = f"{poids_total:,.0f}".replace(",", " ")
-
-        cell2.metric("Poids total collecté", f"{poids_total} kg")
+        cell2.metric("Poids total collecté", frenchify(poids_total) + " kg")
 
         # 3ème métrique : nombre de relevés
         cell3 = l1_col3.container(border=True)
-        nb_collectes = f"{nb_collectes_int:,.0f}".replace(",", " ")
-        cell3.metric("Nombre de collectes comptabilisées", f"{nb_collectes}")
+        cell3.metric("Nombre de collectes comptabilisées", frenchify(nb_collectes_int))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if nb_collectes_int == 1:
@@ -434,14 +441,14 @@ if st.session_state["authentication_status"]:
         poids_total_filtered = df_filtered_metrics["POIDS_TOTAL"].sum()
         volume_total_filtered = df_filtered_metrics["VOLUME_TOTAL"].sum()
 
-        volume_total_filtered = f"{volume_total_filtered:,.0f}".replace(",", " ")
-        cell6.metric("Volume de dechets collectés", f"{volume_total_filtered} litres")
+        cell6.metric(
+            "Volume de dechets collectés", frenchify(volume_total_filtered) + " litres"
+        )
 
-        poids_total_filtered = f"{poids_total_filtered:,.0f}".replace(",", " ")
-        cell7.metric("Poids total collecté", f"{poids_total_filtered} kg")
+        cell7.metric("Poids total collecté", frenchify(poids_total_filtered) + " kg")
 
-        nombre_collectes_filtered = f"{len(df_filtered):,.0f}".replace(",", " ")
-        cell8.metric("Nombre de collectes", f"{nombre_collectes_filtered}")
+        nombre_collectes_filtered = len(df_filtered)
+        cell8.metric("Nombre de collectes", frenchify(nombre_collectes_filtered))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if len(df_filtered) == 1:
@@ -533,7 +540,6 @@ if st.session_state["authentication_status"]:
         nb_total_dechets = df_top[(df_top["type_regroupement"] == "GROUPE")][
             "nb_dechet"
         ].sum()
-        nb_total_dechets = f"{nb_total_dechets:,.0f}".replace(",", " ")
 
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2, l1_col3 = st.columns(3)
@@ -543,31 +549,30 @@ if st.session_state["authentication_status"]:
         # Trick pour séparer les milliers
 
         # volume_total_categorise = f"{volume_total_categorise:,.0f}".replace(",", " ")
-        cell1.metric("Nombre de déchets catégorisés", f"{nb_total_dechets} déchets")
+        cell1.metric("Nombre de déchets catégorisés", frenchify(nb_total_dechets))
 
         # 2ème métrique : équivalent volume catégorisé
         cell2 = l1_col2.container(border=True)
-        volume_total_categorise = f"{volume_total_categorise:,.0f}".replace(",", " ")
         cell2.metric(
             "Equivalent en volume ",
-            f"{volume_total_categorise} litres",
+            frenchify(volume_total_categorise) + " litres",
         )
 
         # 3ème métrique : nombre de relevés
         cell3 = l1_col3.container(border=True)
-        cell3.metric("Nombre de collectes comptabilisées", f"{nb_collectes}")
+        cell3.metric("Nombre de collectes comptabilisées", frenchify(nb_collectes_int))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if nb_collectes_int == 1:
             st.warning(
                 "⚠️ Il n'y a qu' "
-                + str(nb_collectes)
+                + str(nb_collectes_int)
                 + " collecte considérées dans les données présentées."
             )
         elif nb_collectes_int <= 5:
             st.warning(
                 "⚠️ Il n'y a que "
-                + str(nb_collectes)
+                + str(nb_collectes_int)
                 + " collectes considérées dans les données présentées."
             )
 
@@ -887,26 +892,22 @@ if st.session_state["authentication_status"]:
         cell1 = l1_col1.container(border=True)
 
         # Trick pour séparer les milliers
-        nb_dechet_secteur = f"{nb_dechet_secteur:,.0f}".replace(",", " ")
         cell1.metric(
-            "Nombre de déchets catégorisés par secteur", f"{nb_dechet_secteur} dechets"
+            "Nombre de déchets avec secteur identifié", frenchify(nb_dechet_secteur)
         )
 
         # 2ème métrique : poids
         cell2 = l1_col2.container(border=True)
-        nb_secteurs = f"{nb_secteurs:,.0f}".replace(",", " ")
-        # poids_total = f"{poids_total:,.0f}".replace(",", " ")
         cell2.metric(
-            "Nombre de secteurs identifiés lors des collectes",
-            f"{nb_secteurs} secteurs",
+            "Nombre de secteurs identifiés dans les déchets collectés",
+            frenchify(nb_secteurs) + " secteurs",
         )
 
         # 3ème métrique : nombre de collectes
         cell3 = l1_col3.container(border=True)
-        collectes_formatted = f"{collectes:,.0f}".replace(",", " ")
         cell3.metric(
             "Nombre de collectes comptabilisées",
-            f"{collectes_formatted} collectes",
+            frenchify(collectes) + " collectes",
         )
 
         # Message d'avertissement nb de collectes en dessous de 5
@@ -989,18 +990,17 @@ if st.session_state["authentication_status"]:
         cell4 = l2_col1.container(border=True)
 
         # 1er métrique : nombre de dechets categorises par marques
-        # Trick pour séparer les milliers
-        nb_dechet_marque = f"{nb_dechet_marque:,.0f}".replace(",", " ")
+
         cell4.metric(
-            "Nombre de déchets catégorisés par marque", f"{nb_dechet_marque} dechets"
+            "Nombre de déchets dont la marque est identifiée",
+            frenchify(nb_dechet_marque) + " déchets",
         )
 
         # 2ème métrique : nombre de marques identifiées lors des collectes
         cell5 = l2_col2.container(border=True)
-        nb_marques = f"{nb_marques:,.0f}".replace(",", " ")
         cell5.metric(
-            "Nombre de marques identifiés lors des collectes",
-            f"{nb_marques} marques",
+            "Nombre de marques identifiées lors des collectes",
+            frenchify(nb_marques) + " marques",
         )
 
         fig_marque = px.bar(
@@ -1030,7 +1030,7 @@ if st.session_state["authentication_status"]:
             st.plotly_chart(fig_marque, use_container_width=True)
 
         with st.container(border=True):
-            st.write(
+            st.caption(
                 "La Responsabilité Élargie du Producteur (REP) est une obligation qui impose aux entreprises de payer une contribution financière"
                 + " pour la prise en charge de la gestion des déchets issus des produits qu’ils mettent sur le marché selon le principe pollueur-payeur."
                 + " Pour ce faire, elles doivent contribuer financièrement à la collecte, du tri et au recyclage de ces produits, "
@@ -1057,19 +1057,16 @@ if st.session_state["authentication_status"]:
 
         # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
         cell6 = l3_col1.container(border=True)
-        # Trick pour séparer les milliers
-        nb_dechet_rep = f"{nb_dechet_rep:,.0f}".replace(",", " ")
         cell6.metric(
             "Nombre de déchets catégorisés par filière REP",
-            f"{nb_dechet_rep} dechets",
+            frenchify(nb_dechet_rep),
         )
 
         # 2ème métrique : nombre de responsabilités
         cell7 = l3_col2.container(border=True)
-        nb_rep = f"{nb_rep:,.0f}".replace(",", " ")
         cell7.metric(
             "Nombre de filières REP identifiées lors des collectes",
-            f"{nb_rep} REP",
+            frenchify(nb_rep) + " filières",
         )
 
         # Treemap REP
