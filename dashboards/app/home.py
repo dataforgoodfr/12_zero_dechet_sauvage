@@ -44,7 +44,6 @@ authenticator.login(
     },
 )
 
-
 if st.session_state["authentication_status"]:
     show_pages(
         [
@@ -80,6 +79,22 @@ if st.session_state["authentication_status"]:
         df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["commune"]
         return df
 
+    # Table des structures
+    @st.cache_data
+    def load_structures() -> pd.DataFrame:
+        df = pd.read_csv(
+            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/4-"
+            "onglet-structures/Exploration_visuali"
+            "sation/data/structures_export_cleaned.csv",
+            index_col=0,
+        )
+        # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE
+        # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
+        df["DEP_CODE_NOM"] = df["dep"] + " - " + df["departement"]
+        df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["COMMUNE"]
+        df.columns = [c.upper() for c in df.columns]
+        return df
+
     # Table du nb de déchets
     @st.cache_data
     def load_df_nb_dechet() -> pd.DataFrame:
@@ -92,6 +107,9 @@ if st.session_state["authentication_status"]:
     # Appel des fonctions pour charger les données
 
     df_other = load_df_other()
+    df_structures = load_structures()
+
+    # Création du filtre par niveau géographique : correspondance labels et variables
     df_nb_dechets = load_df_nb_dechet()
 
     # Création du filtre par niveau géographique : correspondance labels et variables du df
@@ -117,6 +135,7 @@ if st.session_state["authentication_status"]:
         "Niveau administratif : ",
         niveaux_admin_dict.keys(),
         index=index_admin,
+        placeholder="Choisir une option",
     )
 
     if select_niveauadmin is not None:
@@ -129,7 +148,9 @@ if st.session_state["authentication_status"]:
             "Collectivité : ",
             liste_collectivites,
             index=index_collec,
+            placeholder="Choisir une collectivité",
         )
+
     button_disabled = not select_niveauadmin or not select_collectivite
     if st.button("Enregistrer la sélection", disabled=button_disabled):
         # Enregistrer les valeurs sélectionnées dans le session.state
@@ -160,6 +181,13 @@ if st.session_state["authentication_status"]:
         df_other_filtre = df_other[df_other[colonne_filtre] == select_collectivite]
         st.session_state["df_other_filtre"] = df_other_filtre
 
+        # Filtrer dataframe structures et enregistrer dans le session.state
+        df_structures_filtre = df_structures[
+            df_structures[colonne_filtre] == select_collectivite
+        ]
+        st.session_state["structures_filtre"] = df_structures_filtre
+        st.session_state["structures"] = df_structures
+
         # Filtrer et enregistrer le dataframe nb_dechets dans session.State
         # Récuperer la liste des relevés
         id_releves = df_other_filtre["ID_RELEVE"].unique()
@@ -172,7 +200,7 @@ if st.session_state["authentication_status"]:
         nb_releves = len(st.session_state["df_other_filtre"])
         st.write(
             f"{nb_releves} relevés de collecte sont disponibles \
-                 pour l'analyse sur votre territoire.",
+                pour l'analyse sur votre territoire.",
         )
 
     authenticator.logout()
