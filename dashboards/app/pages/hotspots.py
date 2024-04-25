@@ -438,72 +438,73 @@ def update_lieu_options(selected_milieu):
         return ["Sélectionnez un lieu..."] + list(filtered_data['TYPE_LIEU2'].dropna().unique())
     return ["Sélectionnez un lieu..."]
 
-# Function to plot a density map
-def plot_density_map(
-    data_zds: pd.DataFrame,
-    filtered_data: pd.DataFrame
-) -> folium.Map:
+@st.cache_data
+def process_data(data_zds):
+    # Filtering data to ensure surface area is not zero
+    data_zds = data_zds[data_zds['SURFACE'] > 0]
+    # Calculating density and filtering out anomalous values
+    data_zds['DENSITE'] = data_zds['VOLUME_TOTAL'] / data_zds['SURFACE']
+    data_zds = data_zds[data_zds['DENSITE'] < 20]
+    # Rounding values for better display
+    data_zds['DENSITE'] = data_zds['DENSITE'].round(4)
+    data_zds['SURFACE_ROND'] = data_zds['SURFACE'].round(2)
+    return data_zds
 
+#Zoom from admin level
+if NIVEAU_ADMIN == "Commune":
+    zoom_admin = 12
+elif NIVEAU_ADMIN == "EPCI":
+    zoom_admin = 13
+elif NIVEAU_ADMIN == "Département":
+    zoom_admin = 10
+else:
+    zoom_admin = 8
+
+# Function to plot a density map
+def plot_density_map(data_zds: pd.DataFrame, filtered_data: pd.DataFrame) -> folium.Map:
     # Check if the primary dataset is empty
     if data_zds.empty:
         st.write("Aucune donnée disponible pour la région sélectionnée.")
-        # Initialize a basic map without any data-specific layers
-        m = folium.Map(location=[46.6358, 2.5614], zoom_start=5)
+        return folium.Map(location=[46.6358, 2.5614], zoom_start=5)
 
     else:
-        # Use filtered data if available; otherwise, use the full dataset
-        if filtered_data.empty:
-            map_data = data_zds
-        else:
-            map_data = filtered_data
+        # Use processed data
+        processed_data = process_data(filtered_data if not filtered_data.empty else data_zds)
 
-            # Ensure the surface area is not zero to avoid division by zero
-            map_data = map_data[map_data['SURFACE'] > 0]
+        m = folium.Map(
+            location=[
+                processed_data['LIEU_COORD_GPS_Y'].mean(),
+                processed_data['LIEU_COORD_GPS_X'].mean()
+            ],
+            zoom_start=zoom_admin
+        )
 
-            # Calculate density
-            map_data["DENSITE"] = map_data["VOLUME_TOTAL"] / map_data["SURFACE"]
-            map_data = map_data[map_data["DENSITE"] < 20]  # Remove rows with anomalously high density values
+        # Loop over each row in the DataFrame to place markers
+        for index, row in processed_data.iterrows():
+            popup_html = f"""
+            <div style="width: 300px; height: 170px;">
+                <h4>Densité: {row['DENSITE']} L/m²</h4>
+                <h4>Volume total : {row['VOLUME_TOTAL']} litres</h4>
+                <h4>Surface total : {row['SURFACE_ROND']} m²</h4>
+                <h4>Type de milieu : {row['TYPE_MILIEU']}</h4>
+                <h4>Type de lieu : {row['TYPE_LIEU']}</h4>
+            </div>
+            """
+            lgd_txt = '<span style="color: {col};">{txt}</span>'
+            color = couleur_milieu(row['TYPE_MILIEU'])
+            folium.CircleMarker(
+                fg = folium.FeatureGroup(name= lgd_txt.format( txt= ['TYPE_MILIEU'], col= color)),
+                location=[row['LIEU_COORD_GPS_Y'], row['LIEU_COORD_GPS_X']],
+                radius=np.log(row['DENSITE'] + 1)*15,
+                popup=folium.Popup(popup_html, max_width=300),
+                color=color,
+                fill=True,
 
-            # Round density values for display
-            map_data["DENSITE"] = map_data["DENSITE"].round(4)
-            # Round surface values for display
-            map_data["SURFACE_ROND"] = map_data["SURFACE"].round(2)
+            ).add_to(m)
 
-            # Initialize a map centered at the mean coordinates of locations
-            if not map_data[['LIEU_COORD_GPS_Y', 'LIEU_COORD_GPS_X']].dropna().empty:
-                m = folium.Map(
-                    location=[
-                        map_data["LIEU_COORD_GPS_Y"].mean(),
-                        map_data["LIEU_COORD_GPS_X"].mean(),
-                    ],
-                    zoom_start=12
-                )
+        folium_static(m)
 
-                # Loop over each row in the DataFrame to place markers
-                for _, row in map_data.iterrows():
-                    if pd.notna(row['LIEU_COORD_GPS_Y']) and pd.notna(row['LIEU_COORD_GPS_X']):
-                        popup_html = f"""
-                        <div style="width: 300px; height: 170px;">
-                            <h4>Densité: {row['DENSITE']} L/m²</h4>
-                            <h4>Volume total : {row['VOLUME_TOTAL']} litres</h4>
-                            <h4>Surface total : {row['SURFACE_ROND']} m²</h4>
-                            <h4>Type de milieu : {row['TYPE_MILIEU']}</h4>
-                            <h4>Type de lieu : {row['TYPE_LIEU']}</h4>
-                        </div>
-                        """
-                        color = couleur_milieu(row["TYPE_MILIEU"])
-                        folium.CircleMarker(
-                            location=[row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]],
-                            radius=np.log(row["DENSITE"] + 1) * 15,
-                            popup=folium.Popup(popup_html, max_width=300),
-                            color=color,
-                            fill=True,
-                        ).add_to(m)
-
-                # Display the map in Streamlit
-                st_folium(m, width='100%', height=600)  # Adjust width and height as needed
-            else:
-                st.write("Aucune donnée de localisation valide à afficher sur la carte.")
+    return m
 
 # Function for 'milieu' density table
 def density_table_milieu(
@@ -772,14 +773,18 @@ with tab1:
         lieu_options = update_lieu_options(selected_milieu)
         selected_lieu = st.selectbox("Sélectionnez un lieu:", lieu_options)
 
-    st.markdown("### Carte des Densités")
-    # Automatically update the map based on the current selection
-    if selected_milieu != "Sélectionnez un milieu..." and selected_lieu != "Sélectionnez un lieu...":
-        filtered_data = data_zds_correct[(data_zds_correct['TYPE_MILIEU'] == selected_milieu) & (data_zds_correct['TYPE_LIEU2'] == selected_lieu)]
-        plot_density_map(data_zds_correct, filtered_data)
-    else:
-        # Optionally show the map with all data or display a message
-        plot_density_map(data_zds_correct, data_zds_correct)  # Show all data by default
+
+    # Place the map centrally by using a wider column for the map and narrower ones on the sides
+    col1, map_col, col3 = st.columns([4, 10, 1])  # Adjust column ratios as needed
+
+    with map_col:
+        st.markdown("### Carte des Densités")
+        if selected_milieu != "Sélectionnez un milieu..." and selected_lieu != "Sélectionnez un lieu...":
+            filtered_data = data_zds_correct[(data_zds_correct['TYPE_MILIEU'] == selected_milieu) & (data_zds_correct['TYPE_LIEU2'] == selected_lieu)]
+            plot_density_map(data_zds_correct, filtered_data)
+        else:
+            plot_density_map(data_zds_correct, data_zds_correct)  # Show all data by default
+
 
     col1, col2, col3 = st.columns([3, 3, 2])
 
