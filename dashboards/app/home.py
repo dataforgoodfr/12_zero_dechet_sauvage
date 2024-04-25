@@ -17,20 +17,16 @@ st.set_page_config(
     },
 )
 
-
-st.markdown(
-    """
-# Bienvenue 👋
-#### Visualisez les collectes de déchets qui ont lieu sur votre territoire !
-""",
-)
+# load and apply CSS styles
+def load_css(file_name: str) -> None:
+    with Path(file_name).open() as f:
+        st.markdown(f"<style>{f.readline()}</style>", unsafe_allow_html=True)
 
 
 # Login
 p_cred = Path(".credentials.yml")
 with p_cred.open() as file:
     config = yaml.load(file, Loader=SafeLoader)
-
 
 authenticator = stauth.Authenticate(
     config["credentials"],
@@ -48,12 +44,22 @@ authenticator.login(
     },
 )
 
-
 if st.session_state["authentication_status"]:
     show_pages(
         [
             Page("home.py", "Accueil", "🏠"),
         ],
+    )
+
+    # Load and apply the CSS file at the start of your app
+    # local debug
+    load_css("style.css")
+
+    st.markdown(
+        """
+    # Bienvenue 👋
+    #### Visualiser les collectes de déchets qui ont lieu sur votre territoire !
+    """,
     )
 
     st.markdown("""# À propos""")
@@ -89,12 +95,24 @@ if st.session_state["authentication_status"]:
         df.columns = [c.upper() for c in df.columns]
         return df
 
+    # Table du nb de déchets
+    @st.cache_data
+    def load_df_nb_dechet() -> pd.DataFrame:
+        return pd.read_csv(
+            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
+            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
+            "sation/data/data_releve_nb_dechet.csv",
+        )
+
     # Appel des fonctions pour charger les données
 
     df_other = load_df_other()
     df_structures = load_structures()
 
     # Création du filtre par niveau géographique : correspondance labels et variables
+    df_nb_dechets = load_df_nb_dechet()
+
+    # Création du filtre par niveau géographique : correspondance labels et variables du df
     niveaux_admin_dict = {
         "Région": "REGION",
         "Département": "DEP_CODE_NOM",
@@ -174,7 +192,9 @@ if st.session_state["authentication_status"]:
         # Récuperer la liste des relevés
         id_releves = df_other_filtre["ID_RELEVE"].unique()
         # Filtrer df_nb_dechets sur la liste des relevés
-        # st.session_state["df_nb_dechets_filtre"] = df_nb_dechets[
+        st.session_state["df_nb_dechets_filtre"] = df_nb_dechets[
+            df_nb_dechets["ID_RELEVE"].isin(id_releves)
+        ]
 
         # Afficher le nombre de relevés disponibles
         nb_releves = len(st.session_state["df_other_filtre"])
