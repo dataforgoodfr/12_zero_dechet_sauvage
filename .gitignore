@@ -162,5 +162,8 @@ cython_debug/
 # Precommit hooks: ruff cache
 .ruff_cache
 
+# Dossier sauvegarde Thibaut
+TG_sauv
+
 # Streamlit: credentials
 dashboards/app/.credentials.yml
