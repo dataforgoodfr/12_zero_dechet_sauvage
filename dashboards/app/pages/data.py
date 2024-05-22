@@ -564,24 +564,17 @@ if st.session_state["authentication_status"]:
         ].sum()
 
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
-        l1_col1, l1_col2, l1_col3 = st.columns(3)
+        l1_col1, l1_col2 = st.columns(2)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
         # 1ère métrique : volume total de déchets collectés
         cell1 = l1_col1.container(border=True)
         # Trick pour séparer les milliers
 
-        cell1.metric("Nombre de déchets catégorisés", frenchify(nb_total_dechets))
-
-        # 2ème métrique : équivalent volume catégorisé
-        cell2 = l1_col2.container(border=True)
-        cell2.metric(
-            "Equivalent en volume ",
-            frenchify(volume_total_categorise_m3) + " m³",
-        )
+        cell1.metric("Nombre de déchets comptés", frenchify(nb_total_dechets))
 
         # 3ème métrique : nombre de relevés
-        cell3 = l1_col3.container(border=True)
-        cell3.metric("Nombre de ramassages", frenchify(nb_collectes_int))
+        cell2 = l1_col2.container(border=True)
+        cell2.metric("Nombre de ramassages", frenchify(nb_collectes_int))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if nb_collectes_int <= 5:
