@@ -338,14 +338,16 @@ if st.session_state["authentication_status"]:
                 filtered_data_milieu = df_other.copy()
                 filtered_metrics_milieu = df_other_metrics.copy()
 
-            # Filtre par milieu
-
+            ## Filtre par milieu
+            # Initialiser le champ déroulant avec une valeur par défaut
             valeur_par_defaut_milieu = "Tous les milieux"
+            milieux_liste = [valeur_par_defaut_milieu] + sorted(
+                list(filtered_data_milieu["TYPE_MILIEU"].unique())
+            )
 
             selected_type_milieu = st.selectbox(
                 "Choisir un type de milieu:",
-                options=[valeur_par_defaut_milieu]
-                + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
+                options=milieux_liste,
             )
 
             if selected_type_milieu != valeur_par_defaut_milieu:
@@ -362,11 +364,13 @@ if st.session_state["authentication_status"]:
             # Filtre par type de lieu
 
             valeur_par_defaut_lieu = "Tous les lieux"
+            lieux_liste = [valeur_par_defaut_lieu] + sorted(
+                list(filtered_data_lieu["TYPE_LIEU"].unique())
+            )
 
             selected_type_lieu = st.selectbox(
                 "Choisir un type de lieu:",
-                options=[valeur_par_defaut_lieu]
-                + list(filtered_data_lieu["TYPE_LIEU"].unique()),
+                options=lieux_liste,
             )
 
         if (
@@ -749,11 +753,15 @@ if st.session_state["authentication_status"]:
             else:
                 filtered_data_milieu = df_other.copy()
 
-            # Filtre par type de milieu
+            ## Filtre par type de milieu
+            # Initialiser la liste des lieux
+            milieux_liste = [valeur_par_defaut_milieu] + sorted(
+                list(filtered_data_milieu["TYPE_MILIEU"].unique())
+            )
+
             selected_type_milieu_onglet_3 = st.selectbox(
                 "Choisir un type de milieu:",
-                options=[valeur_par_defaut_milieu]
-                + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
+                options=milieux_liste,
                 key="type_milieu_select",
             )
 
@@ -764,11 +772,15 @@ if st.session_state["authentication_status"]:
             else:
                 filtered_data_lieu = filtered_data_milieu
 
-            # Filtre par lieu
+            ## Filtre par lieu
+            # Initialiser la liste des lieux
+            lieux_liste = [valeur_par_defaut_lieu] + sorted(
+                list(filtered_data_lieu["TYPE_LIEU"].unique())
+            )
+
             selected_type_lieu_onglet_3 = st.selectbox(
                 "Choisir un type de lieu:",
-                options=[valeur_par_defaut_lieu]
-                + list(filtered_data_lieu["TYPE_LIEU"].unique()),
+                options=lieux_liste,
                 key="type_lieu_select",
             )
 
