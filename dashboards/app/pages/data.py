@@ -307,68 +307,84 @@ if st.session_state["authentication_status"]:
             st.plotly_chart(fig3, use_container_width=True)
 
         # Ligne 3 : Graphe par milieu , lieu et année
-        st.write("**Détail par milieu, lieu ou année**")
+        st.write("**Filtrer les données par année, type de milieu ou type de lieu**")
 
         # Étape 1: Création des filtres
 
         df_other_metrics = df_other_metrics_raw.copy()
         df_other_metrics = df_other_metrics.fillna(0)
 
-        selected_annee = st.selectbox(
-            "Choisir une année:",
-            options=["Aucune sélection"] + annee_liste,
-        )
-        if selected_annee != "Aucune sélection":
-            filtered_data_milieu = df_other[df_other["ANNEE"] == selected_annee].copy()
-            filtered_metrics_milieu = df_other_metrics[
-                df_other_metrics["ANNEE"] == selected_annee
-            ].copy()
-        else:
-            filtered_data_milieu = df_other.copy()
-            filtered_metrics_milieu = df_other_metrics.copy()
+        with st.expander("Filtrer par année, type milieu ou type de lieu"):
 
-        selected_type_milieu = st.selectbox(
-            "Choisir un type de milieu:",
-            options=["Aucune sélection"]
-            + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
-        )
+            # Filtre par Année
+            # Valeur par défaut sous forme de liste pour concaténation avec données
+            valeur_par_defaut_annee = "Toute la période"
 
-        if selected_type_milieu != "Aucune sélection":
-            filtered_data_lieu = filtered_data_milieu[
-                filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu
-            ]
-            filtered_metrics_milieu = filtered_metrics_milieu[
-                filtered_metrics_milieu["TYPE_MILIEU"] == selected_type_milieu
-            ]
-        else:
-            filtered_data_lieu = filtered_data_milieu.copy()
-            filtered_metrics_milieu = df_other_metrics.copy()
+            selected_annee = st.selectbox(
+                "Choisir une année:",
+                options=[valeur_par_defaut_annee] + annee_liste,
+            )
+            if selected_annee != valeur_par_defaut_annee:
+                filtered_data_milieu = df_other[
+                    df_other["ANNEE"] == selected_annee
+                ].copy()
+                filtered_metrics_milieu = df_other_metrics[
+                    df_other_metrics["ANNEE"] == selected_annee
+                ].copy()
+            else:
+                filtered_data_milieu = df_other.copy()
+                filtered_metrics_milieu = df_other_metrics.copy()
 
-        selected_type_lieu = st.selectbox(
-            "Choisir un type de lieu:",
-            options=["Aucune sélection"]
-            + list(filtered_data_lieu["TYPE_LIEU"].unique()),
-        )
+            # Filtre par milieu
+
+            valeur_par_defaut_milieu = "Tous les milieux"
+
+            selected_type_milieu = st.selectbox(
+                "Choisir un type de milieu:",
+                options=[valeur_par_defaut_milieu]
+                + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
+            )
+
+            if selected_type_milieu != valeur_par_defaut_milieu:
+                filtered_data_lieu = filtered_data_milieu[
+                    filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu
+                ]
+                filtered_metrics_milieu = filtered_metrics_milieu[
+                    filtered_metrics_milieu["TYPE_MILIEU"] == selected_type_milieu
+                ]
+            else:
+                filtered_data_lieu = filtered_data_milieu.copy()
+                filtered_metrics_milieu = df_other_metrics.copy()
+
+            # Filtre par type de lieu
+
+            valeur_par_defaut_lieu = "Tous les lieux"
+
+            selected_type_lieu = st.selectbox(
+                "Choisir un type de lieu:",
+                options=[valeur_par_defaut_lieu]
+                + list(filtered_data_lieu["TYPE_LIEU"].unique()),
+            )
 
         if (
-            selected_annee == "Aucune sélection"
-            and selected_type_milieu == "Aucune sélection"
-            and selected_type_lieu == "Aucune sélection"
+            selected_annee == valeur_par_defaut_annee
+            and selected_type_milieu == valeur_par_defaut_milieu
+            and selected_type_lieu == valeur_par_defaut_lieu
         ):
             df_filtered = df_other.copy()
             df_filtered_metrics = df_other_metrics_raw.copy()
         elif (
-            selected_type_milieu == "Aucune sélection"
-            and selected_type_lieu == "Aucune sélection"
+            selected_type_milieu == valeur_par_defaut_milieu
+            and selected_type_lieu == valeur_par_defaut_lieu
         ):
             df_filtered = df_other[df_other["ANNEE"] == selected_annee].copy()
             df_filtered_metrics = df_other_metrics_raw[
                 df_other_metrics["ANNEE"] == selected_annee
             ].copy()
         elif (
-            selected_annee == "Aucune sélection"
-            and selected_type_lieu == "Aucune sélection"
-            and selected_type_milieu != "Aucune sélection"
+            selected_annee == valeur_par_defaut_annee
+            and selected_type_lieu == valeur_par_defaut_lieu
+            and selected_type_milieu != valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 df_other["TYPE_MILIEU"] == selected_type_milieu
@@ -378,9 +394,9 @@ if st.session_state["authentication_status"]:
             ].copy()
 
         elif (
-            selected_annee == "Aucune sélection"
-            and selected_type_lieu != "Aucune sélection"
-            and selected_type_milieu == "Aucune sélection"
+            selected_annee == valeur_par_defaut_annee
+            and selected_type_lieu != valeur_par_defaut_lieu
+            and selected_type_milieu == valeur_par_defaut_milieu
         ):
             df_filtered = df_other[df_other["TYPE_LIEU"] == selected_type_lieu].copy()
             df_filtered_metrics = df_other_metrics_raw[
@@ -388,9 +404,9 @@ if st.session_state["authentication_status"]:
             ].copy()
 
         elif (
-            selected_annee == "Aucune sélection"
-            and selected_type_lieu != "Aucune sélection"
-            and selected_type_milieu != "Aucune sélection"
+            selected_annee == valeur_par_defaut_annee
+            and selected_type_lieu != valeur_par_defaut_lieu
+            and selected_type_milieu != valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 (df_other["TYPE_LIEU"] == selected_type_lieu)
@@ -401,9 +417,9 @@ if st.session_state["authentication_status"]:
                 & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
             ]
         elif (
-            selected_annee != "Aucune sélection"
-            and selected_type_lieu != "Aucune sélection"
-            and selected_type_milieu == "Aucune sélection"
+            selected_annee != valeur_par_defaut_annee
+            and selected_type_lieu != valeur_par_defaut_lieu
+            and selected_type_milieu == valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 (df_other["ANNEE"] == selected_annee)
@@ -414,9 +430,9 @@ if st.session_state["authentication_status"]:
                 & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
             ]
         elif (
-            selected_annee != "Aucune sélection"
-            and selected_type_lieu == "Aucune sélection"
-            and selected_type_milieu != "Aucune sélection"
+            selected_annee != valeur_par_defaut_annee
+            and selected_type_lieu == valeur_par_defaut_lieu
+            and selected_type_milieu != valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 (df_other["ANNEE"] == selected_annee)
@@ -458,17 +474,10 @@ if st.session_state["authentication_status"]:
         cell8.metric("Nombre de collectes", frenchify(nombre_collectes_filtered))
 
         # Message d'avertissement nb de collectes en dessous de 5
-        if len(df_filtered) == 1:
+        if len(df_filtered) <= 5:
             st.warning(
-                "⚠️ Il n'y a qu' "
+                "⚠️ Faible nombre de collectes disponibles dans la base de données : "
                 + str(len(df_filtered))
-                + " collecte considérées dans les données présentées."
-            )
-        elif len(df_filtered) <= 5:
-            st.warning(
-                "⚠️ Il n'y a que "
-                + str(len(df_filtered))
-                + " collectes considérées dans les données présentées."
             )
 
         # Étape 3: Preparation dataframe pour graphe
@@ -570,17 +579,11 @@ if st.session_state["authentication_status"]:
         cell3.metric("Nombre de collectes comptabilisées", frenchify(nb_collectes_int))
 
         # Message d'avertissement nb de collectes en dessous de 5
-        if nb_collectes_int == 1:
+        if nb_collectes_int <= 5:
             st.warning(
-                "⚠️ Il n'y a qu' "
+                "⚠️ Le nombre de collectes "
                 + str(nb_collectes_int)
-                + " collecte considérées dans les données présentées."
-            )
-        elif nb_collectes_int <= 5:
-            st.warning(
-                "⚠️ Il n'y a que "
-                + str(nb_collectes_int)
-                + " collectes considérées dans les données présentées."
+                + " est trop faible pour l'analyse."
             )
 
         # Ligne 2 : graphique top déchets
@@ -729,95 +732,101 @@ if st.session_state["authentication_status"]:
         df_filtre_copy = df_other.copy()
 
         # Étape 1: Création des filtres
-        selected_annee_onglet_3 = st.selectbox(
-            "Choisir une année:",
-            options=["Aucune sélection"] + annee_liste,
-            key="année_select",
-        )
-        if selected_annee_onglet_3 != "Aucune sélection":
-            filtered_data_milieu = df_other[
-                df_other["ANNEE"] == selected_annee_onglet_3
-            ]
-        else:
-            filtered_data_milieu = df_other.copy()
 
-        selected_type_milieu_onglet_3 = st.selectbox(
-            "Choisir un type de milieu:",
-            options=["Aucune sélection"]
-            + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
-            key="type_milieu_select",
-        )
+        with st.expander("Filtrer par année, type milieu ou type de lieu"):
 
-        if selected_type_milieu_onglet_3 != "Aucune sélection":
-            filtered_data_lieu = filtered_data_milieu[
-                filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu_onglet_3
-            ]
-        else:
-            filtered_data_lieu = filtered_data_milieu
+            # Filtre par année
+            selected_annee_onglet_3 = st.selectbox(
+                "Choisir une année:",
+                options=[valeur_par_defaut_annee] + annee_liste,
+                key="année_select",
+            )
+            if selected_annee_onglet_3 != valeur_par_defaut_annee:
+                filtered_data_milieu = df_other[
+                    df_other["ANNEE"] == selected_annee_onglet_3
+                ]
+            else:
+                filtered_data_milieu = df_other.copy()
 
-        selected_type_lieu_onglet_3 = st.selectbox(
-            "Choisir un type de lieu:",
-            options=["Aucune sélection"]
-            + list(filtered_data_lieu["TYPE_LIEU"].unique()),
-            key="type_lieu_select",
-        )
+            # Filtre par type de milieu
+            selected_type_milieu_onglet_3 = st.selectbox(
+                "Choisir un type de milieu:",
+                options=[valeur_par_defaut_milieu]
+                + list(filtered_data_milieu["TYPE_MILIEU"].unique()),
+                key="type_milieu_select",
+            )
+
+            if selected_type_milieu_onglet_3 != valeur_par_defaut_milieu:
+                filtered_data_lieu = filtered_data_milieu[
+                    filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu_onglet_3
+                ]
+            else:
+                filtered_data_lieu = filtered_data_milieu
+
+            # Filtre par lieu
+            selected_type_lieu_onglet_3 = st.selectbox(
+                "Choisir un type de lieu:",
+                options=[valeur_par_defaut_lieu]
+                + list(filtered_data_lieu["TYPE_LIEU"].unique()),
+                key="type_lieu_select",
+            )
 
         if (
-            selected_annee_onglet_3 == "Aucune sélection"
-            and selected_type_milieu_onglet_3 == "Aucune sélection"
-            and selected_type_lieu_onglet_3 == "Aucune sélection"
+            selected_annee_onglet_3 == valeur_par_defaut_annee
+            and selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
+            and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
         ):
             df_filtered = df_other.copy()
         elif (
-            selected_type_milieu_onglet_3 == "Aucune sélection"
-            and selected_type_lieu_onglet_3 == "Aucune sélection"
+            selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
+            and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
         ):
             df_filtered = df_other[df_other["ANNEE"] == selected_annee_onglet_3].copy()
         elif (
-            selected_annee_onglet_3 == "Aucune sélection"
-            and selected_type_lieu_onglet_3 == "Aucune sélection"
-            and selected_type_milieu_onglet_3 != "Aucune sélection"
+            selected_annee_onglet_3 == valeur_par_defaut_annee
+            and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
+            and selected_type_milieu_onglet_3 != valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3
             ].copy()
         elif (
-            selected_annee_onglet_3 == "Aucune sélection"
-            and selected_type_lieu_onglet_3 != "Aucune sélection"
-            and selected_type_milieu_onglet_3 == "Aucune sélection"
+            selected_annee_onglet_3 == valeur_par_defaut_annee
+            and selected_type_lieu_onglet_3 != valeur_par_defaut_lieu
+            and selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3
             ].copy()
         elif (
-            selected_annee_onglet_3 == "Aucune sélection"
-            and selected_type_lieu_onglet_3 != "Aucune sélection"
-            and selected_type_milieu_onglet_3 != "Aucune sélection"
+            selected_annee_onglet_3 == valeur_par_defaut_annee
+            and selected_type_lieu_onglet_3 != valeur_par_defaut_lieu
+            and selected_type_milieu_onglet_3 != valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
                 & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
             ].copy()
         elif (
-            selected_annee_onglet_3 != "Aucune sélection"
-            and selected_type_lieu_onglet_3 != "Aucune sélection"
-            and selected_type_milieu_onglet_3 == "Aucune sélection"
+            selected_annee_onglet_3 != valeur_par_defaut_annee
+            and selected_type_lieu_onglet_3 != valeur_par_defaut_lieu
+            and selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 (df_other["ANNEE"] == selected_annee_onglet_3)
                 & (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
             ].copy()
         elif (
-            selected_annee_onglet_3 != "Aucune sélection"
-            and selected_type_lieu_onglet_3 == "Aucune sélection"
-            and selected_type_milieu_onglet_3 != "Aucune sélection"
+            selected_annee_onglet_3 != valeur_par_defaut_annee
+            and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
+            and selected_type_milieu_onglet_3 != valeur_par_defaut_milieu
         ):
             df_filtered = df_other[
                 (df_other["ANNEE"] == selected_annee_onglet_3)
                 & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
             ].copy()
 
-        elif selected_type_lieu_onglet_3 == "Aucune sélection":
+        elif selected_type_lieu_onglet_3 == valeur_par_defaut_lieu:
             df_filtered = df_other[
                 (df_other["ANNEE"] == selected_annee_onglet_3)
                 & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
