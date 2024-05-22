@@ -109,10 +109,11 @@ if st.session_state["authentication_status"]:
         df_volume = df_other.copy()
 
         # Calcul des indicateurs clés de haut de tableau avant transformation
-        volume_total = df_volume["VOLUME_TOTAL"].sum()
+        # Volume en litres dans la base, converti en m3
+        volume_total_m3 = df_volume["VOLUME_TOTAL"].sum() / 1000
         poids_total = df_volume["POIDS_TOTAL"].sum()
-        volume_total_categorise = df_volume[cols_volume].sum().sum()
-        pct_volume_categorise = volume_total_categorise / volume_total
+        volume_total_categorise_m3 = df_volume[cols_volume].sum().sum() / 1000
+        pct_volume_categorise = volume_total_categorise_m3 / volume_total_m3
         nb_collectes_int = len(df_volume)
 
         # estimation du poids categorisée en utilisant pct_volume_categorise
@@ -168,7 +169,7 @@ if st.session_state["authentication_status"]:
         # 1ère métrique : volume total de déchets collectés
         cell1 = l1_col1.container(border=True)
         # Trick pour séparer les milliers
-        cell1.metric("Volume de déchets collectés", frenchify(volume_total) + " litres")
+        cell1.metric("Volume de déchets collectés", frenchify(volume_total_m3) + " m³")
 
         # 2ème métrique : poids
         cell2 = l1_col2.container(border=True)
@@ -176,7 +177,7 @@ if st.session_state["authentication_status"]:
 
         # 3ème métrique : nombre de relevés
         cell3 = l1_col3.container(border=True)
-        cell3.metric("Nombre de collectes comptabilisées", frenchify(nb_collectes_int))
+        cell3.metric("Nombre de collectes", frenchify(nb_collectes_int))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if nb_collectes_int == 1:
@@ -194,69 +195,71 @@ if st.session_state["authentication_status"]:
 
         # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
 
-        l2_col1, l2_col2 = st.columns(2)
-        cell4 = l2_col1.container(border=True)
-        cell5 = l2_col2.container(border=True)
-        with cell4:
+        with st.container(border=True):
 
-            # Création du diagramme en donut en utilisant le dictionnaire de couleurs pour la correspondance
-            fig = px.pie(
-                df_totals_sorted,
-                values="Volume",
-                names="Matériau",
-                title="Répartition des matériaux en volume",
-                hole=0.4,
-                color="Matériau",
-                color_discrete_map=colors_map,
+            cell4, cell5 = st.columns(2)
+
+            with cell4:
+
+                # Création du diagramme en donut en utilisant le dictionnaire de couleurs pour la correspondance
+                fig = px.pie(
+                    df_totals_sorted,
+                    values="Volume",
+                    names="Matériau",
+                    title="Répartition des matériaux en volume",
+                    hole=0.4,
+                    color="Matériau",
+                    color_discrete_map=colors_map,
+                )
+
+                # Réglage du texte affiché, format et taille de police
+                fig.update_traces(
+                    textinfo="percent",
+                    texttemplate="%{percent:.0%}",
+                    textfont_size=14,
+                )
+                fig.update_layout(autosize=True, legend_title_text="Matériau")
+
+                # Affichage du graphique
+                st.plotly_chart(fig, use_container_width=True)
+
+            with cell5:
+                # Conversion des volumes en m3
+                df_totals_sorted["Volume_m3"] = df_totals_sorted["Volume"] / 1000
+                # Création du graphique en barres avec Plotly Express
+                fig2 = px.bar(
+                    df_totals_sorted,
+                    x="Matériau",
+                    y="Volume_m3",
+                    text="Volume_m3",
+                    title="Volume total par materiau (en m³)",
+                    color="Matériau",
+                    color_discrete_map=colors_map,
+                )
+
+                # Amélioration du graphique
+                fig2.update_traces(
+                    texttemplate="%{text:.2s}",
+                    textposition="inside",
+                    textfont_size=14,
+                )
+                fig2.update_layout(
+                    autosize=True,
+                    # uniformtext_minsize=8,
+                    uniformtext_mode="hide",
+                    xaxis_tickangle=-45,
+                    showlegend=False,
+                    yaxis_showgrid=False,
+                    xaxis_title=None,
+                    yaxis_title=None,
+                )
+
+                # Affichage du graphique
+                st.plotly_chart(fig2, use_container_width=True)
+
+            st.caption(
+                f"NB : Ces données prennent en compte uniquement les déchets dont le matériau a été identifié, soit {pct_volume_categorise:.0%} du volume total."
             )
-
-            # Réglage du texte affiché, format et taille de police
-            fig.update_traces(
-                textinfo="percent",
-                texttemplate="%{percent:.0%}",
-                textfont_size=14,
-            )
-            fig.update_layout(autosize=True, legend_title_text="Matériau")
-
-            # Affichage du graphique
-            st.plotly_chart(fig, use_container_width=True)
-
-        with cell5:
-            # Création du graphique en barres avec Plotly Express
-            fig2 = px.bar(
-                df_totals_sorted,
-                x="Matériau",
-                y="Volume",
-                text="Volume",
-                title="Volume total par materiau (en litres)",
-                color="Matériau",
-                color_discrete_map=colors_map,
-            )
-
-            # Amélioration du graphique
-            fig2.update_traces(
-                texttemplate="%{text:.2s}",
-                textposition="inside",
-                textfont_size=14,
-            )
-            fig2.update_layout(
-                autosize=True,
-                # uniformtext_minsize=8,
-                uniformtext_mode="hide",
-                xaxis_tickangle=-45,
-                showlegend=False,
-                yaxis_showgrid=False,
-                xaxis_title=None,
-                yaxis_title=None,
-            )
-
-            # Affichage du graphique
-            st.plotly_chart(fig2, use_container_width=True)
-
-        st.write("")
-        st.caption(
-            f"Note : Cette analyse se base sur les déchets qui ont pu être classés par matériau : {volume_total_categorise:.0f} Litres, soit {pct_volume_categorise:.0%} du volume total collecté."
-        )
 
         # Ligne 3 : Graphe par milieu de collecte
 
@@ -305,6 +308,10 @@ if st.session_state["authentication_status"]:
         # Afficher le graphique
         with st.container(border=True):
             st.plotly_chart(fig3, use_container_width=True)
+
+            st.caption(
+                f"NB : Ces données prennent en compte uniquement les déchets dont le matériau a été identifié, soit {pct_volume_categorise:.0%} du volume total."
+            )
 
         # Ligne 3 : Graphe par milieu , lieu et année
         st.write("**Filtrer les données par année, type de milieu ou type de lieu**")
@@ -462,10 +469,11 @@ if st.session_state["authentication_status"]:
         cell8 = l5_col3.container(border=True)
 
         poids_total_filtered = df_filtered_metrics["POIDS_TOTAL"].sum()
-        volume_total_filtered = df_filtered_metrics["VOLUME_TOTAL"].sum()
+        # Volume litres converti en m3
+        volume_total_filtered_m3 = df_filtered_metrics["VOLUME_TOTAL"].sum() / 1000
 
         cell6.metric(
-            "Volume de déchets collectés", frenchify(volume_total_filtered) + " litres"
+            "Volume de déchets collectés", frenchify(volume_total_filtered_m3) + " m³"
         )
 
         cell7.metric("Poids total collecté", frenchify(poids_total_filtered) + " kg")
@@ -512,20 +520,18 @@ if st.session_state["authentication_status"]:
             "Volume"
         ].sum()
         df_totals_sorted2 = df_totals_sorted2.sort_values(["Volume"], ascending=False)
-        df_totals_sorted2["Volume_"] = (
-            df_totals_sorted2["Volume"]
-            .apply(lambda x: "{0:,.0f}".format(x))
-            .replace(",", " ")
-        )
+        # Conversion litres en m
+        df_totals_sorted2["Volume_m3"] = df_totals_sorted2["Volume"] / 1000
 
         # Étape 4: Création du Graphique
 
         if not df_filtered.empty:
+
             fig4 = px.treemap(
                 df_totals_sorted2,
                 path=["Matériau"],
-                values="Volume",
-                title="Répartition des matériaux en volume dans le milieu ou le lieu choisi",
+                values="Volume_m3",
+                title="Répartition des matériaux en volume",
                 color="Matériau",
                 color_discrete_map=colors_map,
             )
@@ -534,13 +540,17 @@ if st.session_state["authentication_status"]:
             )
             fig4.update_traces(
                 textinfo="label+value",
-                texttemplate="<b>%{label}</b><br>%{value:.0f} litres",
+                texttemplate="<b>%{label}</b><br>%{value:.1f} m³",
                 textfont_size=16,
-                hovertemplate="<b>%{label}</b><br>Volume: %{value:.0f}",
+                hovertemplate="<b>Matériau : %{label}</b><br>Volume = %{value:.1f} m³",
             )
 
             with st.container(border=True):
                 st.plotly_chart(fig4, use_container_width=True)
+
+                st.caption(
+                    f"NB : Ces données prennent en compte uniquement les déchets dont le matériau a été identifié, soit {pct_volume_categorise:.0%} du volume total."
+                )
 
         else:
             st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
@@ -564,14 +574,13 @@ if st.session_state["authentication_status"]:
         cell1 = l1_col1.container(border=True)
         # Trick pour séparer les milliers
 
-        # volume_total_categorise = f"{volume_total_categorise:,.0f}".replace(",", " ")
         cell1.metric("Nombre de déchets catégorisés", frenchify(nb_total_dechets))
 
         # 2ème métrique : équivalent volume catégorisé
         cell2 = l1_col2.container(border=True)
         cell2.metric(
             "Equivalent en volume ",
-            frenchify(volume_total_categorise) + " litres",
+            frenchify(volume_total_categorise_m3) + " m³",
         )
 
         # 3ème métrique : nombre de relevés
@@ -657,7 +666,7 @@ if st.session_state["authentication_status"]:
             st.write("")
             st.caption(
                 f"Note : Analyse basée sur les collectes qui ont fait l'objet d'un comptage détaillé par déchet,\
-         soit {volume_total_categorise} litres équivalent à {pct_volume_categorise:.0%} du volume collecté\
+         soit {volume_total_categorise_m3} m³ équivalent à {pct_volume_categorise:.0%} du volume collecté\
           sur le territoire."
             )
         with st.container():
@@ -1108,9 +1117,9 @@ if st.session_state["authentication_status"]:
         )
         figreptree.update_traces(
             textinfo="label+value",
-            texttemplate="<b>%{label}</b><br>%{value:.0f} litres",
+            texttemplate="<b>%{label}</b><br>%{value:.0f} items",
             textfont=dict(size=16),
-            hovertemplate="<b>%{label}</b><br>Volume: %{value:.0f}",
+            hovertemplate="<b>%{label}</b><br>Nombre de déchets : %{value:.0f}",
         )
 
         with st.container(border=True):
