@@ -177,25 +177,29 @@ if st.session_state["authentication_status"]:
 
         # 3ème métrique : nombre de relevés
         cell3 = l1_col3.container(border=True)
-        cell3.metric("Nombre de collectes", frenchify(nb_collectes_int))
+        cell3.metric("Nombre de ramassages", frenchify(nb_collectes_int))
 
         # Message d'avertissement nb de collectes en dessous de 5
-        if nb_collectes_int == 1:
+        if nb_collectes_int <= 5:
             st.warning(
-                "⚠️ Il n'y a qu' "
+                "⚠️ Faible nombre de ramassages ("
                 + str(nb_collectes_int)
-                + " collecte considérées dans les données présentées."
+                + ") dans la base de données."
             )
-        elif nb_collectes_int <= 5:
-            st.warning(
-                "⚠️ Il n'y a que "
-                + str(nb_collectes_int)
-                + " collectes considérées dans les données présentées."
-            )
+
+        st.caption(
+            f"Note : Il n’y a pas de correspondance entre le poids et le volume global\
+                    de déchets indiqués car certaines organisations \
+                    ne renseignent que le volume sans mention de poids \
+                    (protocole de niveau 1) ou inversement. De plus, \
+                    les chiffres ci-dessous sont calculés sur XX ramassages \
+                    ayant fait l’objet d’une estimation des volumes \
+                    par matériau, soit un volume total de {volume_total_categorise_m3:.0f} m³."
+        )
 
         # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
 
-        with st.container(border=True):
+        with st.container(border=False):
 
             cell4, cell5 = st.columns(2)
 
@@ -257,10 +261,6 @@ if st.session_state["authentication_status"]:
                 # Affichage du graphique
                 st.plotly_chart(fig2, use_container_width=True)
 
-            st.caption(
-                f"NB : Ces données prennent en compte uniquement les déchets dont le matériau a été identifié, soit {pct_volume_categorise:.0%} du volume total."
-            )
-
         # Ligne 3 : Graphe par milieu de collecte
 
         # Grouper par année et type de matériau
@@ -306,12 +306,8 @@ if st.session_state["authentication_status"]:
         )
 
         # Afficher le graphique
-        with st.container(border=True):
+        with st.container(border=False):
             st.plotly_chart(fig3, use_container_width=True)
-
-            st.caption(
-                f"NB : Ces données prennent en compte uniquement les déchets dont le matériau a été identifié, soit {pct_volume_categorise:.0%} du volume total."
-            )
 
         # Ligne 3 : Graphe par milieu , lieu et année
         st.write("**Filtrer les données par année, type de milieu ou type de lieu**")
@@ -479,12 +475,12 @@ if st.session_state["authentication_status"]:
         cell7.metric("Poids total collecté", frenchify(poids_total_filtered) + " kg")
 
         nombre_collectes_filtered = len(df_filtered)
-        cell8.metric("Nombre de collectes", frenchify(nombre_collectes_filtered))
+        cell8.metric("Nombre de ramassages", frenchify(nombre_collectes_filtered))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if len(df_filtered) <= 5:
             st.warning(
-                "⚠️ Faible nombre de collectes disponibles dans la base de données : "
+                "⚠️ Faible nombre de ramassages disponibles dans la base de données : "
                 + str(len(df_filtered))
             )
 
@@ -531,7 +527,7 @@ if st.session_state["authentication_status"]:
                 df_totals_sorted2,
                 path=["Matériau"],
                 values="Volume_m3",
-                title="Répartition des matériaux en volume",
+                title="Répartition des matériaux en volume (données filtrées)",
                 color="Matériau",
                 color_discrete_map=colors_map,
             )
@@ -545,12 +541,8 @@ if st.session_state["authentication_status"]:
                 hovertemplate="<b>Matériau : %{label}</b><br>Volume = %{value:.1f} m³",
             )
 
-            with st.container(border=True):
+            with st.container(border=False):
                 st.plotly_chart(fig4, use_container_width=True)
-
-                st.caption(
-                    f"NB : Ces données prennent en compte uniquement les déchets dont le matériau a été identifié, soit {pct_volume_categorise:.0%} du volume total."
-                )
 
         else:
             st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
@@ -585,12 +577,12 @@ if st.session_state["authentication_status"]:
 
         # 3ème métrique : nombre de relevés
         cell3 = l1_col3.container(border=True)
-        cell3.metric("Nombre de collectes comptabilisées", frenchify(nb_collectes_int))
+        cell3.metric("Nombre de ramassages", frenchify(nb_collectes_int))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if nb_collectes_int <= 5:
             st.warning(
-                "⚠️ Le nombre de collectes "
+                "⚠️ Le nombre de ramassages "
                 + str(nb_collectes_int)
                 + " est trop faible pour l'analyse."
             )
@@ -665,7 +657,7 @@ if st.session_state["authentication_status"]:
 
             st.write("")
             st.caption(
-                f"Note : Analyse basée sur les collectes qui ont fait l'objet d'un comptage détaillé par déchet,\
+                f"Note : Analyse basée sur les ramassages qui ont fait l'objet d'un comptage détaillé par déchet,\
          soit {volume_total_categorise_m3} m³ équivalent à {pct_volume_categorise:.0%} du volume collecté\
           sur le territoire."
             )
@@ -931,22 +923,16 @@ if st.session_state["authentication_status"]:
         # 3ème métrique : nombre de collectes
         cell3 = l1_col3.container(border=True)
         cell3.metric(
-            "Nombre de collectes comptabilisées",
-            frenchify(collectes) + " collectes",
+            "Nombre de ramassages",
+            frenchify(collectes),
         )
 
         # Message d'avertissement nb de collectes en dessous de 5
-        if collectes == 1:
+        if collectes <= 5:
             st.warning(
-                "⚠️ Il n'y a qu' "
+                "⚠️ Faible nombre de ramassages ("
                 + str(collectes)
-                + " collecte considérées dans les données présentées."
-            )
-        elif collectes <= 5:
-            st.warning(
-                "⚠️ Il n'y a que "
-                + str(collectes)
-                + " collectes considérées dans les données présentées."
+                + ") dans la base de données."
             )
 
         # Ligne 2 : 3 cellules avec les indicateurs clés en bas de page
@@ -1031,7 +1017,7 @@ if st.session_state["authentication_status"]:
         # 2ème métrique : nombre de marques identifiées lors des collectes
         cell5 = l2_col2.container(border=True)
         cell5.metric(
-            "Nombre de marques identifiées lors des collectes",
+            "Nombre de marques identifiées",
             frenchify(nb_marques) + " marques",
         )
 
@@ -1099,7 +1085,7 @@ if st.session_state["authentication_status"]:
         # 2ème métrique : nombre de responsabilités
         cell7 = l3_col2.container(border=True)
         cell7.metric(
-            "Nombre de filières REP identifiées lors des collectes",
+            "Nombre de filières REP identifiées",
             frenchify(nb_rep) + " filières",
         )
 
