@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import folium
 from folium import IFrame
+import math
 
 # Configuration de la page
 st.set_page_config(
@@ -701,10 +702,16 @@ if st.session_state["authentication_status"]:
 
             for index, row in df_map_data.iterrows():
                 # Application de la normalisation
-                radius = row["nb_dechet"] / normalisation_facteur
+                # radius = row["nb_dechet"] / normalisation_facteur
 
                 # Application d'une limite minimale pour le rayon si nécessaire
-                radius = max(radius, 5)
+                # radius = max(radius, 5)
+
+                # Calcul du rayon du marqueur en log base 2 pour réduire les écarts
+                if row["nb_dechet"] > 1:
+                    radius = math.log2(row["nb_dechet"])
+                else:
+                    radius = 0.001
 
                 folium.CircleMarker(
                     location=(row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]),
