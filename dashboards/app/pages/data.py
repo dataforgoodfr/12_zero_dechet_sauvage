@@ -138,6 +138,9 @@ if st.session_state["authentication_status"]:
             "Volume"
         ].sum()
         df_totals_sorted = df_totals_sorted.sort_values(["Volume"], ascending=False)
+        # Conversion des volumes en m3. Conserver la colonne Volume initiale (Litres)
+        df_totals_sorted["Volume_m3"] = df_totals_sorted["Volume"] / 1000
+
         # replace "Verre" with "Verre/Céramique" in df_totals_sorted
         df_totals_sorted["Matériau"] = df_totals_sorted["Matériau"].replace(
             "Verre", "Verre/Céramique"
@@ -209,7 +212,7 @@ if st.session_state["authentication_status"]:
                 # Création du diagramme en donut en utilisant le dictionnaire de couleurs pour la correspondance
                 fig = px.pie(
                     df_totals_sorted,
-                    values="Volume",
+                    values="Volume_m3",
                     names="Matériau",
                     title="Répartition des matériaux en volume",
                     hole=0.4,
@@ -223,21 +226,27 @@ if st.session_state["authentication_status"]:
                     texttemplate="%{percent:.0%}",
                     textfont_size=14,
                 )
+
+                # Paramétrage de l'étiquette flottante
+                fig.update_traces(
+                    hovertemplate="<b>%{label}</b> : <b>%{value:.1f} m³</b>"
+                    + "<br>%{percent:.1%} du volume total"
+                )
+
                 fig.update_layout(autosize=True, legend_title_text="Matériau")
 
                 # Affichage du graphique
                 st.plotly_chart(fig, use_container_width=True)
 
             with cell5:
-                # Conversion des volumes en m3
-                df_totals_sorted["Volume_m3"] = df_totals_sorted["Volume"] / 1000
+
                 # Création du graphique en barres avec Plotly Express
                 fig2 = px.bar(
                     df_totals_sorted,
                     x="Matériau",
                     y="Volume_m3",
                     text="Volume_m3",
-                    title="Volume total par materiau (en m³)",
+                    title="Volume total par materiau (m³)",
                     color="Matériau",
                     color_discrete_map=colors_map,
                 )
@@ -248,6 +257,10 @@ if st.session_state["authentication_status"]:
                     textposition="inside",
                     textfont_size=14,
                 )
+
+                # Paramétrage de l'étiquette flottante
+                fig2.update_traces(hovertemplate="%{label}: <b>%{value:.1f} m³</b>")
+
                 fig2.update_layout(
                     autosize=True,
                     # uniformtext_minsize=8,
@@ -271,6 +284,8 @@ if st.session_state["authentication_status"]:
         df_typemilieu = df_typemilieu.sort_values(
             ["TYPE_MILIEU", "Volume"], ascending=False
         )
+        # Conversion litres en m
+        df_typemilieu["Volume_m3"] = df_typemilieu["Volume"] / 1000
 
         # Raccourcir les étiquettes trop longues
         df_typemilieu = df_typemilieu.replace(
@@ -283,10 +298,10 @@ if st.session_state["authentication_status"]:
         fig3 = px.histogram(
             df_typemilieu,
             x="TYPE_MILIEU",
-            y="Volume",
+            y="Volume_m3",
             color="Matériau",
             barnorm="percent",
-            title="Proportion de chaque matériau en volume selon le milieu de collecte",
+            title="Proportion de matériaux ramassés en fonction du milieu",
             color_discrete_map=colors_map,
             text_auto=True,
         )
@@ -294,7 +309,7 @@ if st.session_state["authentication_status"]:
         fig3.update_layout(
             bargap=0.2,
             height=600,
-            yaxis_title="Proportion du volume collecté (en %)",
+            yaxis_title="Proportion du volume ramassé (en %)",
             xaxis_title=None,
         )
         fig3.update_xaxes(tickangle=-30)
@@ -302,8 +317,14 @@ if st.session_state["authentication_status"]:
         fig3.update_traces(
             texttemplate="%{y:.0f}%",
             textposition="inside",
-            hovertemplate="<b>%{x}</b><br>Part du volume collecté dans ce milieu: %{y:.0f} %",
             textfont_size=12,
+        )
+        # Paramétrer l'étiquette flottante
+        fig3.update_traces(
+            hovertemplate="Ce matériau représente<br>"
+            + "<b>%{y:.1f} %</b> "
+            + "du volume ramassé<br> dans "
+            + "le milieu <b>%{x}</b>."
         )
 
         # Afficher le graphique
@@ -540,10 +561,11 @@ if st.session_state["authentication_status"]:
                 margin=dict(t=50, l=25, r=25, b=25), autosize=True, height=600
             )
             fig4.update_traces(
-                textinfo="label+value",
-                texttemplate="<b>%{label}</b><br>%{value:.1f} m³",
+                textinfo="label+value+percent root",
+                texttemplate="<b>%{label}</b><br>%{value:.1f} m³<br>%{percentRoot}",
                 textfont_size=16,
-                hovertemplate="<b>Matériau : %{label}</b><br>Volume = %{value:.1f} m³",
+                hovertemplate="<b>%{label} : %{value:.1f} m³ </b>"
+                + "<br>%{percentRoot:.1%} % du volume total.",
             )
 
             with st.container(border=False):
