@@ -61,6 +61,17 @@ if st.session_state["authentication_status"]:
         df_other = st.session_state["df_other_filtre"].copy()
         df_nb_dechet = st.session_state["df_nb_dechets_filtre"].copy()
 
+    # Exclusion des ramassages de niveau 0 ou avec 100% de AUTRES
+    def carac_exclusions(df):
+        if df["NIVEAU_CARAC"] == 0:
+            return "Exclu - niveau 0"
+        elif df["GLOBAL_VOLUME_AUTRE"] == df["VOLUME_TOTAL"]:
+            return "Exclu - 100% Autre"
+        else:
+            return "Inclus"
+
+    df_other["Exclusions"] = df_other.apply(lambda row: carac_exclusions(row), axis=1)
+
     # Copier le df pour la partie filtrée par milieu/lieu/année
     df_other_metrics_raw = df_other.copy()
 
@@ -117,19 +128,25 @@ if st.session_state["authentication_status"]:
         # Copie des données pour transfo
         df_volume = df_other.copy()
 
+        # Retrait des lignes avec 100% de volume catégorisé en AUTRE
+        df_volume_cleaned = df_volume[df_volume["Exclusions"] == "Inclus"]
+
         # Calcul des indicateurs clés de haut de tableau avant transformation
         # Volume en litres dans la base, converti en m3
         volume_total_m3 = df_volume["VOLUME_TOTAL"].sum() / 1000
         poids_total = df_volume["POIDS_TOTAL"].sum()
-        volume_total_categorise_m3 = df_volume[cols_volume].sum().sum() / 1000
+        volume_total_categorise_m3 = df_volume_cleaned[cols_volume].sum().sum() / 1000
         pct_volume_categorise = volume_total_categorise_m3 / volume_total_m3
-        nb_collectes_int = len(df_volume)
+        # Nb total de collecte incluant les 100% autres et les relevés de niveau 0
+        nb_collectes_int = df_volume["ID_RELEVE"].nunique()
+        # Nb de collectes excluant les 100% autres et les relevés de niveau 0
+        nb_collectes_carac = df_volume_cleaned["ID_RELEVE"].nunique()
 
         # estimation du poids categorisée en utilisant pct_volume_categorise
         poids_total_categorise = round(poids_total * pct_volume_categorise)
 
         # Dépivotage du tableau pour avoir une base de données exploitable
-        df_volume = df_volume.melt(
+        df_volume_cleaned = df_volume_cleaned.melt(
             id_vars=cols_identifiers,
             value_vars=cols_volume,
             var_name="Matériau",
@@ -137,12 +154,12 @@ if st.session_state["authentication_status"]:
         )
 
         # Nettoyer le nom du Type déchet pour le rendre plus lisible
-        df_volume["Matériau"] = (
-            df_volume["Matériau"].str.replace("GLOBAL_VOLUME_", "").str.title()
+        df_volume_cleaned["Matériau"] = (
+            df_volume_cleaned["Matériau"].str.replace("GLOBAL_VOLUME_", "").str.title()
         )
 
         # Grouper par type de matériau pour les visualisations
-        df_totals_sorted = df_volume.groupby(["Matériau"], as_index=False)[
+        df_totals_sorted = df_volume_cleaned.groupby(["Matériau"], as_index=False)[
             "Volume"
         ].sum()
         df_totals_sorted = df_totals_sorted.sort_values(["Volume"], ascending=False)
@@ -201,15 +218,43 @@ if st.session_state["authentication_status"]:
                 + ") dans la base de données."
             )
 
-        st.caption(
-            f"Note : Il n’y a pas de correspondance entre le poids et le volume global\
+        # Note méthodo pour expliquer les données retenues pour l'analyse
+        with st.expander(
+            "Note sur les données utilisées dans les graphiques ci-dessous"
+        ):
+            st.caption(
+                f"Il n’y a pas de correspondance entre le poids et le volume global\
                     de déchets indiqués car certaines organisations \
                     ne renseignent que le volume sans mention de poids \
                     (protocole de niveau 1) ou inversement. De plus, \
-                    les chiffres ci-dessous sont calculés sur XX ramassages \
+                    les chiffres ci-dessous sont calculés sur **{french_format(nb_collectes_carac)}** ramassages \
                     ayant fait l’objet d’une estimation des volumes \
-                    par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³."
-        )
+                    par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³.\
+                    Les relevés de niveau 0 et les relevés comptabilisant 100% de déchets 'AUTRES' ont été exclus."
+            )
+            df_note_methodo = df_volume.groupby(["Exclusions"], as_index=False)[
+                "ID_RELEVE"
+            ].count()
+            fig_data = px.pie(
+                df_note_methodo,
+                values="ID_RELEVE",
+                names="Exclusions",
+                title="Nombre de ramassages inclus ou exclus dans les analyses ci-dessous",
+                color="Exclusions",
+                color_discrete_sequence=px.colors.sequential.RdBu,
+            )
+            # Réglage du texte affiché, format et taille de police
+            fig_data.update_traces(
+                textinfo="value+percent+label",
+                texttemplate="%{label}<br>%{value:.0f} relevés<br>%{percent:.0%}",
+                textfont_size=14,
+                hoverinfo=None,
+                insidetextorientation="horizontal",
+                rotation=90,
+            )
+            fig_data.update_layout(showlegend=False)
+
+            st.plotly_chart(fig_data)
 
         # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
 
@@ -291,9 +336,9 @@ if st.session_state["authentication_status"]:
         # Ligne 3 : Graphe par milieu de collecte
 
         # Grouper par année et type de matériau
-        df_typemilieu = df_volume.groupby(["TYPE_MILIEU", "Matériau"], as_index=False)[
-            "Volume"
-        ].sum()
+        df_typemilieu = df_volume_cleaned.groupby(
+            ["TYPE_MILIEU", "Matériau"], as_index=False
+        )["Volume"].sum()
         df_typemilieu = df_typemilieu.sort_values(
             ["TYPE_MILIEU", "Volume"], ascending=False
         )
@@ -529,6 +574,9 @@ if st.session_state["authentication_status"]:
         # Étape 3: Preparation dataframe pour graphe
         # Copie des données pour transfo
         df_volume2 = df_filtered.copy()
+
+        # Retrait des lignes avec 100% de volume catégorisé en AUTRE
+        df_volume2 = df_volume2[df_volume2["Exclusions"] == "Inclus"]
 
         # Calcul des indicateurs clés de haut de tableau avant transformation
         volume2_total = df_volume2["VOLUME_TOTAL"].sum()
