@@ -14,7 +14,6 @@ st.set_page_config(
 
 # Définir les paramètres linguistiques FR pour l'affichage des nombres
 locale.setlocale(locale.LC_NUMERIC, "fr_FR")
-st.write(locale.format("%.2f", 1000, grouping=True))
 
 # Session state
 session_state = st.session_state
