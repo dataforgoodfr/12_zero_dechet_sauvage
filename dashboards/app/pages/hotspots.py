@@ -641,9 +641,10 @@ def plot_adopted_waste_spots(
             st.write("Aucune donnée disponible pour les valeurs sélectionnées.")
 
         # 2/ Create the regions geodataframe #
-        selected_admin_lvl = construct_admin_lvl_boundaries(
-            data_zds, NIVEAU_ADMIN, NIVEAUX_ADMIN_GEOJSON_PATH_DICT
-        )
+        # Note : Due to performance issues the admin level boundaries are unused for now
+        # selected_admin_lvl = construct_admin_lvl_boundaries(
+        #     data_zds, NIVEAU_ADMIN, NIVEAUX_ADMIN_GEOJSON_PATH_DICT
+        # )
 
         # 3/ Initialize folium map #
         # Initialize a folium map, centered around the mean location of the waste points
@@ -690,14 +691,15 @@ def plot_adopted_waste_spots(
 
         # 5/ Add the region boundary #
         # Add the region boundary to the map for context
-        folium.GeoJson(
-            selected_admin_lvl,
-            name="Region Boundary",
-            style_function=lambda feature: {
-                "weight": 2,
-                "fillOpacity": 0.1,
-            },
-        ).add_to(m)
+        # Note : Due to performance issues the admin level boundaries are unused for now
+        # folium.GeoJson(
+        #     selected_admin_lvl,
+        #     name="Region Boundary",
+        #     style_function=lambda feature: {
+        #         "weight": 2,
+        #         "fillOpacity": 0.1,
+        #     },
+        # ).add_to(m)
 
         return m
 
