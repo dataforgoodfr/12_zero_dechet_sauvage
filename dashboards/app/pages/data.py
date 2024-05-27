@@ -629,7 +629,7 @@ if st.session_state["authentication_status"]:
                 texttemplate="<b>%{label}</b><br>%{value:.1f} m³<br>%{percentRoot}",
                 textfont_size=16,
                 hovertemplate="<b>%{label} : %{value:.1f} m³ </b>"
-                + "<br>%{percentRoot:.1%} % du volume total.",
+                + "<br>%{percentRoot:.1%} du volume total",
             )
 
             with st.container(border=False):
@@ -692,6 +692,7 @@ if st.session_state["authentication_status"]:
         )
         # Preparation de la figure barplot
         df_top10_dechets.reset_index(inplace=True)
+
         # Création du graphique en barres avec Plotly Express
 
         fig5 = px.bar(
@@ -732,6 +733,9 @@ if st.session_state["authentication_status"]:
             textfont_color="white",
             textfont_size=18,
         )
+
+        # Paramétrage de l'infobulle
+        fig5.update_traces(hovertemplate="<b>%{y} :</b> %{x:.0f} déchets")
 
         # Suppression de la colonne categorie
         del df_top10_dechets["Materiau"]
@@ -800,10 +804,23 @@ if st.session_state["authentication_status"]:
                 else:
                     radius = 0.001
 
+                # Format the value with commas as thousands separators
+                formatted_nb_dechet = locale.format_string(
+                    "%.0f", row["nb_dechet"], grouping=True
+                )
+
                 folium.CircleMarker(
                     location=(row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]),
                     radius=radius,  # Utilisation du rayon ajusté
-                    popup=f"{row['NOM_ZONE']}, {row['LIEU_VILLE']}, {row['DATE']} : {row['nb_dechet']} {selected_dechet}",
+                    popup=folium.Popup(
+                        html=f"""
+                                       Commune : <b>{row['LIEU_VILLE']}</b><br>
+                                       Zone : <b>{row['NOM_ZONE']}</b><br>
+                                       Quantité : <b>{formatted_nb_dechet} {selected_dechet}</b><br>
+                                       Date : <b>{row['DATE']}</b>
+                                       """,
+                        max_width=150,
+                    ),
                     color="#3186cc",
                     fill=True,
                     fill_color="#3186cc",
@@ -1091,6 +1108,12 @@ if st.session_state["authentication_status"]:
             showlegend=False,
             yaxis_title=None,
         )
+
+        # Paramétrage de l'infobulle
+        fig_secteur.update_traces(
+            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:.0f} déchets</b>"
+        )
+
         with st.container(border=True):
             st.plotly_chart(fig_secteur, use_container_width=True)
 
@@ -1143,6 +1166,10 @@ if st.session_state["authentication_status"]:
             uniformtext_minsize=8,
             uniformtext_mode="hide",
             yaxis_title=None,
+        )
+        # Paramétrage de l'infobulle
+        fig_marque.update_traces(
+            hovertemplate="Marque : <b>%{y}</b><br> Quantité : <b>%{x:.0f} déchets</b>"
         )
 
         with st.container(border=True):
@@ -1201,10 +1228,10 @@ if st.session_state["authentication_status"]:
             margin=dict(t=50, l=25, r=25, b=25), autosize=True, height=600
         )
         figreptree.update_traces(
-            textinfo="label+value",
-            texttemplate="<b>%{label}</b><br>%{value:.0f} items",
+            textinfo="label+value+percent root",
+            texttemplate="<b>%{label}</b><br>%{value:.0f} déchets<br>%{percentRoot} du total",
             textfont=dict(size=16),
-            hovertemplate="<b>%{label}</b><br>Nombre de déchets : %{value:.0f}",
+            hovertemplate="<b>%{label}</b><br>Quantité de déchets : %{value:.0f}",
         )
 
         with st.container(border=True):
