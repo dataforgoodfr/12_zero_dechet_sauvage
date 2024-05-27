@@ -113,6 +113,7 @@ if st.session_state["authentication_status"]:
         # Transformation du dataframe pour les graphiques
         # Variables à conserver en ligne
         cols_identifiers = [
+            "ID_RELEVE",
             "ANNEE",
             "TYPE_MILIEU",
             "INSEE_COM",
@@ -226,7 +227,10 @@ if st.session_state["authentication_status"]:
                 f"Il n’y a pas de correspondance entre le poids et le volume global\
                     de déchets indiqués car certaines organisations \
                     ne renseignent que le volume sans mention de poids \
-                    (protocole de niveau 1) ou inversement. De plus, \
+                    (protocole de niveau 1) ou inversement."
+            )
+            st.caption(
+                f"De plus, \
                     les chiffres ci-dessous sont calculés sur **{french_format(nb_collectes_carac)}** ramassages \
                     ayant fait l’objet d’une estimation des volumes \
                     par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³.\
@@ -338,9 +342,10 @@ if st.session_state["authentication_status"]:
         # Grouper par année et type de matériau
         df_typemilieu = df_volume_cleaned.groupby(
             ["TYPE_MILIEU", "Matériau"], as_index=False
-        )["Volume"].sum()
+        ).agg({"Volume": "sum", "ID_RELEVE": "count"})
+
         df_typemilieu = df_typemilieu.sort_values(
-            ["TYPE_MILIEU", "Volume"], ascending=False
+            ["TYPE_MILIEU", "Volume"], ascending=True
         )
         # Conversion litres en m3
         df_typemilieu["Volume_m3"] = df_typemilieu["Volume"] / 1000
@@ -351,6 +356,10 @@ if st.session_state["authentication_status"]:
                 "Zone naturelle ou rurale (hors littoral et montagne)": "Zone naturelle ou rurale"
             }
         )
+
+        # Ne pas faire apparaître la catégorie "Multi-lieux"
+        lignes_multi = df_typemilieu.loc[df_typemilieu["TYPE_MILIEU"] == "Multi-lieux"]
+        df_typemilieu.drop(lignes_multi.index, axis=0, inplace=True)
 
         # Graphique à barre empilées du pourcentage de volume collecté par an et type de matériau
         fig3 = px.histogram(
@@ -363,13 +372,16 @@ if st.session_state["authentication_status"]:
             color_discrete_map=colors_map,
             text_auto=True,
         )
-        # Format d'affichage
+        #  Format d'affichage
+        # traceorder : inverse l'ordre de la légende pour correspondre au graph
         fig3.update_layout(
             bargap=0.2,
             height=600,
             yaxis_title="Proportion du volume ramassé (en %)",
             xaxis_title=None,
+            legend={"traceorder": "reversed"},
         )
+
         fig3.update_xaxes(tickangle=-30)
         # Etiquettes et formats de nombres
         fig3.update_traces(
@@ -386,8 +398,39 @@ if st.session_state["authentication_status"]:
         )
 
         # Afficher le graphique
-        with st.container(border=False):
+        with st.container(border=True):
             st.plotly_chart(fig3, use_container_width=True)
+
+            # Afficher un tableau du nombre de collectes par milieu en dessous
+
+            df_nb_par_milieu = (
+                df_typemilieu.groupby("TYPE_MILIEU", as_index=True)
+                .agg(
+                    {
+                        "ID_RELEVE": "sum",
+                        "Volume": "sum",
+                    }
+                )
+                .sort_values("TYPE_MILIEU", ascending=True)
+            )
+            df_nb_par_milieu.rename(
+                {
+                    "TYPE_MILIEU": "Milieu",
+                    "ID_RELEVE": "Nombre de ramassages",
+                    "Volume": "Volume en m3",
+                },
+                axis=1,
+                inplace=True,
+            )
+
+            # Convertir en int pour éviter les virgules à l'affichage
+            df_nb_par_milieu = df_nb_par_milieu.astype("int")
+
+            # Affichage du tableau
+            st.table(df_nb_par_milieu.T)
+
+        # Affichage du graphique
+        st.plotly_chart(fig2, use_container_width=True)
 
         # Ligne 3 : Graphe par milieu , lieu et année
         st.write("**Filtrer les données par année, type de milieu ou type de lieu**")
