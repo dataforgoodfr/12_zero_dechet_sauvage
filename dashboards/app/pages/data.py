@@ -72,6 +72,8 @@ if st.session_state["authentication_status"]:
 
     df_other["Exclusions"] = df_other.apply(lambda row: carac_exclusions(row), axis=1)
 
+    st.dataframe(df_other)
+
     # Copier le df pour la partie filtrée par milieu/lieu/année
     df_other_metrics_raw = df_other.copy()
 
@@ -154,6 +156,10 @@ if st.session_state["authentication_status"]:
             value_name="Volume",
         )
 
+        # Nettoyage des lignes à 0 et conversion m3
+        df_volume_cleaned = df_volume_cleaned[df_volume_cleaned["Volume"] != 0]
+        df_volume_cleaned["Volume_m3"] = df_volume_cleaned["Volume"] / 1000
+
         # Nettoyer le nom du Type déchet pour le rendre plus lisible
         df_volume_cleaned["Matériau"] = (
             df_volume_cleaned["Matériau"].str.replace("GLOBAL_VOLUME_", "").str.title()
@@ -161,11 +167,9 @@ if st.session_state["authentication_status"]:
 
         # Grouper par type de matériau pour les visualisations
         df_totals_sorted = df_volume_cleaned.groupby(["Matériau"], as_index=False)[
-            "Volume"
+            "Volume_m3"
         ].sum()
-        df_totals_sorted = df_totals_sorted.sort_values(["Volume"], ascending=False)
-        # Conversion des volumes en m3. Conserver la colonne Volume initiale (Litres)
-        df_totals_sorted["Volume_m3"] = df_totals_sorted["Volume"] / 1000
+        df_totals_sorted = df_totals_sorted.sort_values(["Volume_m3"], ascending=False)
 
         # replace "Verre" with "Verre/Céramique" in df_totals_sorted
         df_totals_sorted["Matériau"] = df_totals_sorted["Matériau"].replace(
@@ -342,13 +346,11 @@ if st.session_state["authentication_status"]:
         # Grouper par année et type de matériau
         df_typemilieu = df_volume_cleaned.groupby(
             ["TYPE_MILIEU", "Matériau"], as_index=False
-        ).agg({"Volume": "sum", "ID_RELEVE": "count"})
+        ).agg({"Volume_m3": "sum", "ID_RELEVE": "count"})
 
         df_typemilieu = df_typemilieu.sort_values(
-            ["TYPE_MILIEU", "Volume"], ascending=True
+            ["TYPE_MILIEU", "Volume_m3"], ascending=True
         )
-        # Conversion litres en m3
-        df_typemilieu["Volume_m3"] = df_typemilieu["Volume"] / 1000
 
         # Raccourcir les étiquettes trop longues
         df_typemilieu = df_typemilieu.replace(
@@ -402,22 +404,25 @@ if st.session_state["authentication_status"]:
             st.plotly_chart(fig3, use_container_width=True)
 
             # Afficher un tableau du nombre de collectes par milieu en dessous
-
             df_nb_par_milieu = (
-                df_typemilieu.groupby("TYPE_MILIEU", as_index=True)
+                df_other.groupby("TYPE_MILIEU", as_index=True)
                 .agg(
                     {
-                        "ID_RELEVE": "sum",
-                        "Volume": "sum",
+                        "ID_RELEVE": "count",
                     }
                 )
                 .sort_values("TYPE_MILIEU", ascending=True)
             )
+
+            # Ne pas faire apparaître la catégorie "Multi-lieux"
+            lignes_multi = df_nb_par_milieu.loc[df_nb_par_milieu.index == "Multi-lieux"]
+            df_nb_par_milieu.drop(lignes_multi.index, axis=0, inplace=True)
+
+            # Renommage des colonnes pour l'affichage
             df_nb_par_milieu.rename(
                 {
                     "TYPE_MILIEU": "Milieu",
-                    "ID_RELEVE": "Nombre de ramassages",
-                    "Volume": "Volume en m3",
+                    "ID_RELEVE": "",
                 },
                 axis=1,
                 inplace=True,
@@ -427,10 +432,12 @@ if st.session_state["authentication_status"]:
             df_nb_par_milieu = df_nb_par_milieu.astype("int")
 
             # Affichage du tableau
+            st.write("Nombre de ramassages par milieu :")
             st.table(df_nb_par_milieu.T)
-
-        # Affichage du graphique
-        st.plotly_chart(fig2, use_container_width=True)
+            st.caption(
+                f"Les ramassages catégorisés en 'Multi-lieux' "
+                + f"ont été retirés de l'analyse."
+            )
 
         # Ligne 3 : Graphe par milieu , lieu et année
         st.write("**Filtrer les données par année, type de milieu ou type de lieu**")
