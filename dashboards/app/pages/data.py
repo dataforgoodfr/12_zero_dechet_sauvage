@@ -72,6 +72,13 @@ if st.session_state["authentication_status"]:
 
     df_other["Exclusions"] = df_other.apply(lambda row: carac_exclusions(row), axis=1)
 
+    # Raccourcir les étiquettes de milieux trop longues
+    df_other = df_other.replace(
+        {
+            "Zone naturelle ou rurale (hors littoral et montagne)": "Zone naturelle ou rurale"
+        }
+    )
+
     # Copier le df pour la partie filtrée par milieu/lieu/année
     df_other_metrics_raw = df_other.copy()
 
@@ -79,14 +86,14 @@ if st.session_state["authentication_status"]:
     def french_format(x: int) -> str:
         if x > 1e9:
             y = x / 1e9
-            y = locale.format("%.2f", y, grouping=True)
+            y = locale.format_string("%.2f", y, grouping=True)
             return f"{y} milliards"
         if x > 1e6:
             y = x / 1e6
-            y = locale.format("%.2f", y, grouping=True)
+            y = locale.format_string("%.2f", y, grouping=True)
             return f"{y} millions"
         else:
-            y = locale.format("%.0f", x, grouping=True)
+            y = locale.format_string("%.0f", x, grouping=True)
             return f"{y}"
 
     # 3 Onglets : Matériaux, Top déchets, Filières et marques
@@ -347,9 +354,25 @@ if st.session_state["authentication_status"]:
                 # Affichage du graphique
                 st.plotly_chart(fig2, use_container_width=True)
 
-        # Ligne 3 : Graphe par milieu de collecte
+        ### GRAPHIQUE PAR MILIEU DE COLLECTE
 
-        # Grouper par année et type de matériau
+        # Calcul du nombre de collectes par milieu
+        df_nb_par_milieu = (
+            df_other.groupby("TYPE_MILIEU", as_index=True)
+            .agg(
+                {
+                    "ID_RELEVE": "count",
+                }
+            )
+            .sort_values("TYPE_MILIEU", ascending=True)
+        )
+        # Exclure les milieux avec moins de 3 collectes
+        milieux_a_exclure = df_nb_par_milieu[
+            df_nb_par_milieu["ID_RELEVE"] <= 3
+        ].index.to_list()
+        df_nb_par_milieu = df_nb_par_milieu.drop(milieux_a_exclure, axis=0)
+
+        # Calcul du dataframe groupé par milieu et matériau pour le graphique
         df_typemilieu = df_volume_cleaned.groupby(
             ["TYPE_MILIEU", "Matériau"], as_index=False
         ).agg({"Volume_m3": "sum", "ID_RELEVE": "count"})
@@ -358,12 +381,10 @@ if st.session_state["authentication_status"]:
             ["TYPE_MILIEU", "Volume_m3"], ascending=True
         )
 
-        # Raccourcir les étiquettes trop longues
-        df_typemilieu = df_typemilieu.replace(
-            {
-                "Zone naturelle ou rurale (hors littoral et montagne)": "Zone naturelle ou rurale"
-            }
-        )
+        # Retirer milieux avec moins de 3 collectes
+        df_typemilieu = df_typemilieu[
+            ~df_typemilieu["TYPE_MILIEU"].isin(milieux_a_exclure)
+        ]
 
         # Ne pas faire apparaître la catégorie "Multi-lieux"
         lignes_multi = df_typemilieu.loc[df_typemilieu["TYPE_MILIEU"] == "Multi-lieux"]
@@ -414,17 +435,6 @@ if st.session_state["authentication_status"]:
         with st.container(border=True):
             st.plotly_chart(fig3, use_container_width=True)
 
-            # Afficher un tableau du nombre de collectes par milieu en dessous
-            df_nb_par_milieu = (
-                df_other.groupby("TYPE_MILIEU", as_index=True)
-                .agg(
-                    {
-                        "ID_RELEVE": "count",
-                    }
-                )
-                .sort_values("TYPE_MILIEU", ascending=True)
-            )
-
             # Ne pas faire apparaître la catégorie "Multi-lieux"
             lignes_multi = df_nb_par_milieu.loc[df_nb_par_milieu.index == "Multi-lieux"]
             df_nb_par_milieu.drop(lignes_multi.index, axis=0, inplace=True)
@@ -447,7 +457,8 @@ if st.session_state["authentication_status"]:
             st.table(df_nb_par_milieu.T)
             st.caption(
                 f"Les ramassages catégorisés en 'Multi-lieux' "
-                + f"ont été retirés de l'analyse."
+                + f"ont été retirés de l'analyse. "
+                + f"Les milieux représentant moins de 3 ramassages ne sont pas affichés."
             )
 
         # Ligne 3 : Graphe par milieu , lieu et année
