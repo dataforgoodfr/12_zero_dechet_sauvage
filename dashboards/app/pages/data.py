@@ -1172,7 +1172,8 @@ if st.session_state["authentication_status"]:
         nb_dechet_rep = rep_df["nb_dechet"].sum()
         nb_rep = len(top_rep_df["Responsabilité élargie producteur"].unique())
 
-        # Metriques et graphs secteurs
+        ### ANALYSE PAR SECTEUR
+        st.write("**Analyse par secteur économique**")
         # Retrait des categoriés "VIDE" et "INDERTERMINE" si présentes et recupération des valeurs
         nb_vide_indetermine = 0
         if "VIDE" in top_secteur_df["Secteur"].unique():
@@ -1292,15 +1293,98 @@ if st.session_state["authentication_status"]:
         with st.container(border=True):
             st.plotly_chart(fig_secteur, use_container_width=True)
 
-        # Message d'avertissement Nombre de dechets dont le secteur n'a pas été determine
-        if nb_vide_indetermine != 0:
-            st.warning(
-                "⚠️ Il y a "
-                + str(french_format(nb_vide_indetermine))
-                + " déchets dont le secteur n'a pas été determiné dans les déchets collectés."
+            # Message d'avertissement Nombre de dechets dont le secteur n'a pas été determine
+            if nb_vide_indetermine != 0:
+                st.warning(
+                    "⚠️ Il y a "
+                    + str(french_format(nb_vide_indetermine))
+                    + " déchets dont le secteur n'a pas été determiné dans les déchets collectés."
+                )
+
+        ### ANALYSE PAR FILIERE REP
+
+        st.write(
+            "**Analyse par filière de RResponsabilité Élargie du Producteur (REP)**"
+        )
+
+        l3_col1, l3_col2 = st.columns(2)
+        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+        # Suppression de la catégorie "VIDE"
+        nb_vide_rep = 0
+        if "VIDE" in top_rep_df["Responsabilité élargie producteur"].unique():
+            df_vide_rep = top_rep_df[
+                top_rep_df["Responsabilité élargie producteur"] == "VIDE"
+            ]
+            nb_vide_rep = df_vide_rep["Nombre de déchets"].sum()
+        else:
+            pass
+        top_rep_df = top_rep_df[
+            top_rep_df["Responsabilité élargie producteur"] != "VIDE"
+        ]
+
+        # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
+        cell6 = l3_col1.container(border=True)
+        cell6.metric(
+            "Quantité de déchets catégorisés",
+            french_format(nb_dechet_rep),
+        )
+
+        # 2ème métrique : nombre de responsabilités
+        cell7 = l3_col2.container(border=True)
+        cell7.metric(
+            "Nombre de filières REP identifiées",
+            french_format(nb_rep) + " filières",
+        )
+
+        with st.expander("Qu'est-ce que la Responsabilité Élargie du Producteur ?"):
+            st.write(
+                "La Responsabilité Élargie du Producteur (REP) est une obligation qui impose aux entreprises de payer une contribution financière"
+                + " pour la prise en charge de la gestion des déchets issus des produits qu’ils mettent sur le marché selon le principe pollueur-payeur."
+                + " Pour ce faire, elles doivent contribuer financièrement à la collecte, du tri et au recyclage de ces produits, "
+                + "généralement à travers les éco-organismes privés, agréés par l’Etat, comme CITEO pour les emballages. "
+                + "L’État a depuis 1993 progressivement mis en place 25 filières REP, qui regroupent de grandes familles de produits "
+                + "(emballages ménagers, tabac, textile, ameublement, …)."
             )
 
-        # Metriques et graphes marques
+        # Treemap REP
+        figreptree = px.treemap(
+            top_rep_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
+            path=["Responsabilité élargie producteur"],
+            values="Nombre de déchets",
+            title="Top 10 des filières REP relatives aux déchets les plus ramassés",
+            color="Responsabilité élargie producteur",
+            color_discrete_sequence=px.colors.qualitative.Set2,
+        )
+        figreptree.update_layout(
+            margin=dict(t=50, l=25, r=25, b=25),
+            autosize=True,
+            height=600,
+            separators=", ",
+        )
+        figreptree.update_traces(
+            textinfo="label+value+percent root",
+            texttemplate="<b>%{label}</b><br>%{value:,.0f} déchets<br>%{percentRoot} du total",
+            textfont=dict(size=16),
+            hovertemplate="%{label}<br>"
+            + "Quantité de déchets : <b>%{value:,.0f}</b><br>"
+            + "<b>Part du total ramassé : %{percentRoot:.1%}</b>",
+        )
+
+        with st.container(border=True):
+            st.plotly_chart(figreptree, use_container_width=True)
+
+            # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
+            if nb_vide_rep != 0:
+                st.warning(
+                    "⚠️ Il y a "
+                    + str(french_format(nb_vide_rep))
+                    + " déchets dont la filière REP n'a pas été determinée dans les déchets collectés."
+                )
+
+        ### ANALYSES PAR MARQUE
+
+        st.write("**Analyse par marque**")
+
         l2_col1, l2_col2 = st.columns(2)
         cell4 = l2_col1.container(border=True)
 
@@ -1350,81 +1434,6 @@ if st.session_state["authentication_status"]:
 
         with st.container(border=True):
             st.plotly_chart(fig_marque, use_container_width=True)
-
-        with st.container(border=True):
-            st.caption(
-                "La Responsabilité Élargie du Producteur (REP) est une obligation qui impose aux entreprises de payer une contribution financière"
-                + " pour la prise en charge de la gestion des déchets issus des produits qu’ils mettent sur le marché selon le principe pollueur-payeur."
-                + " Pour ce faire, elles doivent contribuer financièrement à la collecte, du tri et au recyclage de ces produits, "
-                + "généralement à travers les éco-organismes privés, agréés par l’Etat, comme CITEO pour les emballages. "
-                + "L’État a depuis 1993 progressivement mis en place 25 filières REP, qui regroupent de grandes familles de produits "
-                + "(emballages ménagers, tabac, textile, ameublement, …)."
-            )
-
-        # Metriques et graphes Responsabilité elargie producteurs
-        l3_col1, l3_col2 = st.columns(2)
-        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
-        # Suppression de la catégorie "VIDE"
-        nb_vide_rep = 0
-        if "VIDE" in top_rep_df["Responsabilité élargie producteur"].unique():
-            df_vide_rep = top_rep_df[
-                top_rep_df["Responsabilité élargie producteur"] == "VIDE"
-            ]
-            nb_vide_rep = df_vide_rep["Nombre de déchets"].sum()
-        else:
-            pass
-        top_rep_df = top_rep_df[
-            top_rep_df["Responsabilité élargie producteur"] != "VIDE"
-        ]
-
-        # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
-        cell6 = l3_col1.container(border=True)
-        cell6.metric(
-            "Quan de déchets catégorisés par filière REP",
-            french_format(nb_dechet_rep),
-        )
-
-        # 2ème métrique : nombre de responsabilités
-        cell7 = l3_col2.container(border=True)
-        cell7.metric(
-            "Nombre de filières REP identifiées",
-            french_format(nb_rep) + " filières",
-        )
-
-        # Treemap REP
-        figreptree = px.treemap(
-            top_rep_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
-            path=["Responsabilité élargie producteur"],
-            values="Nombre de déchets",
-            title="Top 10 des filières REP relatives aux déchets les plus ramassés",
-            color="Responsabilité élargie producteur",
-            color_discrete_sequence=px.colors.qualitative.Set2,
-        )
-        figreptree.update_layout(
-            margin=dict(t=50, l=25, r=25, b=25),
-            autosize=True,
-            height=600,
-            separators=", ",
-        )
-        figreptree.update_traces(
-            textinfo="label+value+percent root",
-            texttemplate="<b>%{label}</b><br>%{value:,.0f} déchets<br>%{percentRoot} du total",
-            textfont=dict(size=16),
-            hovertemplate="%{label}<br>"
-            + "Quantité de déchets : <b>%{value:,.0f}</b><br>"
-            + "<b>Part du total ramassé : %{percentRoot:.1%}</b>",
-        )
-
-        with st.container(border=True):
-            st.plotly_chart(figreptree, use_container_width=True)
-
-            # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
-            if nb_vide_rep != 0:
-                st.warning(
-                    "⚠️ Il y a "
-                    + str(french_format(nb_vide_rep))
-                    + " déchets dont la filière REP n'a pas été determinée dans les déchets collectés."
-                )
 
 
 else:
