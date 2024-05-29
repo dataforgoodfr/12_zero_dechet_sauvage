@@ -1005,7 +1005,6 @@ if st.session_state["authentication_status"]:
             )
     # Onglet 3 : Secteurs et marques
     with tab3:
-        st.write("")
 
         # Préparation des données
         df_dechet_copy = df_nb_dechet.copy()
@@ -1126,11 +1125,17 @@ if st.session_state["authentication_status"]:
                 & (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
             ].copy()
 
+        #
+
         # Filtration des données pour nb_dechets
         df_init = pd.merge(df_dechet_copy, df_filtered, on="ID_RELEVE", how="inner")
 
         # Data pour le plot secteur
         secteur_df = df_init[df_init["type_regroupement"].isin(["SECTEUR"])]
+        secteur_df = secteur_df[
+            secteur_df["NIVEAU_CARAC"] == 4
+        ]  # Filtre sur relevés de niveau 4
+
         top_secteur_df = (
             secteur_df.groupby("categorie")["nb_dechet"]
             .sum()
@@ -1142,8 +1147,23 @@ if st.session_state["authentication_status"]:
             "Nombre de déchets"
         ].astype(int)
 
+        # Data pour le plot responsabilités
+        rep_df = df_init[df_init["type_regroupement"].isin(["REP"])]
+        rep_df = rep_df[rep_df["NIVEAU_CARAC"] == 4]  # Filtre sur relevés de niveau 4
+
+        top_rep_df = (
+            rep_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
+        )
+        top_rep_df = top_rep_df.reset_index()
+        top_rep_df.columns = ["Responsabilité élargie producteur", "Nombre de déchets"]
+
         # Data pour le plot marque
+
         marque_df = df_init[df_init["type_regroupement"].isin(["MARQUE"])]
+        marque_df = marque_df[
+            marque_df["NIVEAU_CARAC"] >= 2
+        ]  # Filtre sur relevés de niveau 2, 3 et 4
+
         top_marque_df = (
             marque_df.groupby("categorie")["nb_dechet"]
             .sum()
@@ -1155,25 +1175,19 @@ if st.session_state["authentication_status"]:
             int
         )
 
-        # Data pour le plot responsabilités
-        rep_df = df_init[df_init["type_regroupement"].isin(["REP"])]
-        top_rep_df = (
-            rep_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
-        )
-        top_rep_df = top_rep_df.reset_index()
-        top_rep_df.columns = ["Responsabilité élargie producteur", "Nombre de déchets"]
-
         # Chiffres clés
         nb_dechet_secteur = secteur_df["nb_dechet"].sum()
         nb_secteurs = len(top_secteur_df["Secteur"].unique())
         nb_dechet_marque = marque_df["nb_dechet"].sum()
         nb_marques = len(top_marque_df["Marque"].unique())
-        collectes = len(df_filtered)
+        collectes_sect = secteur_df["ID_RELEVE"].nunique()
+        collectes_rep = rep_df["ID_RELEVE"].nunique()
+        collectes_marque = marque_df["ID_RELEVE"].nunique()
         nb_dechet_rep = rep_df["nb_dechet"].sum()
         nb_rep = len(top_rep_df["Responsabilité élargie producteur"].unique())
 
         ### ANALYSE PAR SECTEUR
-        st.write("**Analyse par secteur économique**")
+        st.write("**Analyse par secteur économique** (relevés de niveau 4 uniquement)")
         # Retrait des categoriés "VIDE" et "INDERTERMINE" si présentes et recupération des valeurs
         nb_vide_indetermine = 0
         if "VIDE" in top_secteur_df["Secteur"].unique():
@@ -1198,28 +1212,28 @@ if st.session_state["authentication_status"]:
 
         # Trick pour séparer les milliers
         cell1.metric(
-            "Nombre de déchets triés par secteur", french_format(nb_dechet_secteur)
+            "Quantité de déchets catégorisés", french_format(nb_dechet_secteur)
         )
 
         # 2ème métrique : poids
         cell2 = l1_col2.container(border=True)
         cell2.metric(
             "Nombre de secteurs concernés",
-            french_format(nb_secteurs) + " secteurs",
+            french_format(nb_secteurs),
         )
 
         # 3ème métrique : nombre de collectes
         cell3 = l1_col3.container(border=True)
         cell3.metric(
             "Nombre de ramassages",
-            french_format(collectes),
+            french_format(collectes_sect),
         )
 
         # Message d'avertissement nb de collectes en dessous de 5
-        if collectes <= 5:
+        if collectes_sect <= 5:
             st.warning(
                 "⚠️ Faible nombre de ramassages ("
-                + str(collectes)
+                + str(collectes_sect)
                 + ") dans la base de données."
             )
 
@@ -1295,19 +1309,19 @@ if st.session_state["authentication_status"]:
 
             # Message d'avertissement Nombre de dechets dont le secteur n'a pas été determine
             if nb_vide_indetermine != 0:
-                st.warning(
-                    "⚠️ Il y a "
+                st.caption(
+                    "Note : cette analyse exclut "
                     + str(french_format(nb_vide_indetermine))
-                    + " déchets dont le secteur n'a pas été determiné dans les déchets collectés."
+                    + " déchets dont le secteur n'a pas pu être determiné."
                 )
 
         ### ANALYSE PAR FILIERE REP
 
         st.write(
-            "**Analyse par filière de RResponsabilité Élargie du Producteur (REP)**"
+            "**Analyse par filière de Responsabilité Élargie du Producteur** (relevés de niveau 4 uniquement)"
         )
 
-        l3_col1, l3_col2 = st.columns(2)
+        l3_col1, l3_col2, l3_col3 = st.columns(3)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
         # Suppression de la catégorie "VIDE"
         nb_vide_rep = 0
@@ -1333,7 +1347,13 @@ if st.session_state["authentication_status"]:
         cell7 = l3_col2.container(border=True)
         cell7.metric(
             "Nombre de filières REP identifiées",
-            french_format(nb_rep) + " filières",
+            french_format(nb_rep),
+        )
+
+        cell8 = l3_col3.container(border=True)  # Nb de collectes
+        cell8.metric(
+            "Nombre de ramassages",
+            french_format(collectes_rep),
         )
 
         with st.expander("Qu'est-ce que la Responsabilité Élargie du Producteur ?"):
@@ -1358,7 +1378,7 @@ if st.session_state["authentication_status"]:
         figreptree.update_layout(
             margin=dict(t=50, l=25, r=25, b=25),
             autosize=True,
-            height=600,
+            height=500,
             separators=", ",
         )
         figreptree.update_traces(
@@ -1375,31 +1395,37 @@ if st.session_state["authentication_status"]:
 
             # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
             if nb_vide_rep != 0:
-                st.warning(
-                    "⚠️ Il y a "
+                st.caption(
+                    "Note : Cette analyse exclut  "
                     + str(french_format(nb_vide_rep))
-                    + " déchets dont la filière REP n'a pas été determinée dans les déchets collectés."
+                    + " déchets dont la filière REP n'a pas pu être determinée."
                 )
 
         ### ANALYSES PAR MARQUE
 
-        st.write("**Analyse par marque**")
+        st.write("**Analyse par marque** (relevés de niveaux 2 à 4)")
 
-        l2_col1, l2_col2 = st.columns(2)
+        l2_col1, l2_col2, l2_col3 = st.columns(3)
         cell4 = l2_col1.container(border=True)
 
         # 1er métrique : nombre de dechets categorises par marques
 
         cell4.metric(
-            "Nombre de déchets triés par marque",
-            french_format(nb_dechet_marque) + " déchets",
+            "Quantité de déchets catégorisés",
+            french_format(nb_dechet_marque),
         )
 
         # 2ème métrique : nombre de marques identifiées lors des collectes
         cell5 = l2_col2.container(border=True)
         cell5.metric(
             "Nombre de marques concernées",
-            french_format(nb_marques) + " marques",
+            french_format(nb_marques),
+        )
+
+        cell12 = l2_col3.container(border=True)  # Nb de collectes
+        cell12.metric(
+            "Nombre de ramassages",
+            french_format(collectes_marque),
         )
 
         # Configuration du graphique à barres
@@ -1434,6 +1460,15 @@ if st.session_state["authentication_status"]:
 
         with st.container(border=True):
             st.plotly_chart(fig_marque, use_container_width=True)
+
+            # Message d'avertissement pour les déchets non catégorisés
+            if nb_vide_rep != 0:
+                st.caption(
+                    "Note : cette analyse exclut  "
+                    # + str(french_format(nb_vide_rep))
+                    + " XXX "
+                    + " déchets dont la marque n'a pas pu être determinée."
+                )
 
 
 else:
