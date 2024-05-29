@@ -80,7 +80,7 @@ if st.session_state["authentication_status"]:
     )
 
     # Copier le df pour la partie filtrée par milieu/lieu/année
-    df_other_metrics_raw = df_other.copy()
+    # df_other_metrics_raw = df_other.copy()
 
     # Fonction pour améliorer l'affichage des nombres (milliers, millions, milliards)
     def french_format(x: int) -> str:
@@ -466,8 +466,8 @@ if st.session_state["authentication_status"]:
 
         # Étape 1: Création des filtres
 
-        df_other_metrics = df_other_metrics_raw.copy()
-        df_other_metrics = df_other_metrics.fillna(0)
+        # df_other_metrics = df_other_metrics_raw.copy()
+        # df_other_metrics = df_other_metrics.fillna(0)
 
         with st.expander("Filtrer par année, type milieu ou type de lieu"):
 
@@ -483,12 +483,12 @@ if st.session_state["authentication_status"]:
                 filtered_data_milieu = df_other[
                     df_other["ANNEE"] == selected_annee
                 ].copy()
-                filtered_metrics_milieu = df_other_metrics[
-                    df_other_metrics["ANNEE"] == selected_annee
-                ].copy()
+                # filtered_metrics_milieu = df_other_metrics[
+                #     df_other_metrics["ANNEE"] == selected_annee
+                # ].copy()
             else:
                 filtered_data_milieu = df_other.copy()
-                filtered_metrics_milieu = df_other_metrics.copy()
+                # filtered_metrics_milieu = df_other_metrics.copy()
 
             ## Filtre par milieu
             # Initialiser le champ déroulant avec une valeur par défaut
@@ -506,12 +506,12 @@ if st.session_state["authentication_status"]:
                 filtered_data_lieu = filtered_data_milieu[
                     filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu
                 ]
-                filtered_metrics_milieu = filtered_metrics_milieu[
-                    filtered_metrics_milieu["TYPE_MILIEU"] == selected_type_milieu
-                ]
+                # filtered_metrics_milieu = filtered_metrics_milieu[
+                #     filtered_metrics_milieu["TYPE_MILIEU"] == selected_type_milieu
+                # ]
             else:
                 filtered_data_lieu = filtered_data_milieu.copy()
-                filtered_metrics_milieu = df_other_metrics.copy()
+                # filtered_metrics_milieu = df_other_metrics.copy()
 
             # Filtre par type de lieu
 
@@ -531,15 +531,15 @@ if st.session_state["authentication_status"]:
             and selected_type_lieu == valeur_par_defaut_lieu
         ):
             df_filtered = df_other.copy()
-            df_filtered_metrics = df_other_metrics_raw.copy()
+            # df_filtered_metrics = df_other_metrics_raw.copy()
         elif (
             selected_type_milieu == valeur_par_defaut_milieu
             and selected_type_lieu == valeur_par_defaut_lieu
         ):
             df_filtered = df_other[df_other["ANNEE"] == selected_annee].copy()
-            df_filtered_metrics = df_other_metrics_raw[
-                df_other_metrics["ANNEE"] == selected_annee
-            ].copy()
+            # df_filtered_metrics = df_other_metrics_raw[
+            #     df_other_metrics["ANNEE"] == selected_annee
+            # ].copy()
         elif (
             selected_annee == valeur_par_defaut_annee
             and selected_type_lieu == valeur_par_defaut_lieu
@@ -548,9 +548,9 @@ if st.session_state["authentication_status"]:
             df_filtered = df_other[
                 df_other["TYPE_MILIEU"] == selected_type_milieu
             ].copy()
-            df_filtered_metrics = df_other_metrics_raw[
-                df_other_metrics["TYPE_MILIEU"] == selected_type_milieu
-            ].copy()
+            # df_filtered_metrics = df_other_metrics_raw[
+            #     df_other_metrics["TYPE_MILIEU"] == selected_type_milieu
+            # ].copy()
 
         elif (
             selected_annee == valeur_par_defaut_annee
@@ -558,9 +558,9 @@ if st.session_state["authentication_status"]:
             and selected_type_milieu == valeur_par_defaut_milieu
         ):
             df_filtered = df_other[df_other["TYPE_LIEU"] == selected_type_lieu].copy()
-            df_filtered_metrics = df_other_metrics_raw[
-                df_other_metrics["TYPE_LIEU"] == selected_type_lieu
-            ].copy()
+            # df_filtered_metrics = df_other_metrics_raw[
+            #     df_other_metrics["TYPE_LIEU"] == selected_type_lieu
+            # ].copy()
 
         elif (
             selected_annee == valeur_par_defaut_annee
@@ -571,10 +571,10 @@ if st.session_state["authentication_status"]:
                 (df_other["TYPE_LIEU"] == selected_type_lieu)
                 & (df_other["TYPE_MILIEU"] == selected_type_milieu)
             ].copy()
-            df_filtered_metrics = df_other_metrics_raw[
-                (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
-                & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
-            ]
+            # df_filtered_metrics = df_other_metrics_raw[
+            #     (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
+            #     & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
+            # ]
         elif (
             selected_annee != valeur_par_defaut_annee
             and selected_type_lieu != valeur_par_defaut_lieu
@@ -584,10 +584,10 @@ if st.session_state["authentication_status"]:
                 (df_other["ANNEE"] == selected_annee)
                 & (df_other["TYPE_LIEU"] == selected_type_lieu)
             ].copy()
-            df_filtered_metrics = df_other_metrics_raw[
-                (df_other_metrics["ANNEE"] == selected_annee)
-                & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
-            ]
+            # df_filtered_metrics = df_other_metrics_raw[
+            #     (df_other_metrics["ANNEE"] == selected_annee)
+            #     & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
+            # ]
         elif (
             selected_annee != valeur_par_defaut_annee
             and selected_type_lieu == valeur_par_defaut_lieu
@@ -597,10 +597,10 @@ if st.session_state["authentication_status"]:
                 (df_other["ANNEE"] == selected_annee)
                 & (df_other["TYPE_MILIEU"] == selected_type_milieu)
             ].copy()
-            df_filtered_metrics = df_other_metrics_raw[
-                (df_other_metrics["ANNEE"] == selected_annee)
-                & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
-            ]
+            # df_filtered_metrics = df_other_metrics_raw[
+            #     (df_other_metrics["ANNEE"] == selected_annee)
+            #     & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
+            # ]
 
         else:
             df_filtered = df_other[
@@ -608,11 +608,11 @@ if st.session_state["authentication_status"]:
                 & (df_other["TYPE_MILIEU"] == selected_type_milieu)
                 & (df_other["TYPE_LIEU"] == selected_type_lieu)
             ].copy()
-            df_filtered_metrics = df_other_metrics_raw[
-                (df_other_metrics["ANNEE"] == selected_annee)
-                & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
-                & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
-            ]
+            # df_filtered_metrics = df_other_metrics_raw[
+            #     (df_other_metrics["ANNEE"] == selected_annee)
+            #     & (df_other_metrics["TYPE_MILIEU"] == selected_type_milieu)
+            #     & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
+            # ]
 
         # Ligne 5 : Metriques filtrés
         l5_col1, l5_col2, l5_col3 = st.columns(3)
@@ -620,9 +620,9 @@ if st.session_state["authentication_status"]:
         cell7 = l5_col2.container(border=True)
         cell8 = l5_col3.container(border=True)
 
-        poids_total_filtered = df_filtered_metrics["POIDS_TOTAL"].sum()
+        poids_total_filtered = df_filtered["POIDS_TOTAL"].sum()
         # Volume litres converti en m3
-        volume_total_filtered_m3 = df_filtered_metrics["VOLUME_TOTAL"].sum() / 1000
+        volume_total_filtered_m3 = df_filtered["VOLUME_TOTAL"].sum() / 1000
 
         cell6.metric(
             "Volume de déchets collectés",
@@ -720,10 +720,102 @@ if st.session_state["authentication_status"]:
         df_top = df_nb_dechet.copy()
         df_top_data_releves = df_other.copy()
 
+        filtered_df = df_other.copy()  # Initialiser le df sans filtres
+
+        # Filtres
+        with st.expander("Filtrer par année, type milieu ou type de lieu"):
+
+            # Définir les options
+            annee_options = sorted(df_other["ANNEE"].unique().tolist(), reverse=True)
+            options_annee = [valeur_par_defaut_annee] + annee_options
+            options_milieux = [valeur_par_defaut_milieu] + sorted(
+                list(df_other["TYPE_MILIEU"].unique())
+            )
+            options_lieux = [valeur_par_defaut_lieu] + sorted(
+                list(df_other["TYPE_LIEU"].unique())
+            )
+
+            annee = st.selectbox(
+                "Choisir une année :",
+                options=options_annee,
+                index=options_annee.index(valeur_par_defaut_annee),  # Définir l'index
+                key="topdechets_annee",  # définir key pour éviter conflits
+            )
+
+            milieu = st.selectbox(
+                "Choisir un type de milieu :",
+                options=options_milieux,
+                index=options_milieux.index(
+                    valeur_par_defaut_milieu
+                ),  # Définir l'index
+                key="topdechets_milieu",  # définir key pour éviter conflits
+            )
+
+            # Mise à jour dynamique des filtres
+            if milieu != valeur_par_defaut_milieu:
+                options_lieux = [valeur_par_defaut_lieu] + list(
+                    milieu_lieu_dict[milieu]
+                )
+
+            lieu = st.selectbox(
+                "Choisir un type de lieu :",
+                options=options_lieux,
+                index=options_lieux.index(valeur_par_defaut_lieu),  # Définir l'index
+                key="topdechets_lieu",  # définir key pour éviter conflits
+            )
+
+        # Conditions pour filtrer les valeurs et ne pas considérer la valeur par défaut dans le filtre
+        if annee == valeur_par_defaut_annee:  # Aucun filtre annee
+            if milieu == valeur_par_defaut_milieu:  # Aucun filtre milieu
+                if lieu == valeur_par_defaut_lieu:  # Aucun filtre lieu
+                    pass  # Pas de filtre
+                else:  # Si lieu choisi
+                    filtered_df = filtered_df[(filtered_df["TYPE_LIEU"] == lieu)]
+            else:  # Si milieu choisi
+                if lieu == valeur_par_defaut_lieu:  # Aucun filtre lieu
+                    filtered_df = filtered_df[(filtered_df["TYPE_MILIEU"] == milieu)]
+                else:  # Si milieu ET lieu choisi
+                    filtered_df = filtered_df[
+                        (filtered_df["TYPE_MILIEU"] == milieu)
+                        & (filtered_df["TYPE_LIEU"] == lieu)
+                    ]
+        else:  # Si annee a été choisie
+            if milieu == valeur_par_defaut_milieu:  # Aucun filtre milieu
+                if lieu == valeur_par_defaut_lieu:  # Aucun filtre lieu
+                    filtered_df = filtered_df[
+                        (filtered_df["ANNEE"] == annee)
+                    ]  # Filtre annee uniquement
+                else:  # Si lieu choisi
+                    filtered_df = filtered_df[
+                        (filtered_df["ANNEE"] == annee)
+                        & (filtered_df["TYPE_LIEU"] == lieu)
+                    ]
+            else:  # Si milieu choisi
+                if lieu == valeur_par_defaut_lieu:  # Aucun filtre lieu
+                    filtered_df = filtered_df[
+                        (filtered_df["ANNEE"] == annee)
+                        & (filtered_df["TYPE_MILIEU"] == milieu)
+                    ]
+                else:  # Si milieu ET lieu choisi : 3 filtres
+                    filtered_df = filtered_df[
+                        (filtered_df["ANNEE"] == annee)
+                        & (filtered_df["TYPE_MILIEU"] == milieu)
+                        & (filtered_df["TYPE_LIEU"] == lieu)
+                    ]
+
+        # Récupérer les index de collectes pour filtrer le dataframe nb_dechets
+        # Filtrer les données sur les ID_RELEVES
+        df_top10 = pd.merge(df_top, filtered_df, on="ID_RELEVE", how="inner")
+
+        # Retrait des lignes avec 100% de volume catégorisé en AUTRE
+        df_top10 = df_top10[df_top10["Exclusions"] == "Inclus"]
+
         # Calcul du nombre total de déchets catégorisés sur le territoier
-        nb_total_dechets = df_top[(df_top["type_regroupement"] == "GROUPE")][
+        nb_total_dechets = df_top10[(df_top10["type_regroupement"] == "GROUPE")][
             "nb_dechet"
         ].sum()
+
+        nb_collec_top = df_top10["ID_RELEVE"].nunique()
 
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2 = st.columns(2)
@@ -736,7 +828,7 @@ if st.session_state["authentication_status"]:
 
         # 3ème métrique : nombre de relevés
         cell2 = l1_col2.container(border=True)
-        cell2.metric("Nombre de ramassages", french_format(nb_collectes_int))
+        cell2.metric("Nombre de ramassages", french_format(nb_collec_top))
 
         # Message d'avertissement nb de collectes en dessous de 5
         if nb_collectes_int <= 5:
@@ -748,8 +840,6 @@ if st.session_state["authentication_status"]:
 
         # Ligne 2 : graphique top déchets
 
-        # Filtration des données pour nb_dechets
-        df_top10 = pd.merge(df_top, df_top_data_releves, on="ID_RELEVE", how="inner")
         # Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
         df_dechets_groupe = df_top10[df_top10["type_regroupement"].isin(["GROUPE"])]
         # Group by 'categorie', sum 'nb_dechet', et top 10
@@ -824,9 +914,9 @@ if st.session_state["authentication_status"]:
 
             st.write("")
             st.caption(
-                f"Note : Les chiffres ci-dessous sont calculés sur XX ramassages \
+                f"Note : Les chiffres ci-dessous sont calculés sur {nb_collec_top} ramassages \
                     ayant fait l’objet d’une estimation des volumes \
-                    par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³."
+                    par matériau."
             )
 
         with st.container(border=True):
