@@ -5,6 +5,7 @@ import folium
 from folium import IFrame
 import math
 import locale
+import duckdb
 
 
 # Configuration de la page
@@ -1130,11 +1131,24 @@ if st.session_state["authentication_status"]:
         # Filtration des données pour nb_dechets
         df_init = pd.merge(df_dechet_copy, df_filtered, on="ID_RELEVE", how="inner")
 
-        # Data pour le plot secteur
-        secteur_df = df_init[df_init["type_regroupement"].isin(["SECTEUR"])]
-        secteur_df = secteur_df[
-            secteur_df["NIVEAU_CARAC"] == 4
-        ]  # Filtre sur relevés de niveau 4
+        # Data pour le plot secteur : filtrer par type_regroup et niveau 4
+
+        secteur_df = duckdb.query(
+            (
+                "SELECT * "
+                "FROM df_init "
+                "WHERE type_regroupement='SECTEUR' AND NIVEAU_CARAC = 4 AND categorie NOT IN ('VIDE', 'INDÉTERMINÉ');"
+            )
+        ).to_df()
+
+        # Calcul du nombre de secteurs VIDE et INDETERMINE
+        nb_vide_indetermine = duckdb.query(
+            (
+                "SELECT sum(nb_dechet)"
+                "FROM df_init "
+                "WHERE type_regroupement='SECTEUR' AND NIVEAU_CARAC = 4 AND categorie IN ('VIDE', 'INDÉTERMINÉ');"
+            )
+        ).fetchone()[0]
 
         top_secteur_df = (
             secteur_df.groupby("categorie")["nb_dechet"]
@@ -1148,8 +1162,22 @@ if st.session_state["authentication_status"]:
         ].astype(int)
 
         # Data pour le plot responsabilités
-        rep_df = df_init[df_init["type_regroupement"].isin(["REP"])]
-        rep_df = rep_df[rep_df["NIVEAU_CARAC"] == 4]  # Filtre sur relevés de niveau 4
+        rep_df = duckdb.query(
+            (
+                "SELECT * "
+                "FROM df_init "
+                "WHERE type_regroupement='REP' AND NIVEAU_CARAC = 4 AND categorie NOT IN ('VIDE', 'INDÉTERMINÉ');"
+            )
+        ).to_df()  # Filtre sur le regroupement REP et le niveau 4, exclusion des vides et indeterminés
+
+        # Calcul du nombre de secteurs VIDE et INDETERMINE
+        nb_vide_indetermine_REP = duckdb.query(
+            (
+                "SELECT sum(nb_dechet)"
+                "FROM df_init "
+                "WHERE type_regroupement='REP' AND NIVEAU_CARAC = 4 AND categorie IN ('VIDE', 'INDÉTERMINÉ');"
+            )
+        ).fetchone()[0]
 
         top_rep_df = (
             rep_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
@@ -1159,10 +1187,23 @@ if st.session_state["authentication_status"]:
 
         # Data pour le plot marque
 
-        marque_df = df_init[df_init["type_regroupement"].isin(["MARQUE"])]
-        marque_df = marque_df[
-            marque_df["NIVEAU_CARAC"] >= 2
-        ]  # Filtre sur relevés de niveau 2, 3 et 4
+        # Data pour le plot responsabilités
+        marque_df = duckdb.query(
+            (
+                "SELECT * "
+                "FROM df_init "
+                "WHERE type_regroupement='MARQUE' AND NIVEAU_CARAC >= 2 AND categorie NOT IN ('VIDE', 'INDÉTERMINÉ');"
+            )
+        ).to_df()  # Filtre sur le regroupement REP et le niveau 4, exclusion des vides et indeterminés
+
+        # Calcul du nombre de secteurs VIDE et INDETERMINE
+        nb_vide_indetermine_marque = duckdb.query(
+            (
+                "SELECT sum(nb_dechet)"
+                "FROM df_init "
+                "WHERE type_regroupement='MARQUE' AND NIVEAU_CARAC = 4 AND categorie IN ('VIDE', 'INDÉTERMINÉ');"
+            )
+        ).fetchone()[0]
 
         top_marque_df = (
             marque_df.groupby("categorie")["nb_dechet"]
@@ -1175,34 +1216,23 @@ if st.session_state["authentication_status"]:
             int
         )
 
-        # Chiffres clés
+        # Chiffres clés secteurs
         nb_dechet_secteur = secteur_df["nb_dechet"].sum()
-        nb_secteurs = len(top_secteur_df["Secteur"].unique())
-        nb_dechet_marque = marque_df["nb_dechet"].sum()
-        nb_marques = len(top_marque_df["Marque"].unique())
+        nb_secteurs = secteur_df["categorie"].nunique()
         collectes_sect = secteur_df["ID_RELEVE"].nunique()
-        collectes_rep = rep_df["ID_RELEVE"].nunique()
-        collectes_marque = marque_df["ID_RELEVE"].nunique()
+
+        # Chiffres clés filières REP
         nb_dechet_rep = rep_df["nb_dechet"].sum()
-        nb_rep = len(top_rep_df["Responsabilité élargie producteur"].unique())
+        collectes_rep = rep_df["ID_RELEVE"].nunique()
+        nb_rep = rep_df["categorie"].nunique()
+
+        # Chiffres clés marques
+        nb_dechet_marque = marque_df["nb_dechet"].sum()
+        nb_marques = marque_df["categorie"].nunique()
+        collectes_marque = marque_df["ID_RELEVE"].nunique()
 
         ### ANALYSE PAR SECTEUR
         st.write("**Analyse par secteur économique** (relevés de niveau 4 uniquement)")
-        # Retrait des categoriés "VIDE" et "INDERTERMINE" si présentes et recupération des valeurs
-        nb_vide_indetermine = 0
-        if "VIDE" in top_secteur_df["Secteur"].unique():
-            df_vide_indetermine = top_secteur_df[top_secteur_df["Secteur"] == "VIDE"]
-            nb_vide_indetermine = df_vide_indetermine["Nombre de déchets"].sum()
-        elif "INDÉTERMINÉ" in top_secteur_df["Secteur"].unique():
-            df_vide_indetermine = top_secteur_df[
-                top_secteur_df["Secteur"] == "INDÉTERMINÉ"
-            ]
-            nb_vide_indetermine += df_vide_indetermine["Nombre de déchets"].sum()
-        else:
-            pass
-
-        top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "INDÉTERMINÉ"]
-        top_secteur_df = top_secteur_df[top_secteur_df["Secteur"] != "VIDE"]
 
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2, l1_col3 = st.columns(3)
@@ -1312,7 +1342,7 @@ if st.session_state["authentication_status"]:
                 st.caption(
                     "Note : cette analyse exclut "
                     + str(french_format(nb_vide_indetermine))
-                    + " déchets dont le secteur n'a pas pu être determiné."
+                    + " déchets dont le secteur est 'Vide' ou 'Indeterminé'."
                 )
 
         ### ANALYSE PAR FILIERE REP
@@ -1323,18 +1353,6 @@ if st.session_state["authentication_status"]:
 
         l3_col1, l3_col2, l3_col3 = st.columns(3)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
-        # Suppression de la catégorie "VIDE"
-        nb_vide_rep = 0
-        if "VIDE" in top_rep_df["Responsabilité élargie producteur"].unique():
-            df_vide_rep = top_rep_df[
-                top_rep_df["Responsabilité élargie producteur"] == "VIDE"
-            ]
-            nb_vide_rep = df_vide_rep["Nombre de déchets"].sum()
-        else:
-            pass
-        top_rep_df = top_rep_df[
-            top_rep_df["Responsabilité élargie producteur"] != "VIDE"
-        ]
 
         # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
         cell6 = l3_col1.container(border=True)
@@ -1394,10 +1412,10 @@ if st.session_state["authentication_status"]:
             st.plotly_chart(figreptree, use_container_width=True)
 
             # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
-            if nb_vide_rep != 0:
+            if nb_vide_indetermine_REP != 0:
                 st.caption(
                     "Note : Cette analyse exclut  "
-                    + str(french_format(nb_vide_rep))
+                    + str(french_format(nb_vide_indetermine_REP))
                     + " déchets dont la filière REP n'a pas pu être determinée."
                 )
 
@@ -1462,11 +1480,10 @@ if st.session_state["authentication_status"]:
             st.plotly_chart(fig_marque, use_container_width=True)
 
             # Message d'avertissement pour les déchets non catégorisés
-            if nb_vide_rep != 0:
+            if nb_vide_indetermine_marque != None:
                 st.caption(
                     "Note : cette analyse exclut  "
-                    # + str(french_format(nb_vide_rep))
-                    + " XXX "
+                    + str(french_format(nb_vide_indetermine_marque))
                     + " déchets dont la marque n'a pas pu être determinée."
                 )
 
