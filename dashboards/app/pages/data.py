@@ -72,8 +72,6 @@ if st.session_state["authentication_status"]:
 
     df_other["Exclusions"] = df_other.apply(lambda row: carac_exclusions(row), axis=1)
 
-    st.dataframe(df_other)
-
     # Copier le df pour la partie filtrée par milieu/lieu/année
     df_other_metrics_raw = df_other.copy()
 
@@ -165,7 +163,7 @@ if st.session_state["authentication_status"]:
             df_volume_cleaned["Matériau"].str.replace("GLOBAL_VOLUME_", "").str.title()
         )
 
-        # Grouper par type de matériau pour les visualisations
+        ## Création du dataframe groupé par type de matériau pour les visualisations
         df_totals_sorted = df_volume_cleaned.groupby(["Matériau"], as_index=False)[
             "Volume_m3"
         ].sum()
@@ -260,13 +258,17 @@ if st.session_state["authentication_status"]:
                 insidetextorientation="horizontal",
                 rotation=90,
             )
-            fig_data.update_layout(showlegend=False)
+            # Cacher la légende
+            fig_data.update_layout(
+                showlegend=False,
+                separators=", ",  # Séparateurs décimales et milliers
+            )
 
             st.plotly_chart(fig_data)
 
         # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
 
-        with st.container(border=False):
+        with st.container(border=True):
 
             cell4, cell5 = st.columns(2)
 
@@ -296,13 +298,13 @@ if st.session_state["authentication_status"]:
                     + "<br>%{percent:.1%} du volume total"
                 )
 
-                fig.update_layout(autosize=True, legend_title_text="Matériau")
-
-                # Définir affichage français pour les nombres
-                config = {"locale": "fr"}
+                # Définir titre légende et changer séparateurs des nombres pour affichage FR
+                fig.update_layout(
+                    autosize=True, legend_title_text="Matériau", separators=", "
+                )
 
                 # Affichage du graphique
-                st.plotly_chart(fig, use_container_width=True, config=config)
+                st.plotly_chart(fig, use_container_width=True)
 
             with cell5:
 
@@ -336,7 +338,11 @@ if st.session_state["authentication_status"]:
                     yaxis_showgrid=False,
                     xaxis_title=None,
                     yaxis_title=None,
+                    separators=", ",
                 )
+                fig2.update_xaxes(
+                    tickfont=dict(size=14)
+                )  # Taille des étiquettes en abcisse
 
                 # Affichage du graphique
                 st.plotly_chart(fig2, use_container_width=True)
@@ -382,9 +388,14 @@ if st.session_state["authentication_status"]:
             yaxis_title="Proportion du volume ramassé (en %)",
             xaxis_title=None,
             legend={"traceorder": "reversed"},
+            separators=", ",
         )
 
-        fig3.update_xaxes(tickangle=-30)
+        fig3.update_xaxes(
+            tickangle=-30,  # ORientation des étiquettes de l'axe X
+            tickfont=dict(size=14),
+        )  # Taille des étiquettes en ordonnée
+
         # Etiquettes et formats de nombres
         fig3.update_traces(
             texttemplate="%{y:.0f}%",
@@ -432,7 +443,7 @@ if st.session_state["authentication_status"]:
             df_nb_par_milieu = df_nb_par_milieu.astype("int")
 
             # Affichage du tableau
-            st.write("Nombre de ramassages par milieu :")
+            st.write("**Nombre de ramassages par milieu**")
             st.table(df_nb_par_milieu.T)
             st.caption(
                 f"Les ramassages catégorisés en 'Multi-lieux' "
@@ -672,17 +683,20 @@ if st.session_state["authentication_status"]:
                 color_discrete_map=colors_map,
             )
             fig4.update_layout(
-                margin=dict(t=50, l=25, r=25, b=25), autosize=True, height=600
+                margin=dict(t=50, l=25, r=25, b=25),
+                autosize=True,
+                height=600,
+                separators=", ",  # Séparateurs décimales et milliers
             )
             fig4.update_traces(
                 textinfo="label+value+percent root",
-                texttemplate="<b>%{label}</b><br>%{value:.1f} m³<br>%{percentRoot}",
+                texttemplate="<b>%{label}</b><br>%{value:.0f} m³<br>%{percentRoot}",
                 textfont_size=16,
                 hovertemplate="<b>%{label} : %{value:.1f} m³ </b>"
                 + "<br>%{percentRoot:.1%} du volume total",
             )
 
-            with st.container(border=False):
+            with st.container(border=True):
                 st.plotly_chart(fig4, use_container_width=True)
 
         else:
@@ -765,7 +779,7 @@ if st.session_state["authentication_status"]:
             showlegend=True,
             height=700,
             uniformtext_minsize=8,
-            uniformtext_mode="hide",
+            uniformtext_mode="show",
             yaxis_title=None,
             # Position de la légende
             legend=dict(
@@ -774,18 +788,22 @@ if st.session_state["authentication_status"]:
                 xanchor="right",
                 x=0.95,
             ),
+            separators=", ",
         )
 
         # Amélioration du visuel du graphique
         fig5.update_traces(
-            # texttemplate="%{text:.2f}",
+            texttemplate="%{text:,.0f}",
             textposition="inside",
             textfont_color="white",
-            textfont_size=18,
+            textfont_size=14,
         )
 
-        # Paramétrage de l'infobulle
-        fig5.update_traces(hovertemplate="<b>%{y} :</b> %{x:.0f} déchets")
+        fig5.update_yaxes(tickfont=dict(size=14))  # Taille des étiquettes en abcisse
+
+        fig5.update_traces(
+            hovertemplate="%{y} : <b>%{x:,.0f} déchets</b>"
+        )  # Template de l'infobulle
 
         # Suppression de la colonne categorie
         del df_top10_dechets["Materiau"]
@@ -800,7 +818,9 @@ if st.session_state["authentication_status"]:
                     par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³."
             )
 
-        with st.container():
+        with st.container(border=True):
+
+            st.write("**Lieux de ramassage des déchets dans le top 10**")
             # Ajout de la selectbox
             selected_dechet = st.selectbox(
                 "Choisir un type de déchet :", noms_top10_dechets, index=0
@@ -1148,7 +1168,7 @@ if st.session_state["authentication_status"]:
         # add log scale to x axis
         fig_secteur.update_layout(xaxis_type="log")
         fig_secteur.update_traces(
-            texttemplate="%{value:.0f}",
+            texttemplate="%{value:,.0f}",
             textposition="inside",
             textfont_size=14,
         )
@@ -1157,11 +1177,15 @@ if st.session_state["authentication_status"]:
             uniformtext_mode="hide",
             showlegend=False,
             yaxis_title=None,
+            separators=", ",
         )
+        fig_secteur.update_yaxes(
+            tickfont=dict(size=14)
+        )  # Taille des étiquettes en ordonnée
 
         # Paramétrage de l'infobulle
         fig_secteur.update_traces(
-            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:.0f} déchets</b>"
+            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b>"
         )
 
         with st.container(border=True):
@@ -1193,34 +1217,35 @@ if st.session_state["authentication_status"]:
             french_format(nb_marques) + " marques",
         )
 
+        # Configuration du graphique à barres
         fig_marque = px.bar(
             top_marque_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
             x="Nombre de déchets",
             y="Marque",
             title="Top 10 des marques identifiées dans les déchets comptés",
-            labels={
-                "Nombre de déchets": "Nombre total de déchets (échelle logarithmique)",
-            },
             color_discrete_sequence=["#1951A0"],
             orientation="h",
-            text_auto=False,
-            text=top_marque_df.tail(10)["Marque"]
-            + " : "
-            + top_marque_df.tail(10)["Nombre de déchets"].astype(str),
+            text_auto=True,
         )
+
         # add log scale to x axis
-        fig_marque.update_layout(xaxis_type="log")
-        fig_marque.update_traces(textfont_size=14)
         fig_marque.update_layout(
+            # xaxis_type="log", # Pas besoin d'échelle log ici
             height=700,
             uniformtext_minsize=8,
             uniformtext_mode="hide",
             yaxis_title=None,
+            separators=", ",
         )
-        # Paramétrage de l'infobulle
+        # Paramétrage de la taille de police et de l'infobulle
         fig_marque.update_traces(
-            hovertemplate="Marque : <b>%{y}</b><br> Quantité : <b>%{x:.0f} déchets</b>"
+            textfont_size=14,
+            texttemplate="%{value:,.0f}",
+            hovertemplate="Marque : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b>",
         )
+        fig_marque.update_yaxes(
+            tickfont=dict(size=14)
+        )  # Taille des étiquettes en ordonnée
 
         with st.container(border=True):
             st.plotly_chart(fig_marque, use_container_width=True)
@@ -1275,25 +1300,30 @@ if st.session_state["authentication_status"]:
             color_discrete_sequence=px.colors.qualitative.Set2,
         )
         figreptree.update_layout(
-            margin=dict(t=50, l=25, r=25, b=25), autosize=True, height=600
+            margin=dict(t=50, l=25, r=25, b=25),
+            autosize=True,
+            height=600,
+            separators=", ",
         )
         figreptree.update_traces(
             textinfo="label+value+percent root",
-            texttemplate="<b>%{label}</b><br>%{value:.0f} déchets<br>%{percentRoot} du total",
+            texttemplate="<b>%{label}</b><br>%{value:,.0f} déchets<br>%{percentRoot} du total",
             textfont=dict(size=16),
-            hovertemplate="<b>%{label}</b><br>Quantité de déchets : %{value:.0f}",
+            hovertemplate="%{label}<br>"
+            + "Quantité de déchets : <b>%{value:,.0f}</b><br>"
+            + "<b>Part du total ramassé : %{percentRoot:.1%}</b>",
         )
 
         with st.container(border=True):
             st.plotly_chart(figreptree, use_container_width=True)
 
-        # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
-        if nb_vide_rep != 0:
-            st.warning(
-                "⚠️ Il y a "
-                + str(french_format(nb_vide_rep))
-                + " déchets dont la filière REP n'a pas été determinée dans les déchets collectés."
-            )
+            # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
+            if nb_vide_rep != 0:
+                st.warning(
+                    "⚠️ Il y a "
+                    + str(french_format(nb_vide_rep))
+                    + " déchets dont la filière REP n'a pas été determinée dans les déchets collectés."
+                )
 
 
 else:
