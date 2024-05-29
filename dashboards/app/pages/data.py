@@ -1160,6 +1160,11 @@ if st.session_state["authentication_status"]:
         top_secteur_df["Nombre de déchets"] = top_secteur_df[
             "Nombre de déchets"
         ].astype(int)
+        # Calcul du pourcentage
+        top_secteur_df["Pourcentage"] = (
+            top_secteur_df["Nombre de déchets"]
+            / top_secteur_df["Nombre de déchets"].sum()
+        )
 
         # Data pour le plot responsabilités
         rep_df = duckdb.query(
@@ -1304,6 +1309,7 @@ if st.session_state["authentication_status"]:
             y="Secteur",
             color="Secteur",
             title="Top 10 des secteurs économiques identifiés dans les déchets comptés",
+            hover_data=["Pourcentage"],
             labels={
                 "Nombre de déchets": "Nombre total de déchets (échelle logarithmique)",
             },
@@ -1331,7 +1337,7 @@ if st.session_state["authentication_status"]:
 
         # Paramétrage de l'infobulle
         fig_secteur.update_traces(
-            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b>"
+            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b><br> Part du total déchets : <b>%{customdata[0]:.0%}</b>"
         )
 
         with st.container(border=True):
@@ -1405,7 +1411,7 @@ if st.session_state["authentication_status"]:
             textfont=dict(size=16),
             hovertemplate="%{label}<br>"
             + "Quantité de déchets : <b>%{value:,.0f}</b><br>"
-            + "<b>Part du total ramassé : %{percentRoot:.1%}</b>",
+            + "Part des déchets catégorisés : <b>%{percentRoot:.1%}</b>",
         )
 
         with st.container(border=True):
