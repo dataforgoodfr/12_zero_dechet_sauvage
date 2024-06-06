@@ -32,10 +32,14 @@ Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à
 
 if st.session_state["authentication_status"]:
     if filtre_niveau == "" and filtre_collectivite == "":
-        st.write("Aucune sélection de territoire n'a été effectuée")
+        with st.sidebar:
+            st.warning("⚠️ Aucune sélection de territoire n'a été effectuée")
     else:
-        st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
-
+        with st.sidebar:
+            st.info(
+                f" Territoire sélectionné : **{filtre_niveau} {filtre_collectivite}**",
+                icon="🌍",
+            )
     # Définition d'une fonction pour charger les données du nombre de déchets@st.cache_data
     def load_df_dict_corr_dechet_materiau():
         return pd.read_csv(
@@ -201,6 +205,14 @@ if st.session_state["authentication_status"]:
             "Autre": "#F3B900",
         }
 
+        # Message d'avertissement en haut de page si nb de collectes < 5
+        if nb_collectes_int <= 5:
+            st.warning(
+                "⚠️ Faible nombre de ramassages ("
+                + str(nb_collectes_int)
+                + ") dans la base de données."
+            )
+
         # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2, l1_col3 = st.columns(3)
 
@@ -221,58 +233,28 @@ if st.session_state["authentication_status"]:
         cell3 = l1_col3.container(border=True)
         cell3.metric("Nombre de ramassages", french_format(nb_collectes_int))
 
-        # Message d'avertissement nb de collectes en dessous de 5
-        if nb_collectes_int <= 5:
-            st.warning(
-                "⚠️ Faible nombre de ramassages ("
-                + str(nb_collectes_int)
-                + ") dans la base de données."
-            )
-
         # Note méthodo pour expliquer les données retenues pour l'analyse
-        with st.expander(
-            "Note sur les données utilisées dans les graphiques ci-dessous"
-        ):
-            st.caption(
-                f"Il n’y a pas de correspondance entre le poids et le volume global\
+        with st.expander("Note sur les données utilisées dans cet onglet"):
+            st.markdown(
+                f"""
+                - Il n’y a pas de correspondance entre le poids et le volume global\
                     de déchets indiqués car certaines organisations \
                     ne renseignent que le volume sans mention de poids \
-                    (protocole de niveau 1) ou inversement."
-            )
-            st.caption(
-                f"De plus, \
-                    les chiffres ci-dessous sont calculés sur **{french_format(nb_collectes_carac)}** ramassages \
+                    (protocole de niveau 1) ou inversement.
+                - Les chiffres ci-dessous sont calculés sur **{french_format(nb_collectes_carac)}** ramassages \
                     ayant fait l’objet d’une estimation des volumes \
                     par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³.\
-                    Les relevés de niveau 0 et les relevés comptabilisant 100% de déchets 'AUTRES' ont été exclus."
+                    Les relevés de niveau 0 et les relevés comptabilisant 100% de déchets 'AUTRES' ont été exclus.
+                    """
             )
-            df_note_methodo = df_volume.groupby(["Exclusions"], as_index=False)[
-                "ID_RELEVE"
-            ].count()
-            fig_data = px.pie(
-                df_note_methodo,
-                values="ID_RELEVE",
-                names="Exclusions",
-                title="Nombre de ramassages inclus ou exclus dans les analyses ci-dessous",
-                color="Exclusions",
-                color_discrete_sequence=px.colors.sequential.RdBu,
+            # Afficher le nombre de relevés inclus ou exclus
+            df_note_methodo = (
+                df_volume.groupby(["Exclusions"], as_index=True)["ID_RELEVE"]
+                .count()
+                .sort_values(ascending=False)
             )
-            # Réglage du texte affiché, format et taille de police
-            fig_data.update_traces(
-                textinfo="value+percent+label",
-                texttemplate="%{label}<br>%{value:.0f} relevés<br>%{percent:.0%}",
-                textfont_size=14,
-                hoverinfo=None,
-                insidetextorientation="horizontal",
-                rotation=90,
-            )
-            # Cacher la légende
-            fig_data.update_layout(
-                showlegend=False,
-                separators=", ",  # Séparateurs décimales et milliers
-            )
-
-            st.plotly_chart(fig_data)
+            df_note_methodo.rename("Nombre de relevés", inplace=True)
+            st.dataframe(df_note_methodo)
 
         # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
 
@@ -339,7 +321,7 @@ if st.session_state["authentication_status"]:
 
                 fig2.update_layout(
                     autosize=True,
-                    # uniformtext_minsize=8,
+                    # uniformtext_minsize=10,
                     uniformtext_mode="hide",
                     xaxis_tickangle=-45,
                     showlegend=False,
@@ -434,6 +416,12 @@ if st.session_state["authentication_status"]:
 
         # Afficher le graphique
         with st.container(border=True):
+
+            # Message d'avertissement si pas de données à afficher
+            if len(df_typemilieu) == 0:
+                st.warning("⚠️ Aucune donnée à afficher")
+
+            # Afficher le graphique
             st.plotly_chart(fig3, use_container_width=True)
 
             # Ne pas faire apparaître la catégorie "Multi-lieux"
@@ -444,7 +432,7 @@ if st.session_state["authentication_status"]:
             df_nb_par_milieu.rename(
                 {
                     "TYPE_MILIEU": "Milieu",
-                    "ID_RELEVE": "",
+                    "ID_RELEVE": "Ramassages",
                 },
                 axis=1,
                 inplace=True,
@@ -463,7 +451,7 @@ if st.session_state["authentication_status"]:
             )
 
         # Ligne 3 : Graphe par milieu , lieu et année
-        st.write("**Filtrer les données par année, type de milieu ou type de lieu**")
+        st.write("**Détail par année, type de milieu ou de lieu**")
 
         # Étape 1: Création des filtres
 
@@ -615,6 +603,12 @@ if st.session_state["authentication_status"]:
             #     & (df_other_metrics["TYPE_LIEU"] == selected_type_lieu)
             # ]
 
+        # Message d'avertissement nb de collectes en dessous de 5
+        if len(df_filtered) <= 5:
+            st.warning(
+                f"⚠️ Faible nombre de ramassages ({len(df_filtered)}) dans la base de données."
+            )
+
         # Ligne 5 : Metriques filtrés
         l5_col1, l5_col2, l5_col3 = st.columns(3)
         cell6 = l5_col1.container(border=True)
@@ -636,13 +630,6 @@ if st.session_state["authentication_status"]:
 
         nombre_collectes_filtered = len(df_filtered)
         cell8.metric("Nombre de ramassages", french_format(nombre_collectes_filtered))
-
-        # Message d'avertissement nb de collectes en dessous de 5
-        if len(df_filtered) <= 5:
-            st.warning(
-                "⚠️ Faible nombre de ramassages disponibles dans la base de données : "
-                + str(len(df_filtered))
-            )
 
         # Étape 3: Preparation dataframe pour graphe
         # Copie des données pour transfo
@@ -818,6 +805,14 @@ if st.session_state["authentication_status"]:
 
         nb_collec_top = df_top10["ID_RELEVE"].nunique()
 
+        # Message d'avertissement nb de collectes en dessous de 5
+        if nb_collectes_int <= 5:
+            st.warning(
+                "⚠️ Faible nombre de ramassages ("
+                + str(nb_collectes_int)
+                + ") dans la base de données."
+            )
+
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2 = st.columns(2)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
@@ -830,14 +825,6 @@ if st.session_state["authentication_status"]:
         # 3ème métrique : nombre de relevés
         cell2 = l1_col2.container(border=True)
         cell2.metric("Nombre de ramassages", french_format(nb_collec_top))
-
-        # Message d'avertissement nb de collectes en dessous de 5
-        if nb_collectes_int <= 5:
-            st.warning(
-                "⚠️ Le nombre de ramassages "
-                + str(nb_collectes_int)
-                + " est trop faible pour l'analyse."
-            )
 
         # Ligne 2 : graphique top déchets
 
@@ -875,37 +862,35 @@ if st.session_state["authentication_status"]:
             color_discrete_map=colors_map,
             category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
         )
-        fig5.update_layout(xaxis_type="log")
-        # suppression de la légende des couleurs
+
         fig5.update_layout(
-            showlegend=True,
-            height=700,
-            uniformtext_minsize=8,
-            uniformtext_mode="show",
-            yaxis_title=None,
-            # Position de la légende
+            xaxis_type="log",  # Echelle logarithmique
+            showlegend=True,  # Afficher la légende
+            height=700,  # Régler la hauteur du graphique
+            uniformtext_minsize=10,  # Taille minimale du texte sur les barres
+            uniformtext_mode="show",  # Règle d'affichage du texte sur les barres
+            yaxis_title=None,  # Cache le titre de l'axe y
             legend=dict(
                 yanchor="bottom",
                 y=1.01,
                 xanchor="right",
                 x=0.95,
-            ),
-            separators=", ",
+            ),  # Règle la position de la légende à partir du point d'ancrage choisi
+            separators=", ",  # Formatte les nombres en français (séparateur décimale, séparateur milliers)
         )
 
-        # Amélioration du visuel du graphique
         fig5.update_traces(
-            texttemplate="%{text:,.0f}",
-            textposition="inside",
-            textfont_color="white",
-            textfont_size=14,
+            texttemplate="%{text:,.0f}",  # Template du texte sur les barres
+            textposition="inside",  # Position du texte sur les barres
+            textfont_color="white",  # Couleur du texte
+            textfont_size=14,  # Taille du texte
         )
 
         fig5.update_yaxes(tickfont=dict(size=14))  # Taille des étiquettes en abcisse
 
         fig5.update_traces(
             hovertemplate="%{y} : <b>%{x:,.0f} déchets</b>"
-        )  # Template de l'infobulle
+        )  # Template de l'infobulle, fait référence à x et y définis dans px.bar.
 
         # Suppression de la colonne categorie
         del df_top10_dechets["Materiau"]
@@ -916,8 +901,7 @@ if st.session_state["authentication_status"]:
             st.write("")
             st.caption(
                 f"Note : Les chiffres ci-dessous sont calculés sur {nb_collec_top} ramassages \
-                    ayant fait l’objet d’une estimation des volumes \
-                    par matériau."
+                    ayant fait l’objet d’un comptage par type de déchets, soit {nb_total_dechets:.0f} déchets."
             )
 
         with st.container(border=True):
@@ -1239,6 +1223,14 @@ if st.session_state["authentication_status"]:
         ### ANALYSE PAR SECTEUR
         st.write("**Analyse par secteur économique** (relevés de niveau 4 uniquement)")
 
+        # Message d'avertissement nb de collectes en dessous de 5
+        if collectes_sect <= 5:
+            st.warning(
+                "⚠️ Faible nombre de ramassages ("
+                + str(collectes_sect)
+                + ") dans la base de données."
+            )
+
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2, l1_col3 = st.columns(3)
         # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
@@ -1246,9 +1238,7 @@ if st.session_state["authentication_status"]:
         cell1 = l1_col1.container(border=True)
 
         # Trick pour séparer les milliers
-        cell1.metric(
-            "Quantité de déchets catégorisés", french_format(nb_dechet_secteur)
-        )
+        cell1.metric("Nombre de déchets comptés", french_format(nb_dechet_secteur))
 
         # 2ème métrique : poids
         cell2 = l1_col2.container(border=True)
@@ -1263,14 +1253,6 @@ if st.session_state["authentication_status"]:
             "Nombre de ramassages",
             french_format(collectes_sect),
         )
-
-        # Message d'avertissement nb de collectes en dessous de 5
-        if collectes_sect <= 5:
-            st.warning(
-                "⚠️ Faible nombre de ramassages ("
-                + str(collectes_sect)
-                + ") dans la base de données."
-            )
 
         # Ligne 2 : 3 cellules avec les indicateurs clés en bas de page
         colors_map_secteur = {
@@ -1326,6 +1308,7 @@ if st.session_state["authentication_status"]:
         )
         fig_secteur.update_layout(
             height=700,
+            uniformtext_minsize=10,
             uniformtext_mode="hide",
             showlegend=False,
             yaxis_title=None,
@@ -1337,14 +1320,14 @@ if st.session_state["authentication_status"]:
 
         # Paramétrage de l'infobulle
         fig_secteur.update_traces(
-            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b><br> Part du total déchets : <b>%{customdata[0]:.0%}</b>"
+            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b><br> Proportion : <b>%{customdata[0]:.0%}</b>"
         )
 
         with st.container(border=True):
             st.plotly_chart(fig_secteur, use_container_width=True)
 
             # Message d'avertissement Nombre de dechets dont le secteur n'a pas été determine
-            if nb_vide_indetermine != 0:
+            if nb_vide_indetermine != 0 and nb_vide_indetermine != None:
                 st.caption(
                     "Note : cette analyse exclut "
                     + str(french_format(nb_vide_indetermine))
@@ -1418,7 +1401,7 @@ if st.session_state["authentication_status"]:
             st.plotly_chart(figreptree, use_container_width=True)
 
             # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
-            if nb_vide_indetermine_REP != 0:
+            if nb_vide_indetermine_REP != 0 and nb_vide_indetermine_REP != None:
                 st.caption(
                     "Note : Cette analyse exclut  "
                     + str(french_format(nb_vide_indetermine_REP))
@@ -1467,7 +1450,7 @@ if st.session_state["authentication_status"]:
         fig_marque.update_layout(
             # xaxis_type="log", # Pas besoin d'échelle log ici
             height=700,
-            uniformtext_minsize=8,
+            uniformtext_minsize=10,
             uniformtext_mode="hide",
             yaxis_title=None,
             separators=", ",
@@ -1486,7 +1469,7 @@ if st.session_state["authentication_status"]:
             st.plotly_chart(fig_marque, use_container_width=True)
 
             # Message d'avertissement pour les déchets non catégorisés
-            if nb_vide_indetermine_marque != None:
+            if nb_vide_indetermine_marque != None and nb_vide_indetermine_marque != 0:
                 st.caption(
                     "Note : cette analyse exclut  "
                     + str(french_format(nb_vide_indetermine_marque))
