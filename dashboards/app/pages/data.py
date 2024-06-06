@@ -95,12 +95,15 @@ if st.session_state["authentication_status"]:
             y = x / 1e9
             y = locale.format_string("%.2f", y, grouping=True)
             return f"{y} milliards"
-        if x >= 1e6:
+        elif x >= 1e6:
             y = x / 1e6
             y = locale.format_string("%.2f", y, grouping=True)
             return f"{y} millions"
-        else:
+        elif x >= 10:
             y = locale.format_string("%d", x, grouping=True)
+            return f"{y}"
+        else:
+            y = locale.format_string("%.2f", x, grouping=True)
             return f"{y}"
 
     # 3 Onglets : Matériaux, Top déchets, Filières et marques
@@ -208,12 +211,8 @@ if st.session_state["authentication_status"]:
         }
 
         # Message d'avertissement en haut de page si nb de collectes < 5
-        if nb_collectes_int <= 5:
-            st.warning(
-                "⚠️ Faible nombre de ramassages ("
-                + str(nb_collectes_int)
-                + ") dans la base de données."
-            )
+        if nb_collectes_int < 5:
+            st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
         # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2, l1_col3 = st.columns(3)
@@ -233,7 +232,7 @@ if st.session_state["authentication_status"]:
 
         # 3ème métrique : nombre de relevés
         cell3 = l1_col3.container(border=True)
-        cell3.metric("Nombre de ramassages", french_format(nb_collectes_int))
+        cell3.metric("Nombre de ramassages", nb_collectes_int)
 
         # Note méthodo pour expliquer les données retenues pour l'analyse
         with st.expander("Note sur les données utilisées dans cet onglet"):
@@ -243,7 +242,7 @@ if st.session_state["authentication_status"]:
                     de déchets indiqués car certaines organisations \
                     ne renseignent que le volume sans mention de poids \
                     (protocole de niveau 1) ou inversement.
-                - Les chiffres ci-dessous sont calculés sur **{french_format(nb_collectes_carac)}** ramassages \
+                - Les chiffres ci-dessous sont calculés sur **{nb_collectes_carac}** ramassages \
                     ayant fait l’objet d’une estimation des volumes \
                     par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³.\
                     Les relevés de niveau 0 et les relevés comptabilisant 100% de déchets 'AUTRES' ont été exclus.
@@ -282,6 +281,8 @@ if st.session_state["authentication_status"]:
                     textinfo="percent",
                     texttemplate="%{percent:.0%}",
                     textfont_size=14,
+                    direction="clockwise",
+                    rotation=-90,
                 )
 
                 # Paramétrage de l'étiquette flottante
@@ -313,17 +314,19 @@ if st.session_state["authentication_status"]:
 
                 # Amélioration du graphique
                 fig2.update_traces(
-                    texttemplate="%{text:.2s}",
+                    texttemplate="%{text:.2f}",
                     textposition="inside",
                     textfont_size=14,
                 )
 
                 # Paramétrage de l'étiquette flottante
-                fig2.update_traces(hovertemplate="%{label}: <b>%{value:.1f} m³</b>")
+                fig2.update_traces(
+                    hovertemplate="Matériau : %{label}<br>Volume : <b>%{value:.2f} m³</b>"
+                )
 
                 fig2.update_layout(
                     autosize=True,
-                    # uniformtext_minsize=10,
+                    uniformtext_minsize=10,
                     uniformtext_mode="hide",
                     xaxis_tickangle=-45,
                     showlegend=False,
@@ -420,32 +423,39 @@ if st.session_state["authentication_status"]:
         with st.container(border=True):
 
             # Message d'avertissement si pas de données à afficher
-            if len(df_typemilieu) == 0:
-                st.warning("⚠️ Aucune donnée à afficher")
+            if len(df_typemilieu) != 0:
 
-            # Afficher le graphique
-            st.plotly_chart(fig3, use_container_width=True)
+                # Afficher le graphique
+                st.plotly_chart(fig3, use_container_width=True)
 
-            # Ne pas faire apparaître la catégorie "Multi-lieux"
-            lignes_multi = df_nb_par_milieu.loc[df_nb_par_milieu.index == "Multi-lieux"]
-            df_nb_par_milieu.drop(lignes_multi.index, axis=0, inplace=True)
+                # Ne pas faire apparaître la catégorie "Multi-lieux"
+                lignes_multi = df_nb_par_milieu.loc[
+                    df_nb_par_milieu.index == "Multi-lieux"
+                ]
+                df_nb_par_milieu.drop(lignes_multi.index, axis=0, inplace=True)
 
-            # Renommage des colonnes pour l'affichage
-            df_nb_par_milieu.rename(
-                {
-                    "TYPE_MILIEU": "Milieu",
-                    "ID_RELEVE": "Ramassages",
-                },
-                axis=1,
-                inplace=True,
-            )
+                # Renommage des colonnes pour l'affichage
+                df_nb_par_milieu.rename(
+                    {
+                        "TYPE_MILIEU": "Milieu",
+                        "ID_RELEVE": "Ramassages",
+                    },
+                    axis=1,
+                    inplace=True,
+                )
 
-            # Convertir en int pour éviter les virgules à l'affichage
-            df_nb_par_milieu = df_nb_par_milieu.astype("int")
+                # Convertir en int pour éviter les virgules à l'affichage
+                df_nb_par_milieu = df_nb_par_milieu.astype("int")
 
-            # Affichage du tableau
-            st.write("**Nombre de ramassages par milieu**")
-            st.table(df_nb_par_milieu.T)
+                # Affichage du tableau
+                st.write("**Nombre de ramassages par milieu**")
+                st.table(df_nb_par_milieu.T)
+
+            else:
+                st.warning(
+                    "⚠️ Aucune donnée à afficher par type de milieu (nombre de ramassages trop faible)"
+                )
+
             st.caption(
                 f"Les ramassages catégorisés en 'Multi-lieux' "
                 + f"ont été retirés de l'analyse. "
@@ -509,10 +519,8 @@ if st.session_state["authentication_status"]:
             df_filtered = filtered_data.copy()
 
         # Message d'avertissement nb de collectes en dessous de 5
-        if len(df_filtered) <= 5:
-            st.warning(
-                f"⚠️ Faible nombre de ramassages ({len(df_filtered)}) dans la base de données."
-            )
+        if len(df_filtered) < 5:
+            st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
         # Ligne 5 : Metriques filtrés
         l5_col1, l5_col2, l5_col3 = st.columns(3)
@@ -534,7 +542,7 @@ if st.session_state["authentication_status"]:
         )
 
         nombre_collectes_filtered = len(df_filtered)
-        cell8.metric("Nombre de ramassages", french_format(nombre_collectes_filtered))
+        cell8.metric("Nombre de ramassages", nombre_collectes_filtered)
 
         # Étape 3: Preparation dataframe pour graphe
         # Copie des données pour transfo
@@ -594,9 +602,9 @@ if st.session_state["authentication_status"]:
             )
             fig4.update_traces(
                 textinfo="label+value+percent root",
-                texttemplate="<b>%{label}</b><br>%{value:.0f} m³<br>%{percentRoot}",
+                texttemplate="<b>%{label}</b><br>%{value:.2f} m³<br>%{percentRoot}",
                 textfont_size=16,
-                hovertemplate="<b>%{label} : %{value:.1f} m³ </b>"
+                hovertemplate="<b>%{label} : %{value:.2f} m³ </b>"
                 + "<br>%{percentRoot:.1%} du volume total",
             )
 
@@ -683,12 +691,8 @@ if st.session_state["authentication_status"]:
         nb_collec_top = df_top_dechets["ID_RELEVE"].nunique()
 
         # Message d'avertissement nb de collectes en dessous de 5
-        if nb_collectes_int <= 5:
-            st.warning(
-                "⚠️ Faible nombre de ramassages ("
-                + str(nb_collectes_int)
-                + ") dans la base de données."
-            )
+        if nb_collectes_int < 5:
+            st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
         # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
         l1_col1, l1_col2 = st.columns(2)
@@ -701,7 +705,7 @@ if st.session_state["authentication_status"]:
 
         # 3ème métrique : nombre de relevés
         cell2 = l1_col2.container(border=True)
-        cell2.metric("Nombre de ramassages", french_format(nb_collec_top))
+        cell2.metric("Nombre de ramassages", nb_collec_top)
 
         # Ligne 2 : graphique top déchets
 
@@ -825,15 +829,7 @@ if st.session_state["authentication_status"]:
                 tiles="OpenStreetMap",
             )
 
-            # Facteur de normalisation pour ajuster la taille des bulles
-            normalisation_facteur = 1000
-
             for index, row in df_map_data.iterrows():
-                # Application de la normalisation
-                # radius = row["nb_dechet"] / normalisation_facteur
-
-                # Application d'une limite minimale pour le rayon si nécessaire
-                # radius = max(radius, 5)
 
                 # Calcul du rayon du marqueur en log base 2 pour réduire les écarts
                 if row["nb_dechet"] > 1:
@@ -862,6 +858,34 @@ if st.session_state["authentication_status"]:
                     fill=True,
                     fill_color="#3186cc",
                 ).add_to(map_data)
+
+                # Add a legend
+            legend_html = """
+                <div style="
+                    position: fixed; 
+                    bottom: 50px; 
+                    left: 50px; 
+                    width: 150px; 
+                    height: 90px; 
+                    border:2px solid grey; 
+                    z-index:9999; 
+                    font-size:14px;
+                    background-color:white;
+                    opacity: 0.85;
+                    ">
+                    <div style="margin-bottom: 10px;"><b>Légende</b></div>
+                    <div>
+                        <svg height="60" width="200">
+                            <circle cx="20" cy="20" r="10" stroke="#3186cc" stroke-width="1" fill="#3186cc" />
+                            <text x="40" y="25" fill="black">Quantité: 100</text>
+                            <circle cx="20" cy="50" r="15" stroke="#3186cc" stroke-width="1" fill="#3186cc" />
+                            <text x="40" y="55" fill="black">Quantité: 150</text>
+                        </svg>
+                    </div>
+                </div>
+            """
+
+            map_data.get_root().html.add_child(folium.Element(legend_html))
 
             # Affichage de la carte Folium dans Streamlit
             st_folium = st.components.v1.html
@@ -1155,258 +1179,282 @@ if st.session_state["authentication_status"]:
         ### ANALYSE PAR SECTEUR
         st.write("**Analyse par secteur économique** (relevés de niveau 4 uniquement)")
 
-        # Message d'avertissement nb de collectes en dessous de 5
-        if collectes_sect <= 5:
-            st.warning(
-                "⚠️ Faible nombre de ramassages ("
-                + str(collectes_sect)
-                + ") dans la base de données."
+        # Message d'avertissement si le nombre de collectes est en dessous de 5
+        if 0 < collectes_sect < 5:
+            st.warning("⚠️ Moins de 5 ramassages dans la base de données")
+
+        if len(secteur_df) != 0:
+            # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
+            l1_col1, l1_col2, l1_col3 = st.columns(3)
+            # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+            # 1ère métrique : volume total de déchets collectés
+            cell1 = l1_col1.container(border=True)
+
+            # Trick pour séparer les milliers
+            cell1.metric("Nombre de déchets comptés", french_format(nb_dechet_secteur))
+
+            # 2ème métrique : poids
+            cell2 = l1_col2.container(border=True)
+            cell2.metric(
+                "Nombre de secteurs concernés",
+                french_format(nb_secteurs),
             )
 
-        # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
-        l1_col1, l1_col2, l1_col3 = st.columns(3)
-        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
-        # 1ère métrique : volume total de déchets collectés
-        cell1 = l1_col1.container(border=True)
+            # 3ème métrique : nombre de collectes
+            cell3 = l1_col3.container(border=True)
+            cell3.metric(
+                "Nombre de ramassages",
+                collectes_sect,
+            )
 
-        # Trick pour séparer les milliers
-        cell1.metric("Nombre de déchets comptés", french_format(nb_dechet_secteur))
+            # Ligne 2 : 3 cellules avec les indicateurs clés en bas de page
+            colors_map_secteur = {
+                "AGRICULTURE": "#156644",
+                "ALIMENTATION": "#F7D156",
+                "AMEUBLEMENT, DÉCORATION ET ÉQUIPEMENT DE LA MAISON": "#F79D65",
+                "AQUACULTURE": "#0067C2",
+                "BÂTIMENT, TRAVAUX ET MATÉRIAUX DE CONSTRUCTION": "#FF9900",
+                "CHASSE ET ARMEMENT": "#23A76F",
+                "COSMÉTIQUES, HYGIÈNE ET SOINS PERSONNELS": "#BF726B",
+                "DÉTERGENTS ET PRODUITS D'ENTRETIENS": "#506266",
+                "EMBALLAGE INDUSTRIEL ET COLIS": "#754B30",
+                "GRAPHIQUE ET PAPETERIE ET FOURNITURES DE BUREAU": "#EFEFEF",
+                "INDÉTERMINÉ": "#967EA1",
+                "INFORMATIQUE ET HIGHTECH": "#E351F7",
+                "JOUETS ET LOISIR": "#A64D79",
+                "MATÉRIEL ÉLECTRIQUE ET ÉLECTROMÉNAGER": "#AE05C3",
+                "MÉTALLURGIE": "#EC4773",
+                "PÊCHE": "#003463",
+                "PETROCHIMIE": "#0D0D0D",
+                "PHARMACEUTIQUE/PARAMÉDICAL": "#61BF5E",
+                "PLASTURGIE": "#05A2AD",
+                "TABAC": "#E9003F",
+                "TEXTILE ET HABILLEMENT": "#FA9EE5",
+                "TRAITEMENT DES EAUX": "#4AA6F7",
+                "TRANSPORT / AUTOMOBILE": "#6C2775",
+                "VAISSELLE À USAGE UNIQUE": "#732D3A",
+                "AUTRES SECTEURS": "#D9C190",
+            }
 
-        # 2ème métrique : poids
-        cell2 = l1_col2.container(border=True)
-        cell2.metric(
-            "Nombre de secteurs concernés",
-            french_format(nb_secteurs),
-        )
+            fig_secteur = px.bar(
+                top_secteur_df.tail(10).sort_values(
+                    by="Nombre de déchets", ascending=False
+                ),
+                x="Nombre de déchets",
+                y="Secteur",
+                color="Secteur",
+                title="Top 10 des secteurs économiques identifiés dans les déchets comptés",
+                hover_data=["Pourcentage"],
+                labels={
+                    "Nombre de déchets": "Nombre total de déchets (échelle logarithmique)",
+                },
+                orientation="h",
+                color_discrete_map=colors_map_secteur,
+                text_auto=True,
+            )
+            # add log scale to x axis
+            fig_secteur.update_layout(xaxis_type="log")
+            fig_secteur.update_traces(
+                texttemplate="%{value:,.0f}",
+                textposition="inside",
+                textfont_size=14,
+            )
+            fig_secteur.update_layout(
+                height=700,
+                uniformtext_minsize=10,
+                uniformtext_mode="hide",
+                showlegend=False,
+                yaxis_title=None,
+                separators=", ",
+            )
+            fig_secteur.update_yaxes(
+                tickfont=dict(size=14)
+            )  # Taille des étiquettes en ordonnée
 
-        # 3ème métrique : nombre de collectes
-        cell3 = l1_col3.container(border=True)
-        cell3.metric(
-            "Nombre de ramassages",
-            french_format(collectes_sect),
-        )
+            # Paramétrage de l'infobulle
+            fig_secteur.update_traces(
+                hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b><br> Proportion : <b>%{customdata[0]:.0%}</b>"
+            )
 
-        # Ligne 2 : 3 cellules avec les indicateurs clés en bas de page
-        colors_map_secteur = {
-            "AGRICULTURE": "#156644",
-            "ALIMENTATION": "#F7D156",
-            "AMEUBLEMENT, DÉCORATION ET ÉQUIPEMENT DE LA MAISON": "#F79D65",
-            "AQUACULTURE": "#0067C2",
-            "BÂTIMENT, TRAVAUX ET MATÉRIAUX DE CONSTRUCTION": "#FF9900",
-            "CHASSE ET ARMEMENT": "#23A76F",
-            "COSMÉTIQUES, HYGIÈNE ET SOINS PERSONNELS": "#BF726B",
-            "DÉTERGENTS ET PRODUITS D'ENTRETIENS": "#506266",
-            "EMBALLAGE INDUSTRIEL ET COLIS": "#754B30",
-            "GRAPHIQUE ET PAPETERIE ET FOURNITURES DE BUREAU": "#EFEFEF",
-            "INDÉTERMINÉ": "#967EA1",
-            "INFORMATIQUE ET HIGHTECH": "#E351F7",
-            "JOUETS ET LOISIR": "#A64D79",
-            "MATÉRIEL ÉLECTRIQUE ET ÉLECTROMÉNAGER": "#AE05C3",
-            "MÉTALLURGIE": "#EC4773",
-            "PÊCHE": "#003463",
-            "PETROCHIMIE": "#0D0D0D",
-            "PHARMACEUTIQUE/PARAMÉDICAL": "#61BF5E",
-            "PLASTURGIE": "#05A2AD",
-            "TABAC": "#E9003F",
-            "TEXTILE ET HABILLEMENT": "#FA9EE5",
-            "TRAITEMENT DES EAUX": "#4AA6F7",
-            "TRANSPORT / AUTOMOBILE": "#6C2775",
-            "VAISSELLE À USAGE UNIQUE": "#732D3A",
-            "AUTRES SECTEURS": "#D9C190",
-        }
+            with st.container(border=True):
+                st.plotly_chart(fig_secteur, use_container_width=True)
 
-        fig_secteur = px.bar(
-            top_secteur_df.tail(10).sort_values(
-                by="Nombre de déchets", ascending=False
-            ),
-            x="Nombre de déchets",
-            y="Secteur",
-            color="Secteur",
-            title="Top 10 des secteurs économiques identifiés dans les déchets comptés",
-            hover_data=["Pourcentage"],
-            labels={
-                "Nombre de déchets": "Nombre total de déchets (échelle logarithmique)",
-            },
-            orientation="h",
-            color_discrete_map=colors_map_secteur,
-            text_auto=True,
-        )
-        # add log scale to x axis
-        fig_secteur.update_layout(xaxis_type="log")
-        fig_secteur.update_traces(
-            texttemplate="%{value:,.0f}",
-            textposition="inside",
-            textfont_size=14,
-        )
-        fig_secteur.update_layout(
-            height=700,
-            uniformtext_minsize=10,
-            uniformtext_mode="hide",
-            showlegend=False,
-            yaxis_title=None,
-            separators=", ",
-        )
-        fig_secteur.update_yaxes(
-            tickfont=dict(size=14)
-        )  # Taille des étiquettes en ordonnée
-
-        # Paramétrage de l'infobulle
-        fig_secteur.update_traces(
-            hovertemplate="Secteur : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b><br> Proportion : <b>%{customdata[0]:.0%}</b>"
-        )
-
-        with st.container(border=True):
-            st.plotly_chart(fig_secteur, use_container_width=True)
-
-            # Message d'avertissement Nombre de dechets dont le secteur n'a pas été determine
-            if nb_vide_indetermine != 0 and nb_vide_indetermine != None:
-                st.caption(
-                    "Note : cette analyse exclut "
-                    + str(french_format(nb_vide_indetermine))
-                    + " déchets dont le secteur est 'Vide' ou 'Indeterminé'."
-                )
+                # Message d'avertissement Nombre de dechets dont le secteur n'a pas été determine
+                if nb_vide_indetermine != 0 and nb_vide_indetermine != None:
+                    st.caption(
+                        "Note : cette analyse exclut "
+                        + str(nb_vide_indetermine)
+                        + " déchets dont le secteur est indeterminé (fragments ou secteur non identifié)"
+                    )
+        else:
+            st.warning(
+                "⚠️ Aucune donnée à afficher par secteur (nombre de ramassages trop faible)"
+            )
 
         ### ANALYSE PAR FILIERE REP
 
         st.write(
             "**Analyse par filière de Responsabilité Élargie du Producteur** (relevés de niveau 4 uniquement)"
         )
+        # Message d'avertissement si le nombre de collectes est en dessous de 5
+        if 0 < collectes_rep < 5:
+            st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
-        l3_col1, l3_col2, l3_col3 = st.columns(3)
-        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+        if len(rep_df) != 0:
+            l3_col1, l3_col2, l3_col3 = st.columns(3)
+            # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
 
-        # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
-        cell6 = l3_col1.container(border=True)
-        cell6.metric(
-            "Quantité de déchets catégorisés",
-            french_format(nb_dechet_rep),
-        )
-
-        # 2ème métrique : nombre de responsabilités
-        cell7 = l3_col2.container(border=True)
-        cell7.metric(
-            "Nombre de filières REP identifiées",
-            french_format(nb_rep),
-        )
-
-        cell8 = l3_col3.container(border=True)  # Nb de collectes
-        cell8.metric(
-            "Nombre de ramassages",
-            french_format(collectes_rep),
-        )
-
-        with st.expander("Qu'est-ce que la Responsabilité Élargie du Producteur ?"):
-            st.write(
-                "La Responsabilité Élargie du Producteur (REP) est une obligation qui impose aux entreprises de payer une contribution financière"
-                + " pour la prise en charge de la gestion des déchets issus des produits qu’ils mettent sur le marché selon le principe pollueur-payeur."
-                + " Pour ce faire, elles doivent contribuer financièrement à la collecte, du tri et au recyclage de ces produits, "
-                + "généralement à travers les éco-organismes privés, agréés par l’Etat, comme CITEO pour les emballages. "
-                + "L’État a depuis 1993 progressivement mis en place 25 filières REP, qui regroupent de grandes familles de produits "
-                + "(emballages ménagers, tabac, textile, ameublement, …)."
+            # 1ère métrique : nombre de dechets catégorisés repartis par responsabilités
+            cell6 = l3_col1.container(border=True)
+            cell6.metric(
+                "Nombre de déchets comptés",
+                french_format(nb_dechet_rep),
             )
 
-        # Treemap REP
-        figreptree = px.treemap(
-            top_rep_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
-            path=["Responsabilité élargie producteur"],
-            values="Nombre de déchets",
-            title="Top 10 des filières REP relatives aux déchets les plus ramassés",
-            color="Responsabilité élargie producteur",
-            color_discrete_sequence=px.colors.qualitative.Set2,
-        )
-        figreptree.update_layout(
-            margin=dict(t=50, l=25, r=25, b=25),
-            autosize=True,
-            height=500,
-            separators=", ",
-        )
-        figreptree.update_traces(
-            textinfo="label+value+percent root",
-            texttemplate="<b>%{label}</b><br>%{value:,.0f} déchets<br>%{percentRoot} du total",
-            textfont=dict(size=16),
-            hovertemplate="%{label}<br>"
-            + "Quantité de déchets : <b>%{value:,.0f}</b><br>"
-            + "Part des déchets catégorisés : <b>%{percentRoot:.1%}</b>",
-        )
+            # 2ème métrique : nombre de responsabilités
+            cell7 = l3_col2.container(border=True)
+            cell7.metric(
+                "Nombre de filières REP identifiées",
+                french_format(nb_rep),
+            )
 
-        with st.container(border=True):
-            st.plotly_chart(figreptree, use_container_width=True)
+            cell8 = l3_col3.container(border=True)  # Nb de collectes
+            cell8.metric(
+                "Nombre de ramassages",
+                collectes_rep,
+            )
 
-            # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
-            if nb_vide_indetermine_REP != 0 and nb_vide_indetermine_REP != None:
-                st.caption(
-                    "Note : Cette analyse exclut  "
-                    + str(french_format(nb_vide_indetermine_REP))
-                    + " déchets dont la filière REP n'a pas pu être determinée."
+            with st.expander("Qu'est-ce que la Responsabilité Élargie du Producteur ?"):
+                st.write(
+                    "La Responsabilité Élargie du Producteur (REP) est une obligation qui impose aux entreprises de payer une contribution financière"
+                    + " pour la prise en charge de la gestion des déchets issus des produits qu’ils mettent sur le marché selon le principe pollueur-payeur."
+                    + " Pour ce faire, elles doivent contribuer financièrement à la collecte, du tri et au recyclage de ces produits, "
+                    + "généralement à travers les éco-organismes privés, agréés par l’Etat, comme CITEO pour les emballages. "
+                    + "L’État a depuis 1993 progressivement mis en place 25 filières REP, qui regroupent de grandes familles de produits "
+                    + "(emballages ménagers, tabac, textile, ameublement, …)."
                 )
+
+            # Treemap REP
+            figreptree = px.treemap(
+                top_rep_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
+                path=["Responsabilité élargie producteur"],
+                values="Nombre de déchets",
+                title="Top 10 des filières REP relatives aux déchets les plus ramassés",
+                color="Responsabilité élargie producteur",
+                color_discrete_sequence=px.colors.qualitative.Set2,
+            )
+            figreptree.update_layout(
+                margin=dict(t=50, l=25, r=25, b=25),
+                autosize=True,
+                height=500,
+                separators=", ",
+            )
+            figreptree.update_traces(
+                textinfo="label+value+percent root",
+                texttemplate="<b>%{label}</b><br>%{value:,.0f} déchets<br>%{percentRoot} du total",
+                textfont=dict(size=16),
+                hovertemplate="%{label}<br>"
+                + "Quantité de déchets : <b>%{value:,.0f}</b><br>"
+                + "Part des déchets catégorisés : <b>%{percentRoot:.1%}</b>",
+            )
+
+            with st.container(border=True):
+                st.plotly_chart(figreptree, use_container_width=True)
+
+                # Message d'avertissement Nombre de déchets dont la REP n'a pas été determine
+                if nb_vide_indetermine_REP != 0 and nb_vide_indetermine_REP != None:
+                    st.caption(
+                        "Note : Cette analyse exclut  "
+                        + str(french_format(nb_vide_indetermine_REP))
+                        + " déchets dont la filière REP n'a pas pu être determinée."
+                    )
+        else:
+            st.warning(
+                "⚠️ Aucune donnée à afficher par filière REP (nombre de ramassages trop faible)"
+            )
 
         ### ANALYSES PAR MARQUE
 
         st.write("**Analyse par marque** (relevés de niveaux 2 à 4)")
 
-        l2_col1, l2_col2, l2_col3 = st.columns(3)
-        cell4 = l2_col1.container(border=True)
+        # Message d'avertissement si le nombre de collectes est en dessous de 5
+        if 0 < collectes_marque < 5:
+            st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
-        # 1er métrique : nombre de dechets categorises par marques
+        if len(top_marque_df) != 0:
 
-        cell4.metric(
-            "Quantité de déchets catégorisés",
-            french_format(nb_dechet_marque),
-        )
+            l2_col1, l2_col2, l2_col3 = st.columns(3)
+            cell4 = l2_col1.container(border=True)
 
-        # 2ème métrique : nombre de marques identifiées lors des collectes
-        cell5 = l2_col2.container(border=True)
-        cell5.metric(
-            "Nombre de marques concernées",
-            french_format(nb_marques),
-        )
+            # 1er métrique : nombre de dechets categorises par marques
 
-        cell12 = l2_col3.container(border=True)  # Nb de collectes
-        cell12.metric(
-            "Nombre de ramassages",
-            french_format(collectes_marque),
-        )
+            cell4.metric(
+                "Nombre de déchets comptés",
+                french_format(nb_dechet_marque),
+            )
 
-        # Configuration du graphique à barres
-        fig_marque = px.bar(
-            top_marque_df.tail(10).sort_values(by="Nombre de déchets", ascending=True),
-            x="Nombre de déchets",
-            y="Marque",
-            title="Top 10 des marques identifiées dans les déchets comptés",
-            color_discrete_sequence=["#1951A0"],
-            orientation="h",
-            text_auto=True,
-        )
+            # 2ème métrique : nombre de marques identifiées lors des collectes
+            cell5 = l2_col2.container(border=True)
+            cell5.metric(
+                "Nombre de marques concernées",
+                french_format(nb_marques),
+            )
 
-        # add log scale to x axis
-        fig_marque.update_layout(
-            # xaxis_type="log", # Pas besoin d'échelle log ici
-            height=700,
-            uniformtext_minsize=10,
-            uniformtext_mode="hide",
-            yaxis_title=None,
-            separators=", ",
-        )
-        # Paramétrage de la taille de police et de l'infobulle
-        fig_marque.update_traces(
-            textfont_size=14,
-            texttemplate="%{value:,.0f}",
-            hovertemplate="Marque : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b>",
-        )
-        fig_marque.update_yaxes(
-            tickfont=dict(size=14)
-        )  # Taille des étiquettes en ordonnée
+            cell12 = l2_col3.container(border=True)  # Nb de collectes
+            cell12.metric(
+                "Nombre de ramassages",
+                collectes_marque,
+            )
 
-        with st.container(border=True):
-            st.plotly_chart(fig_marque, use_container_width=True)
+            # Configuration du graphique à barres
+            fig_marque = px.bar(
+                top_marque_df.tail(10).sort_values(
+                    by="Nombre de déchets", ascending=True
+                ),
+                x="Nombre de déchets",
+                y="Marque",
+                title="Top 10 des marques identifiées dans les déchets comptés",
+                color_discrete_sequence=["#1951A0"],
+                orientation="h",
+                text_auto=True,
+            )
 
-            # Message d'avertissement pour les déchets non catégorisés
-            if nb_vide_indetermine_marque != None and nb_vide_indetermine_marque != 0:
-                st.caption(
-                    "Note : cette analyse exclut  "
-                    + str(french_format(nb_vide_indetermine_marque))
-                    + " déchets dont la marque n'a pas pu être determinée."
-                )
+            # add log scale to x axis
+            fig_marque.update_layout(
+                # xaxis_type="log", # Pas besoin d'échelle log ici
+                height=700,
+                uniformtext_minsize=10,
+                uniformtext_mode="hide",
+                yaxis_title=None,
+                separators=", ",
+            )
+            # Paramétrage de la taille de police et de l'infobulle
+            fig_marque.update_traces(
+                textfont_size=14,
+                texttemplate="%{value:,.0f}",
+                hovertemplate="Marque : <b>%{y}</b><br> Quantité : <b>%{x:,.0f} déchets</b>",
+            )
+            fig_marque.update_yaxes(
+                tickfont=dict(size=14)
+            )  # Taille des étiquettes en ordonnée
+
+            with st.container(border=True):
+                st.plotly_chart(fig_marque, use_container_width=True)
+
+                # Message d'avertissement pour les déchets non catégorisés
+                if (
+                    nb_vide_indetermine_marque != None
+                    and nb_vide_indetermine_marque != 0
+                ):
+                    st.caption(
+                        "Note : cette analyse exclut  "
+                        + str(french_format(nb_vide_indetermine_marque))
+                        + " déchets dont la marque n'a pas pu être determinée."
+                    )
+        else:
+            st.warning(
+                "⚠️ Aucune donnée à afficher par marque (nombre de ramassages trop faible)"
+            )
 
 
 else:
