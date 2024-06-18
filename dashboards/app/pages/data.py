@@ -142,6 +142,9 @@ if st.session_state["authentication_status"]:
 
         # variables à décroiser de la base de données correspondant aux Volume global de chaque matériau
         cols_volume = [k for k in df_other.columns if "GLOBAL_VOLUME_" in k]
+        volume_total_categorise_avant_exclusions = (
+            df_other[cols_volume].sum().sum() / 1000
+        )
 
         # Copie des données pour transfo
         df_volume = df_other.copy()
@@ -153,8 +156,12 @@ if st.session_state["authentication_status"]:
         # Volume en litres dans la base, converti en m3
         volume_total_m3 = df_volume["VOLUME_TOTAL"].sum() / 1000
         poids_total = df_volume["POIDS_TOTAL"].sum()
-        volume_total_categorise_m3 = df_volume_cleaned[cols_volume].sum().sum() / 1000
-        pct_volume_categorise = volume_total_categorise_m3 / volume_total_m3
+        volume_total_categorise_apres_exclusions_m3 = (
+            df_volume_cleaned[cols_volume].sum().sum() / 1000
+        )
+        pct_volume_categorise = (
+            volume_total_categorise_apres_exclusions_m3 / volume_total_m3
+        )
         # Nb total de collecte incluant les 100% autres et les relevés de niveau 0
         nb_collectes_int = df_volume["ID_RELEVE"].nunique()
         # Nb de collectes excluant les 100% autres et les relevés de niveau 0
@@ -235,6 +242,17 @@ if st.session_state["authentication_status"]:
         cell3.metric("Nombre de ramassages", nb_collectes_int)
 
         # Note méthodo pour expliquer les données retenues pour l'analyse
+        # Périmètre des données
+        volume_total_avant_exclusions_m3 = df_other["VOLUME_TOTAL"].sum() / 1000
+        volume_exclu = (
+            volume_total_categorise_avant_exclusions
+            - volume_total_categorise_apres_exclusions_m3
+        )
+        volume_global_percentage_nul = (
+            df_other[df_other["GLOBAL_POURCENTAGE_TOTAL"] == 0]["VOLUME_TOTAL"].sum()
+            / 1000
+        )
+
         with st.expander("Note sur les données utilisées dans cet onglet"):
             st.markdown(
                 f"""
@@ -242,10 +260,14 @@ if st.session_state["authentication_status"]:
                     de déchets indiqués car certaines organisations \
                     ne renseignent que le volume sans mention de poids \
                     (protocole de niveau 1) ou inversement.
-                - Les chiffres ci-dessous sont calculés sur **{nb_collectes_carac}** ramassages \
-                    ayant fait l’objet d’une estimation des volumes \
-                    par matériau, soit un volume total de {french_format(volume_total_categorise_m3)} m³.\
-                    Les relevés de niveau 0 et les relevés comptabilisant 100% de déchets 'AUTRES' ont été exclus.
+                - Certaines collectes n'ont pas fait l'objet d'un comptage par matériau. Par conséquent, le volume utilisé pour l'analyse est de **{french_format(volume_total_categorise_apres_exclusions_m3)} m³**, calculé sur **{nb_collectes_carac} ramassages** \
+                
+                - Détails : 
+                    - Volume total enregistré dans la base de données :  {french_format(volume_total_avant_exclusions_m3)} m³
+                    - Volume correspondant aux collectes qui n'ont pas fait l'objet d'un comptage par matériau : {french_format(volume_global_percentage_nul)} m³
+                    - Relevés de niveau 0 et relevés comptabilisant 100% de déchets 'AUTRES', exclus de l'analyse : {french_format(volume_exclu)} m³
+                    - Volume final utilisé pour l'analyse par matériaux : {french_format(volume_total_categorise_apres_exclusions_m3)} m³
+                    
                     """
             )
             # Afficher le nombre de relevés inclus ou exclus
@@ -255,7 +277,6 @@ if st.session_state["authentication_status"]:
                 .sort_values(ascending=False)
             )
             df_note_methodo.rename("Nombre de relevés", inplace=True)
-            st.dataframe(df_note_methodo)
 
         # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
 
@@ -344,22 +365,6 @@ if st.session_state["authentication_status"]:
 
         ### GRAPHIQUE PAR MILIEU DE COLLECTE
 
-        # Calcul du nombre de collectes par milieu
-        df_nb_par_milieu = (
-            df_other.groupby("TYPE_MILIEU", as_index=True)
-            .agg(
-                {
-                    "ID_RELEVE": "count",
-                }
-            )
-            .sort_values("TYPE_MILIEU", ascending=True)
-        )
-        # Exclure les milieux avec moins de 3 collectes
-        milieux_a_exclure = df_nb_par_milieu[
-            df_nb_par_milieu["ID_RELEVE"] <= 3
-        ].index.to_list()
-        df_nb_par_milieu = df_nb_par_milieu.drop(milieux_a_exclure, axis=0)
-
         # Calcul du dataframe groupé par milieu et matériau pour le graphique
         df_typemilieu = df_volume_cleaned.groupby(
             ["TYPE_MILIEU", "Matériau"], as_index=False
@@ -369,7 +374,22 @@ if st.session_state["authentication_status"]:
             ["TYPE_MILIEU", "Volume_m3"], ascending=True
         )
 
-        # Retirer milieux avec moins de 3 collectes
+        # Calcul du nombre de collectes par milieu pour exclure les milieux à moins de 3 collectes
+        df_nb_par_milieu = (
+            df_other.groupby("TYPE_MILIEU", as_index=True)
+            .agg(
+                {
+                    "ID_RELEVE": "count",
+                }
+            )
+            .sort_values("TYPE_MILIEU", ascending=True)
+        )
+
+        # Exclure les milieux avec moins de 3 collectes
+        milieux_a_exclure = df_nb_par_milieu[
+            df_nb_par_milieu["ID_RELEVE"] <= 3
+        ].index.to_list()
+        df_nb_par_milieu = df_nb_par_milieu.drop(milieux_a_exclure, axis=0)
         df_typemilieu = df_typemilieu[
             ~df_typemilieu["TYPE_MILIEU"].isin(milieux_a_exclure)
         ]
@@ -377,6 +397,14 @@ if st.session_state["authentication_status"]:
         # Ne pas faire apparaître la catégorie "Multi-lieux"
         lignes_multi = df_typemilieu.loc[df_typemilieu["TYPE_MILIEU"] == "Multi-lieux"]
         df_typemilieu.drop(lignes_multi.index, axis=0, inplace=True)
+
+        # Fusionner les dataframe pour obtenir le nb de collectes et le volume par milieu
+        df_nb_par_milieu = pd.merge(
+            df_nb_par_milieu,
+            df_typemilieu.groupby("TYPE_MILIEU")["Volume_m3"].sum(),
+            on="TYPE_MILIEU",
+            how="left",
+        )
 
         # Graphique à barre empilées du pourcentage de volume collecté par an et type de matériau
         fig3 = px.histogram(
@@ -450,17 +478,16 @@ if st.session_state["authentication_status"]:
                 # Affichage du tableau
                 st.write("**Nombre de ramassages par milieu**")
                 st.table(df_nb_par_milieu.T)
+                st.caption(
+                    f"Les ramassages catégorisés en 'Multi-lieux' "
+                    + f"ont été retirés de l'analyse. "
+                    + f"Les milieux représentant moins de 3 ramassages ne sont pas affichés."
+                )
 
             else:
                 st.warning(
                     "⚠️ Aucune donnée à afficher par type de milieu (nombre de ramassages trop faible)"
                 )
-
-            st.caption(
-                f"Les ramassages catégorisés en 'Multi-lieux' "
-                + f"ont été retirés de l'analyse. "
-                + f"Les milieux représentant moins de 3 ramassages ne sont pas affichés."
-            )
 
         # Ligne 3 : Graphe par milieu , lieu et année
         st.write("**Détail par année, type de milieu ou de lieu**")
@@ -831,9 +858,10 @@ if st.session_state["authentication_status"]:
 
             for index, row in df_map_data.iterrows():
 
-                # Calcul du rayon du marqueur en log base 2 pour réduire les écarts
+                #    Calcul du rayon du marqueur en log base 2 pour réduire les écarts
                 if row["nb_dechet"] > 1:
-                    radius = math.log2(row["nb_dechet"])
+                    radius = math.log2(row["nb_dechet"] / 10) * 2
+
                 else:
                     radius = 0.001
 
@@ -847,11 +875,11 @@ if st.session_state["authentication_status"]:
                     radius=radius,  # Utilisation du rayon ajusté
                     popup=folium.Popup(
                         html=f"""
-                                       Commune : <b>{row['LIEU_VILLE']}</b><br>
-                                       Zone : <b>{row['NOM_ZONE']}</b><br>
-                                       Quantité : <b>{formatted_nb_dechet} {selected_dechet}</b><br>
-                                       Date : <b>{row['DATE']}</b>
-                                       """,
+                                    Quantité : <b>{formatted_nb_dechet} </b><br>
+                                    Date : <b>{row['DATE']}</b><br>
+                                    Commune : <b>{row['LIEU_VILLE']}</b><br>
+                                    Zone : <b>{row['NOM_ZONE']}</b><br>
+                                    """,
                         max_width=150,
                     ),
                     color="#3186cc",
