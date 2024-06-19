@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        ADMINEXPRESSURL: ${ADMINEXPRESSURL}
+        ADMINEXPRESSURL: https://data.geopf.fr/telechargement/download/ADMIN-EXPRESS/ADMIN-EXPRESS_3-2__SHP_LAMB93_FXX_2024-02-15/ADMIN-EXPRESS_3-2__SHP_LAMB93_FXX_2024-02-15.7z
     ports:
       - 6789:6789
     restart: always
