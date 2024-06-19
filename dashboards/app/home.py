@@ -173,6 +173,7 @@ if st.session_state["authentication_status"]:
                 Page("pages/actions.py", "Actions", "👊"),
                 Page("pages/data.py", "Data", "🔍"),
                 Page("pages/hotspots.py", "Hotspots", "🔥"),
+                Page("pages/upload_files.py", "Dépôt de fichiers", "📁"),
             ],
         )
 
