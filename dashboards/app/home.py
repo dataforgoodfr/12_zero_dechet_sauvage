@@ -104,10 +104,16 @@ if st.session_state["authentication_status"]:
             "sation/data/data_releve_nb_dechet.csv",
         )
 
+    # Table des spots adoptés
+    @st.cache_data
+    def load_adopted_spots() -> pd.DataFrame:
+        return # pd.read_csv()
+
     # Appel des fonctions pour charger les données
 
     df_other = load_df_other()
     df_structures = load_structures()
+    df_hotspots = load_adopted_spots()
 
     # Création du filtre par niveau géographique : correspondance labels et variables
     df_nb_dechets = load_df_nb_dechet()
