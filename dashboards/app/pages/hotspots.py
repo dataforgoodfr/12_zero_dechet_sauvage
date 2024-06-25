@@ -432,25 +432,30 @@ couleur = {
 def couleur_milieu(type):
     return couleur.get(type, "white")  # Returns 'white' if the type is not found
 
+
 def update_lieu_options(selected_milieu):
     if selected_milieu and selected_milieu != "Sélectionnez un milieu...":
-        filtered_data = data_zds[data_zds['TYPE_MILIEU'] == selected_milieu]
-        return ["Sélectionnez un lieu..."] + list(filtered_data['TYPE_LIEU2'].dropna().unique())
+        filtered_data = data_zds[data_zds["TYPE_MILIEU"] == selected_milieu]
+        return ["Sélectionnez un lieu..."] + list(
+            filtered_data["TYPE_LIEU2"].dropna().unique()
+        )
     return ["Sélectionnez un lieu..."]
+
 
 @st.cache_data
 def process_data(data_zds):
     # Filtering data to ensure surface area is not zero
-    data_zds = data_zds[data_zds['SURFACE'] > 0]
+    data_zds = data_zds[data_zds["SURFACE"] > 0]
     # Calculating density and filtering out anomalous values
-    data_zds['DENSITE'] = data_zds['VOLUME_TOTAL'] / data_zds['SURFACE']
-    data_zds = data_zds[data_zds['DENSITE'] < 20]
+    data_zds["DENSITE"] = data_zds["VOLUME_TOTAL"] / data_zds["SURFACE"]
+    data_zds = data_zds[data_zds["DENSITE"] < 20]
     # Rounding values for better display
-    data_zds['DENSITE'] = data_zds['DENSITE'].round(4)
-    data_zds['SURFACE_ROND'] = data_zds['SURFACE'].round(2)
+    data_zds["DENSITE"] = data_zds["DENSITE"].round(4)
+    data_zds["SURFACE_ROND"] = data_zds["SURFACE"].round(2)
     return data_zds
 
-#Zoom from admin level
+
+# Zoom from admin level
 if NIVEAU_ADMIN == "Commune":
     zoom_admin = 12
 elif NIVEAU_ADMIN == "EPCI":
@@ -469,14 +474,16 @@ def plot_density_map(data_zds: pd.DataFrame, filtered_data: pd.DataFrame) -> fol
 
     else:
         # Use processed data
-        processed_data = process_data(filtered_data if not filtered_data.empty else data_zds)
+        processed_data = process_data(
+            filtered_data if not filtered_data.empty else data_zds
+        )
 
         m = folium.Map(
             location=[
-                processed_data['LIEU_COORD_GPS_Y'].mean(),
-                processed_data['LIEU_COORD_GPS_X'].mean()
+                processed_data["LIEU_COORD_GPS_Y"].mean(),
+                processed_data["LIEU_COORD_GPS_X"].mean(),
             ],
-            zoom_start=zoom_admin
+            zoom_start=zoom_admin,
         )
 
         # Loop over each row in the DataFrame to place markers
@@ -491,26 +498,25 @@ def plot_density_map(data_zds: pd.DataFrame, filtered_data: pd.DataFrame) -> fol
             </div>
             """
             lgd_txt = '<span style="color: {col};">{txt}</span>'
-            color = couleur_milieu(row['TYPE_MILIEU'])
+            color = couleur_milieu(row["TYPE_MILIEU"])
             folium.CircleMarker(
-                fg = folium.FeatureGroup(name= lgd_txt.format( txt= ['TYPE_MILIEU'], col= color)),
-                location=[row['LIEU_COORD_GPS_Y'], row['LIEU_COORD_GPS_X']],
-                radius=np.log(row['DENSITE'] + 1)*15,
+                fg=folium.FeatureGroup(
+                    name=lgd_txt.format(txt=["TYPE_MILIEU"], col=color)
+                ),
+                location=[row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]],
+                radius=np.log(row["DENSITE"] + 1) * 15,
                 popup=folium.Popup(popup_html, max_width=300),
                 color=color,
                 fill=True,
-
             ).add_to(m)
 
         folium_static(m)
 
     return m
 
+
 # Function for 'milieu' density table
-def density_table_milieu(
-    data_zds: pd.DataFrame,
-    filtered_data: pd.DataFrame
-):
+def density_table_milieu(data_zds: pd.DataFrame, filtered_data: pd.DataFrame):
 
     if data_zds.empty:
         st.write("Aucune donnée disponible pour la région sélectionnée.")
@@ -554,10 +560,7 @@ def density_table_milieu(
             )
 
 
-def density_table_lieu(
-    data_zds: pd.DataFrame,
-    filtered_data: pd.DataFrame
-):
+def density_table_lieu(data_zds: pd.DataFrame, filtered_data: pd.DataFrame):
 
     if data_zds.empty:
         st.write("Aucune donnée disponible pour la région sélectionnée.")
@@ -766,55 +769,74 @@ with tab1:
         # Add a default "Select a milieu..." option
         selected_milieu = st.selectbox(
             "Sélectionnez un milieu:",
-            ["Sélectionnez un milieu..."] + list(pd.unique(data_zds_correct['TYPE_MILIEU']))
+            ["Sélectionnez un milieu..."]
+            + list(pd.unique(data_zds_correct["TYPE_MILIEU"])),
         )
     with right_column:
         # Update lieu options based on selected milieu
         lieu_options = update_lieu_options(selected_milieu)
         selected_lieu = st.selectbox("Sélectionnez un lieu:", lieu_options)
 
-
     # Place the map centrally by using a wider column for the map and narrower ones on the sides
     col1, map_col, col3 = st.columns([4, 10, 1])  # Adjust column ratios as needed
 
     with map_col:
         st.markdown("### Carte des Densités")
-        if selected_milieu != "Sélectionnez un milieu..." and selected_lieu != "Sélectionnez un lieu...":
-            filtered_data = data_zds_correct[(data_zds_correct['TYPE_MILIEU'] == selected_milieu) & (data_zds_correct['TYPE_LIEU2'] == selected_lieu)]
+        if (
+            selected_milieu != "Sélectionnez un milieu..."
+            and selected_lieu != "Sélectionnez un lieu..."
+        ):
+            filtered_data = data_zds_correct[
+                (data_zds_correct["TYPE_MILIEU"] == selected_milieu)
+                & (data_zds_correct["TYPE_LIEU2"] == selected_lieu)
+            ]
             plot_density_map(data_zds_correct, filtered_data)
         else:
-            plot_density_map(data_zds_correct, data_zds_correct)  # Show all data by default
-
+            plot_density_map(
+                data_zds_correct, data_zds_correct
+            )  # Show all data by default
 
     col1, col2, col3 = st.columns([3, 3, 2])
 
     with col1:
         st.markdown("#### Tableau des Densités par Milieu")
-        if selected_milieu != "Sélectionnez un milieu..." and selected_lieu != "Sélectionnez un lieu...":
-            filtered_data = data_zds_correct[(data_zds_correct['TYPE_MILIEU'] == selected_milieu) & (data_zds_correct['TYPE_LIEU2'] == selected_lieu)]
+        if (
+            selected_milieu != "Sélectionnez un milieu..."
+            and selected_lieu != "Sélectionnez un lieu..."
+        ):
+            filtered_data = data_zds_correct[
+                (data_zds_correct["TYPE_MILIEU"] == selected_milieu)
+                & (data_zds_correct["TYPE_LIEU2"] == selected_lieu)
+            ]
             density_table_milieu(data_zds_correct, filtered_data)
         else:
             density_table_milieu(data_zds_correct, data_zds_correct)
 
     with col2:
         st.markdown("#### Tableau des Densités par Lieu")
-        if selected_milieu != "Sélectionnez un milieu..." and selected_lieu != "Sélectionnez un lieu...":
-            filtered_data = data_zds_correct[(data_zds_correct['TYPE_MILIEU'] == selected_milieu) & (data_zds_correct['TYPE_LIEU2'] == selected_lieu)]
+        if (
+            selected_milieu != "Sélectionnez un milieu..."
+            and selected_lieu != "Sélectionnez un lieu..."
+        ):
+            filtered_data = data_zds_correct[
+                (data_zds_correct["TYPE_MILIEU"] == selected_milieu)
+                & (data_zds_correct["TYPE_LIEU2"] == selected_lieu)
+            ]
             density_table_lieu(data_zds_correct, filtered_data)
         else:
             density_table_lieu(data_zds_correct, data_zds_correct)
 
     with col3:
-            with st.expander("###### Notice ℹ️", expanded=True):
-                st.write(
-                    """
+        with st.expander("###### Notice ℹ️", expanded=True):
+            st.write(
+                """
                     **Milieu** désigne de grands types d'environnements comme le Littoral,
                     les Cours d'eau ou la Montagne.\n
                     Chaque Milieu est ensuite divisé en
                     **Lieux** plus spécifiques. Par exemple, sous le Milieu Littoral,
                     on trouve des Lieux comme les Plages, les Roches, les Digues, ou les Parkings.
                     """
-                )
+            )
 
 with tab2:
     # Use the selected filters
