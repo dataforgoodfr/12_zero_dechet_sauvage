@@ -7,22 +7,14 @@ from folium import IFrame
 import math
 import locale
 import duckdb
+import json
 
-
+###########################################################
 # Configuration de la page
+###########################################################
 st.set_page_config(
     layout="wide", page_title="Dashboard Zéro Déchet Sauvage : onglet Data"
 )
-
-# Définir les paramètres linguistiques FR pour l'affichage des nombres
-locale.setlocale(locale.LC_NUMERIC, "fr_FR")
-
-# Session state
-session_state = st.session_state
-
-# Récupérer les filtres géographiques s'ils ont été fixés
-filtre_niveau = st.session_state.get("niveau_admin", "")
-filtre_collectivite = st.session_state.get("collectivite", "")
 
 # Titre de l'onglet
 st.markdown(
@@ -31,6 +23,56 @@ Visualisez les impacts sur les milieux naturels et secteurs/filières/marques à
 """
 )
 
+
+# 3 Onglets : Matériaux, Top déchets, Filières et marques
+tab1, tab2, tab3 = st.tabs(
+    [
+        "**Matériaux :wood:**",
+        "**Top Déchets :wastebasket:**",
+        "**Secteurs économiques, filières et marques :womans_clothes:**",
+    ]
+)
+
+# Définir les paramètres linguistiques FR pour l'affichage des nombres
+locale.setlocale(locale.LC_NUMERIC, "fr_FR")
+
+# Fonction pour améliorer l'affichage des nombres (milliers, millions, milliards)
+def french_format(x: int) -> str:
+    if x >= 1e9:
+        y = x / 1e9
+        y = locale.format_string("%.2f", y, grouping=True)
+        return f"{y} milliards"
+    elif x >= 1e6:
+        y = x / 1e6
+        y = locale.format_string("%.2f", y, grouping=True)
+        return f"{y} millions"
+    elif x >= 10:
+        y = locale.format_string("%d", x, grouping=True)
+        return f"{y}"
+    else:
+        y = locale.format_string("%.2f", x, grouping=True)
+        return f"{y}"
+
+
+###########################################################
+# Import des données
+###########################################################
+
+# Importer le session.state pour récupérer les filtres géographiques
+filtre_niveau = st.session_state.get("niveau_admin", "")
+filtre_collectivite = st.session_state.get("collectivite", "")
+
+## Import des fichiers de config des chartes graphiques
+# Couleurs par matériaux charte graphique MERTERRE
+with open("pages/ongletdata_colormap_materiaux.json", "r") as jsonfile1:
+    colors_map = json.load(jsonfile1)
+
+# Couleurs par secteur (charte Merterre)
+with open("pages/ongletdata_colormap_secteurs.json", "r") as jsonfile2:
+    colors_map_secteur = json.load(jsonfile2)
+
+
+# Authentification
 if st.session_state["authentication_status"]:
     if filtre_niveau == "" and filtre_collectivite == "":
         with st.sidebar:
@@ -86,35 +128,6 @@ if st.session_state["authentication_status"]:
         }
     )
 
-    # Copier le df pour la partie filtrée par milieu/lieu/année
-    # df_other_metrics_raw = df_other.copy()
-
-    # Fonction pour améliorer l'affichage des nombres (milliers, millions, milliards)
-    def french_format(x: int) -> str:
-        if x >= 1e9:
-            y = x / 1e9
-            y = locale.format_string("%.2f", y, grouping=True)
-            return f"{y} milliards"
-        elif x >= 1e6:
-            y = x / 1e6
-            y = locale.format_string("%.2f", y, grouping=True)
-            return f"{y} millions"
-        elif x >= 10:
-            y = locale.format_string("%d", x, grouping=True)
-            return f"{y}"
-        else:
-            y = locale.format_string("%.2f", x, grouping=True)
-            return f"{y}"
-
-    # 3 Onglets : Matériaux, Top déchets, Filières et marques
-    tab1, tab2, tab3 = st.tabs(
-        [
-            "**Matériaux :wood:**",
-            "**Top Déchets :wastebasket:**",
-            "**Secteurs économiques, filières et marques :womans_clothes:**",
-        ]
-    )
-
     milieu_lieu_dict = (
         df_other.groupby("TYPE_MILIEU")["TYPE_LIEU"]
         .unique()
@@ -123,8 +136,9 @@ if st.session_state["authentication_status"]:
     )
 
     annee_liste = sorted(df_other["ANNEE"].unique().tolist(), reverse=True)
-
+    ###########################################################
     # Onglet 1 : Matériaux
+    ###########################################################
     with tab1:
 
         # Transformation du dataframe pour les graphiques
@@ -193,7 +207,7 @@ if st.session_state["authentication_status"]:
         ].sum()
         df_totals_sorted = df_totals_sorted.sort_values(["Volume_m3"], ascending=False)
 
-        # replace "Verre" with "Verre/Céramique" in df_totals_sorted
+        # Remplacer "Verre" with "Verre/Céramique" dans df_totals_sorted
         df_totals_sorted["Matériau"] = df_totals_sorted["Matériau"].replace(
             "Verre", "Verre/Céramique"
         )
@@ -201,31 +215,15 @@ if st.session_state["authentication_status"]:
             "Papier", "Papier/Carton"
         )
 
-        # Charte graphique MERTERRE :
-        colors_map = {
-            "Textile": "#C384B1",
-            "Papier": "#CAA674",
-            "Metal": "#A0A0A0",
-            "Verre": "#3DCE89",
-            "Autre": "#F3B900",
-            "Plastique": "#48BEF0",
-            "Caoutchouc": "#364E74",
-            "Bois": "#673C11",
-            "Papier/Carton": "#CAA674",
-            "Métal": "#A0A0A0",
-            "Verre/Céramique": "#3DCE89",
-            "Autre": "#F3B900",
-        }
-
         # Message d'avertissement en haut de page si nb de collectes < 5
         if nb_collectes_int < 5:
             st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
-        # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
+        ### 3 METRIQUES CLES
+        # Création des colonnes
         l1_col1, l1_col2, l1_col3 = st.columns(3)
 
-        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
-
+        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne
         # 1ère métrique : volume total de déchets collectés
         cell1 = l1_col1.container(border=True)
         # Trick pour séparer les milliers
@@ -241,7 +239,6 @@ if st.session_state["authentication_status"]:
         cell3 = l1_col3.container(border=True)
         cell3.metric("Nombre de ramassages", nb_collectes_int)
 
-        # Note méthodo pour expliquer les données retenues pour l'analyse
         # Périmètre des données
         volume_total_avant_exclusions_m3 = df_other["VOLUME_TOTAL"].sum() / 1000
         volume_exclu = (
@@ -253,6 +250,7 @@ if st.session_state["authentication_status"]:
             / 1000
         )
 
+        # Encart méthodo pour expliquer les données retenues pour l'analyse
         with st.expander("Note sur les données utilisées dans cet onglet"):
             st.markdown(
                 f"""
@@ -278,8 +276,7 @@ if st.session_state["authentication_status"]:
             )
             df_note_methodo.rename("Nombre de relevés", inplace=True)
 
-        # Ligne 2 : 2 graphiques en ligne : donut et bar chart matériaux
-
+        ### GRAPHIQUES DONUT ET BAR CHART MATERIAUX
         with st.container(border=True):
 
             cell4, cell5 = st.columns(2)
@@ -489,7 +486,7 @@ if st.session_state["authentication_status"]:
                     "⚠️ Aucune donnée à afficher par type de milieu (nombre de ramassages trop faible)"
                 )
 
-        # Ligne 3 : Graphe par milieu , lieu et année
+        ### GRAPHIQUE TREEMAP PAR MILIEU, LIEU ET ANNEE
         st.write("**Détail par année, type de milieu ou de lieu**")
 
         # Étape 1: Création des filtres
@@ -497,22 +494,21 @@ if st.session_state["authentication_status"]:
         with st.expander("Filtrer par année, type milieu ou type de lieu"):
 
             # Filtre par Année
-            # Default values for filters
+            # Valeurs par défaut
             valeur_par_defaut_annee = "Toute la période"
             valeur_par_defaut_milieu = "Tous les milieux"
             valeur_par_defaut_lieu = "Tous les lieux"
 
-            # Filter by year
+            # Filtre par année
             selected_annee = st.selectbox(
                 "Choisir une année:",
                 options=[valeur_par_defaut_annee] + annee_liste,
             )
-            # Filter data based on selected year
             filtered_data = df_other.copy()
             if selected_annee != valeur_par_defaut_annee:
                 filtered_data = filtered_data[filtered_data["ANNEE"] == selected_annee]
 
-            # Filter by milieu
+            # Filtre par milieu
             milieux_liste = [valeur_par_defaut_milieu] + sorted(
                 filtered_data["TYPE_MILIEU"].unique()
             )
@@ -521,13 +517,12 @@ if st.session_state["authentication_status"]:
                 options=milieux_liste,
             )
 
-            # Filter data based on selected milieu
             if selected_type_milieu != valeur_par_defaut_milieu:
                 filtered_data = filtered_data[
                     filtered_data["TYPE_MILIEU"] == selected_type_milieu
                 ]
 
-            # Filter by lieu
+            # Filtre par lieu
             lieux_liste = [valeur_par_defaut_lieu] + sorted(
                 filtered_data["TYPE_LIEU"].unique()
             )
@@ -536,20 +531,19 @@ if st.session_state["authentication_status"]:
                 options=lieux_liste,
             )
 
-            # Filter data based on selected lieu
             if selected_type_lieu != valeur_par_defaut_lieu:
                 filtered_data = filtered_data[
                     filtered_data["TYPE_LIEU"] == selected_type_lieu
                 ]
 
-            # Final filtered data
+            # Dataframe final filtré par année, milieu et lieu
             df_filtered = filtered_data.copy()
 
         # Message d'avertissement nb de collectes en dessous de 5
         if len(df_filtered) < 5:
             st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
-        # Ligne 5 : Metriques filtrés
+        ### 3 METRIQUES AVEC FILTRES
         l5_col1, l5_col2, l5_col3 = st.columns(3)
         cell6 = l5_col1.container(border=True)
         cell7 = l5_col2.container(border=True)
@@ -641,7 +635,9 @@ if st.session_state["authentication_status"]:
         else:
             st.write("Aucune donnée à afficher pour les filtres sélectionnés.")
 
+    ###########################################################
     # Onglet 2 : Top Déchets
+    ###########################################################
     with tab2:
 
         # Préparation des datas pour l'onglet 2
@@ -652,7 +648,7 @@ if st.session_state["authentication_status"]:
 
             filtered_df = df_other.copy()  # Initialiser le df sans filtres
 
-            # Define the initial options for the selectboxes
+            # Definir options initiales sans filtres
             annee_options = [valeur_par_defaut_annee] + sorted(
                 df_other["ANNEE"].unique().tolist(), reverse=True
             )
@@ -666,11 +662,11 @@ if st.session_state["authentication_status"]:
                 key="topdechets_annee",  # définir key pour éviter conflits
             )
 
-            # Apply filters based on the selected values
+            # Appliquer les filtres sur les données
             if annee != valeur_par_defaut_annee:
                 filtered_df = filtered_df[filtered_df["ANNEE"] == annee]
 
-            # Update milieu options based on filtered data
+            # Mettre à jour les options de milieux selon le filtre année
             milieu_options += sorted(filtered_df["TYPE_MILIEU"].unique().tolist())
 
             milieu = st.selectbox(
@@ -680,14 +676,14 @@ if st.session_state["authentication_status"]:
                 key="topdechets_milieu",  # définir key pour éviter conflits
             )
 
-            # Apply milieu filter if selected
+            # Appliquer le filtre par milieu si une valeur est choisir
             if milieu != valeur_par_defaut_milieu:
                 filtered_df = filtered_df[filtered_df["TYPE_MILIEU"] == milieu]
 
-            # Update lieu options based on filtered data
+            # Mettre à jour les options de lieu selon le milieu choisi
             lieu_options += sorted(filtered_df["TYPE_LIEU"].unique().tolist())
 
-            # Lieu selection
+            # Selection du lieu
             lieu = st.selectbox(
                 "Choisir un type de lieu :",
                 options=lieu_options,
@@ -695,11 +691,9 @@ if st.session_state["authentication_status"]:
                 key="topdechets_lieu",
             )
 
-            # Apply lieu filter if selected
+            # Appliquer filtre par lieu si choixi
             if lieu != valeur_par_defaut_lieu:
                 filtered_df = filtered_df[filtered_df["TYPE_LIEU"] == lieu]
-
-        # The filtered_df now contains the data based on the selected filters
 
         # Récupérer les index de collectes pour filtrer le dataframe nb_dechets
         # Filtrer les données sur les ID_RELEVES
@@ -721,11 +715,13 @@ if st.session_state["authentication_status"]:
         if nb_collectes_int < 5:
             st.warning("⚠️ Moins de 5 ramassages dans la base de données")
 
-        # Ligne 1 : 3 cellules avec les indicateurs clés en haut de page
+        ### METRIQUES CLES EN HAUT DE PAGE
+
         l1_col1, l1_col2 = st.columns(2)
-        # Pour avoir 3 cellules avec bordure, il faut nester un st.container dans chaque colonne (pas d'option bordure dans st.column)
+
         # 1ère métrique : volume total de déchets collectés
         cell1 = l1_col1.container(border=True)
+
         # Trick pour séparer les milliers
 
         cell1.metric("Nombre de déchets comptés", french_format(nb_total_dechets))
@@ -734,13 +730,13 @@ if st.session_state["authentication_status"]:
         cell2 = l1_col2.container(border=True)
         cell2.metric("Nombre de ramassages", nb_collec_top)
 
-        # Ligne 2 : graphique top déchets
+        ### GRAPHIQUE TOP DECHETS
 
-        # Filtration sur les type-regroupement selection dechets "GROUPE" uniquement
+        # Filtre sur les données au niveau "GROUPE" uniquement
         df_top_dechets = df_top_dechets[
             df_top_dechets["type_regroupement"].isin(["GROUPE"])
         ]
-        # Group by 'categorie', sum 'nb_dechet', et top 10
+        # Grouper par catégorie et ne garder que le top10 déchets en nombre cumulé
         df_top10_dechets = (
             df_top_dechets.groupby("categorie")
             .agg({"nb_dechet": "sum"})
@@ -827,11 +823,6 @@ if st.session_state["authentication_status"]:
             # Filtration sur le dechet top 10 sélectionné
             df_map_data = df_top_dechets[df_top_dechets["categorie"] == selected_dechet]
 
-            # # Création du DataFrame de travail pour la carte
-            # df_map_data = pd.merge(
-            #     df_top_map, df_top_data_releves, on="ID_RELEVE", how="inner"
-            # )
-
             # Création de la carte centrée autour d'une localisation
             # Initialisation du zoom sur la carte
             if filtre_niveau == "Commune":
@@ -849,6 +840,7 @@ if st.session_state["authentication_status"]:
             min_lon = df_map_data["LIEU_COORD_GPS_X"].min()
             max_lon = df_map_data["LIEU_COORD_GPS_X"].max()
 
+            # création de la carte avec Folium
             map_data = folium.Map(
                 location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2],
                 zoom_start=zoom_admin,
@@ -865,7 +857,7 @@ if st.session_state["authentication_status"]:
                 else:
                     radius = 0.001
 
-                # Format the value with commas as thousands separators
+                # Formatter les valeurs avec séparateurs de miliers
                 formatted_nb_dechet = locale.format_string(
                     "%.0f", row["nb_dechet"], grouping=True
                 )
@@ -887,7 +879,7 @@ if st.session_state["authentication_status"]:
                     fill_color="#3186cc",
                 ).add_to(map_data)
 
-                # Add a legend
+                # Ajout légende
             legend_html = """
                 <div style="
                     position: fixed; 
@@ -921,7 +913,10 @@ if st.session_state["authentication_status"]:
                 folium.Figure().add_child(map_data).render(),  # , width=1400
                 height=750,
             )
+
+    ###########################################################
     # Onglet 3 : Secteurs et marques
+    ###########################################################
     with tab3:
 
         # Préparation des données
@@ -932,14 +927,14 @@ if st.session_state["authentication_status"]:
 
         with st.expander("Filtrer par année, type milieu ou type de lieu"):
 
-            # Define the initial options for the selectboxes
+            # Définir options initiales
             annee_options = [valeur_par_defaut_annee] + sorted(
                 df_other["ANNEE"].unique().tolist(), reverse=True
             )
             milieu_options = [valeur_par_defaut_milieu]
             lieu_options = [valeur_par_defaut_lieu]
 
-            # Year selection
+            # Sélectionner l'année
             annee = st.selectbox(
                 "Choisir une année :",
                 options=annee_options,
@@ -947,154 +942,39 @@ if st.session_state["authentication_status"]:
                 key="secteurs_annee",
             )
 
-            # Apply year filter if selected
+            # Appliquer le filtre
             if annee != valeur_par_defaut_annee:
                 filtered_df = filtered_df[filtered_df["ANNEE"] == annee]
 
-            # Update milieu options based on filtered data
+            # Mettre à jour les valeurs des milieux selon l'année choisie
             milieu_options += sorted(filtered_df["TYPE_MILIEU"].unique().tolist())
 
-            # Milieu selection
+            # Sélection du milieu
             milieu = st.selectbox(
                 "Choisir un type de milieu :",
                 options=milieu_options,
-                index=0,  # Default to the first option (valeur_par_defaut_milieu)
+                index=0,  # Valeur par défaut : valeur_par_defaut_milieu
                 key="secteurs_milieu",
             )
 
-            # Apply milieu filter if selected
+            # Appliquer le filtre par milieu
             if milieu != valeur_par_defaut_milieu:
                 filtered_df = filtered_df[filtered_df["TYPE_MILIEU"] == milieu]
 
-            # Update lieu options based on filtered data
+            # Mettre à jour les valeurs des lieux selon le milieu choisi
             lieu_options += sorted(filtered_df["TYPE_LIEU"].unique().tolist())
 
-            # Lieu selection
+            # Sélectionner ie lieu
             lieu = st.selectbox(
                 "Choisir un type de lieu :",
                 options=lieu_options,
-                index=0,  # Default to the first option (valeur_par_defaut_lieu)
+                index=0,  # VAleur par défaut : valeur_par_defaut_lieu
                 key="secteurs_lieu",
             )
 
-            # Apply lieu filter if selected
+            # Appliquer le filtre par lieu
             if lieu != valeur_par_defaut_lieu:
                 filtered_df = filtered_df[filtered_df["TYPE_LIEU"] == lieu]
-
-        # The filtered_df now contains the data based on the selected filters
-
-        #     # Filtre par année
-        #     selected_annee_onglet_3 = st.selectbox(
-        #         "Choisir une année:",
-        #         options=[valeur_par_defaut_annee] + annee_liste,
-        #         key="année_select",
-        #     )
-        #     if selected_annee_onglet_3 != valeur_par_defaut_annee:
-        #         filtered_data_milieu = df_other[
-        #             df_other["ANNEE"] == selected_annee_onglet_3
-        #         ]
-        #     else:
-        #         filtered_data_milieu = df_other.copy()
-
-        #     ## Filtre par type de milieu
-        #     # Initialiser la liste des lieux
-        #     milieux_liste = [valeur_par_defaut_milieu] + sorted(
-        #         list(filtered_data_milieu["TYPE_MILIEU"].unique())
-        #     )
-
-        #     selected_type_milieu_onglet_3 = st.selectbox(
-        #         "Choisir un type de milieu:",
-        #         options=milieux_liste,
-        #         key="type_milieu_select",
-        #     )
-
-        #     if selected_type_milieu_onglet_3 != valeur_par_defaut_milieu:
-        #         filtered_data_lieu = filtered_data_milieu[
-        #             filtered_data_milieu["TYPE_MILIEU"] == selected_type_milieu_onglet_3
-        #         ]
-        #     else:
-        #         filtered_data_lieu = filtered_data_milieu
-
-        #     ## Filtre par lieu
-        #     # Initialiser la liste des lieux
-        #     lieux_liste = [valeur_par_defaut_lieu] + sorted(
-        #         list(filtered_data_lieu["TYPE_LIEU"].unique())
-        #     )
-
-        #     selected_type_lieu_onglet_3 = st.selectbox(
-        #         "Choisir un type de lieu:",
-        #         options=lieux_liste,
-        #         key="type_lieu_select",
-        #     )
-
-        # if (
-        #     selected_annee_onglet_3 == valeur_par_defaut_annee
-        #     and selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
-        #     and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
-        # ):
-        #     df_filtered = df_other.copy()
-        # elif (
-        #     selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
-        #     and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
-        # ):
-        #     df_filtered = df_other[df_other["ANNEE"] == selected_annee_onglet_3].copy()
-        # elif (
-        #     selected_annee_onglet_3 == valeur_par_defaut_annee
-        #     and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
-        #     and selected_type_milieu_onglet_3 != valeur_par_defaut_milieu
-        # ):
-        #     df_filtered = df_other[
-        #         df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3
-        #     ].copy()
-        # elif (
-        #     selected_annee_onglet_3 == valeur_par_defaut_annee
-        #     and selected_type_lieu_onglet_3 != valeur_par_defaut_lieu
-        #     and selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
-        # ):
-        #     df_filtered = df_other[
-        #         df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3
-        #     ].copy()
-        # elif (
-        #     selected_annee_onglet_3 == valeur_par_defaut_annee
-        #     and selected_type_lieu_onglet_3 != valeur_par_defaut_lieu
-        #     and selected_type_milieu_onglet_3 != valeur_par_defaut_milieu
-        # ):
-        #     df_filtered = df_other[
-        #         (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
-        #         & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
-        #     ].copy()
-        # elif (
-        #     selected_annee_onglet_3 != valeur_par_defaut_annee
-        #     and selected_type_lieu_onglet_3 != valeur_par_defaut_lieu
-        #     and selected_type_milieu_onglet_3 == valeur_par_defaut_milieu
-        # ):
-        #     df_filtered = df_other[
-        #         (df_other["ANNEE"] == selected_annee_onglet_3)
-        #         & (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
-        #     ].copy()
-        # elif (
-        #     selected_annee_onglet_3 != valeur_par_defaut_annee
-        #     and selected_type_lieu_onglet_3 == valeur_par_defaut_lieu
-        #     and selected_type_milieu_onglet_3 != valeur_par_defaut_milieu
-        # ):
-        #     df_filtered = df_other[
-        #         (df_other["ANNEE"] == selected_annee_onglet_3)
-        #         & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
-        #     ].copy()
-
-        # elif selected_type_lieu_onglet_3 == valeur_par_defaut_lieu:
-        #     df_filtered = df_other[
-        #         (df_other["ANNEE"] == selected_annee_onglet_3)
-        #         & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
-        #     ].copy()
-        # else:
-        #     df_filtered = df_other[
-        #         (df_other["ANNEE"] == selected_annee_onglet_3)
-        #         & (df_other["TYPE_MILIEU"] == selected_type_milieu_onglet_3)
-        #         & (df_other["TYPE_LIEU"] == selected_type_lieu_onglet_3)
-        #     ].copy()
-
-        #
 
         # Filtration des données pour nb_dechets
         df_init = pd.merge(df_dechet_copy, filtered_df, on="ID_RELEVE", how="inner")
@@ -1159,8 +1039,6 @@ if st.session_state["authentication_status"]:
         top_rep_df.columns = ["Responsabilité élargie producteur", "Nombre de déchets"]
 
         # Data pour le plot marque
-
-        # Data pour le plot responsabilités
         marque_df = duckdb.query(
             (
                 "SELECT * "
@@ -1204,7 +1082,7 @@ if st.session_state["authentication_status"]:
         nb_marques = marque_df["categorie"].nunique()
         collectes_marque = marque_df["ID_RELEVE"].nunique()
 
-        ### ANALYSE PAR SECTEUR
+        ### GRAPHIQUE PAR SECTEUR
         st.write("**Analyse par secteur économique** (relevés de niveau 4 uniquement)")
 
         # Message d'avertissement si le nombre de collectes est en dessous de 5
@@ -1236,33 +1114,6 @@ if st.session_state["authentication_status"]:
             )
 
             # Ligne 2 : 3 cellules avec les indicateurs clés en bas de page
-            colors_map_secteur = {
-                "AGRICULTURE": "#156644",
-                "ALIMENTATION": "#F7D156",
-                "AMEUBLEMENT, DÉCORATION ET ÉQUIPEMENT DE LA MAISON": "#F79D65",
-                "AQUACULTURE": "#0067C2",
-                "BÂTIMENT, TRAVAUX ET MATÉRIAUX DE CONSTRUCTION": "#FF9900",
-                "CHASSE ET ARMEMENT": "#23A76F",
-                "COSMÉTIQUES, HYGIÈNE ET SOINS PERSONNELS": "#BF726B",
-                "DÉTERGENTS ET PRODUITS D'ENTRETIENS": "#506266",
-                "EMBALLAGE INDUSTRIEL ET COLIS": "#754B30",
-                "GRAPHIQUE ET PAPETERIE ET FOURNITURES DE BUREAU": "#EFEFEF",
-                "INDÉTERMINÉ": "#967EA1",
-                "INFORMATIQUE ET HIGHTECH": "#E351F7",
-                "JOUETS ET LOISIR": "#A64D79",
-                "MATÉRIEL ÉLECTRIQUE ET ÉLECTROMÉNAGER": "#AE05C3",
-                "MÉTALLURGIE": "#EC4773",
-                "PÊCHE": "#003463",
-                "PETROCHIMIE": "#0D0D0D",
-                "PHARMACEUTIQUE/PARAMÉDICAL": "#61BF5E",
-                "PLASTURGIE": "#05A2AD",
-                "TABAC": "#E9003F",
-                "TEXTILE ET HABILLEMENT": "#FA9EE5",
-                "TRAITEMENT DES EAUX": "#4AA6F7",
-                "TRANSPORT / AUTOMOBILE": "#6C2775",
-                "VAISSELLE À USAGE UNIQUE": "#732D3A",
-                "AUTRES SECTEURS": "#D9C190",
-            }
 
             fig_secteur = px.bar(
                 top_secteur_df.tail(10).sort_values(
@@ -1280,7 +1131,7 @@ if st.session_state["authentication_status"]:
                 color_discrete_map=colors_map_secteur,
                 text_auto=True,
             )
-            # add log scale to x axis
+            # Passage de l'absisse en LOG pour meilleure lecture
             fig_secteur.update_layout(xaxis_type="log")
             fig_secteur.update_traces(
                 texttemplate="%{value:,.0f}",
@@ -1319,7 +1170,7 @@ if st.session_state["authentication_status"]:
                 "⚠️ Aucune donnée à afficher par secteur (nombre de ramassages trop faible)"
             )
 
-        ### ANALYSE PAR FILIERE REP
+        ### GRAPHIQUE A BARRE PAR FILIERE REP
 
         st.write(
             "**Analyse par filière de Responsabilité Élargie du Producteur** (relevés de niveau 4 uniquement)"
@@ -1401,7 +1252,7 @@ if st.session_state["authentication_status"]:
                 "⚠️ Aucune donnée à afficher par filière REP (nombre de ramassages trop faible)"
             )
 
-        ### ANALYSES PAR MARQUE
+        ### GRAPHIQUE PAR MARQUE
 
         st.write("**Analyse par marque** (relevés de niveaux 2 à 4)")
 
@@ -1447,7 +1298,6 @@ if st.session_state["authentication_status"]:
                 text_auto=True,
             )
 
-            # add log scale to x axis
             fig_marque.update_layout(
                 # xaxis_type="log", # Pas besoin d'échelle log ici
                 height=700,
