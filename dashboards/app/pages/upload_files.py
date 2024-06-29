@@ -28,7 +28,7 @@ if (isinstance(uploaded_file, UploadedFile)) and ("csv" in uploaded_file.name):
         if uploaded_file.name in expected_files:
             with open(f"/data/{uploaded_file.name}", "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            st.success(f"Le fichier {uploaded_file.name} déposé !", icon="🚀")
+            st.success(f"Le fichier {uploaded_file.name} est déposé !", icon="🚀")
         else:
             st.error("Veuillez respecter le nom de fichier !", icon="🚨")
 
