@@ -1,6 +1,7 @@
 import streamlit as st
 from st_pages import Page, show_pages
 from streamlit.runtime.uploaded_file_manager import UploadedFile
+import os
 
 # Configuration de la page
 st.set_page_config(
@@ -25,6 +26,8 @@ uploaded_file = st.file_uploader("Déposez votre fichier", type="csv")
 if (isinstance(uploaded_file, UploadedFile)) and ("csv" in uploaded_file.name):
     if st.button("OK"):
         if uploaded_file.name in expected_files:
+            with open(f"/data/{uploaded_file.name}", "wb") as f:
+                f.write(uploaded_file.getbuffer())
             st.success(f"Le fichier {uploaded_file.name} déposé !", icon="🚀")
         else:
             st.error("Veuillez respecter le nom de fichier !", icon="🚨")
