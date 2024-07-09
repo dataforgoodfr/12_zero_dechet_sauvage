@@ -104,10 +104,28 @@ if st.session_state["authentication_status"]:
             "sation/data/data_releve_nb_dechet.csv",
         )
 
-    # Appel des fonctions pour charger les données
+    @st.cache_data
+    # Définition d'une fonction pour charger les evenements à venir
+    def load_df_events_clean() -> pd.DataFrame:
+        """Chargement du dataset 'export_event_cleaned.csv'
 
+        Les 'évenements à venir' sont dans un autre dataset que data_zds
+        La liste des événements RAW est dans #2/explo/data/export_events_14032024.xlsx
+        Le script de nettoyage est #2/explo/cleaning_events.py
+
+        Returns:
+            pd.DataFrame: DF des événements à venir nettoyé
+        """
+        return pd.read_csv(
+            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
+            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
+            "sation/data/export_events_cleaned.csv",
+        )
+
+    # Appel des fonctions pour charger les données
     df_other = load_df_other()
     df_structures = load_structures()
+    df_events = load_df_events_clean()
 
     # Création du filtre par niveau géographique : correspondance labels et variables
     df_nb_dechets = load_df_nb_dechet()
@@ -187,6 +205,7 @@ if st.session_state["authentication_status"]:
         ]
         st.session_state["structures_filtre"] = df_structures_filtre
         st.session_state["structures"] = df_structures
+        st.session_state["events"] = df_events
 
         # Filtrer et enregistrer le dataframe nb_dechets dans session.State
         # Récuperer la liste des relevés

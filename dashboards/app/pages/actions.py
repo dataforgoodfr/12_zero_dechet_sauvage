@@ -30,19 +30,10 @@ if st.session_state["authentication_status"]:
     else:
         st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
-    # Définition d'une fonction pour charger les evenements à venir
-    def load_df_events_clean() -> pd.DataFrame:
-        return pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-            "sation/data/export_events_cleaned.csv"
-        )
-
-    # Appel des fonctions pour charger les données
-    df_events = load_df_events_clean()
-
     # Appeler les dataframes volumes et nb_dechets filtré depuis le session state
-    if "df_other_filtre" not in st.session_state:
+    if ("df_other_filtre" not in st.session_state) or (
+        "events" not in st.session_state
+    ):
         st.write(
             """
         ### :warning: Merci de sélectionner une collectivité\
@@ -52,6 +43,7 @@ if st.session_state["authentication_status"]:
         st.stop()
     else:
         df_other = st.session_state["df_other_filtre"].copy()
+        df_events = st.session_state["events"].copy()
 
     # 2 Onglets : Evènements, Evènements à venir
     tab1, tab2 = st.tabs(
@@ -62,7 +54,7 @@ if st.session_state["authentication_status"]:
     )
 
     # Locale du package Babel
-    locale = Locale("fr", "FR")
+    bbl_locale = Locale("fr", "FR")
 
     # Onglet 1 : Evènements
     with tab1:
@@ -119,7 +111,7 @@ if st.session_state["authentication_status"]:
                     format_date(
                         datetime(2022, mois_dict[mois_liste[x - 1]], 1),
                         format="MMMM",
-                        locale=locale,
+                        locale=bbl_locale,
                     )
                 ),
                 index=0,
@@ -141,8 +133,6 @@ if st.session_state["authentication_status"]:
         df_ramassages = df_other_filtre.copy()
 
         # Calcul des indicateurs clés de haut de tableau avant transformation
-        volume_total = df_ramassages["VOLUME_TOTAL"].sum()
-        poids_total = df_ramassages["POIDS_TOTAL"].sum()
         nombre_participants = df_ramassages["NB_PARTICIPANTS"].sum()
         nb_collectes = len(df_ramassages)
         nombre_structures = df_ramassages["ID_STRUCTURE"].nunique()
@@ -201,10 +191,40 @@ if st.session_state["authentication_status"]:
                 # Application d'une limite minimale pour le rayon si nécessaire
                 radius = max(radius, 5)
 
+                format_participants = "{:.0f}".format(row.NB_PARTICIPANTS)
+
+                html = f"""
+                    <div style="font-family: LATO REGULAR, sans-serif; font-size: 12px;">
+                        <p>
+                            <div style="color: gray; font-size: 10px;">
+                                Evénement
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px;">
+                                {row.NOM_EVENEMENT}
+                            </div>
+                            <div style="color: gray; font-size: 10px;">
+                                Structure
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px;">
+                                {row.NOM_STRUCTURE}
+                            </div>
+                            <br>
+                            <div style="font-weight: bold;">
+                                Date : <span style="color: gray;">{row.DATE.strftime("%d/%m/%Y")}</span>
+                            </div>
+                            <div style="font-weight: bold;">
+                                Nombre de participants : <span style="color: gray;">{format_participants}</span>
+                            </div>
+                        </p>
+                    </div>
+                    """
+
+                popup = folium.Popup(html, max_width=300)
+
                 folium.CircleMarker(
                     location=(row["LIEU_COORD_GPS_Y"], row["LIEU_COORD_GPS_X"]),
                     radius=radius,  # Utilisation du rayon ajusté
-                    popup=f"{row['NOM_ZONE']}, {row['LIEU_VILLE']}, {row['NOM_EVENEMENT']}, {row['DATE']}  : nombre de participants : {row['NB_PARTICIPANTS']}",
+                    popup=popup,
                     color="#3186cc",
                     fill=True,
                     fill_color="#3186cc",
@@ -235,8 +255,14 @@ if st.session_state["authentication_status"]:
             color_discrete_sequence=colors,
             category_orders={"NIVEAU_CARAC": [0, 1, 2, 3, 4]},
         )
+
         fig1_actions.update_traces(
-            textposition="inside", texttemplate="%{label}<br>%{percent:.1%}"
+            textfont_size=12,
+            textfont_color="white",
+            textposition="inside",
+            textinfo="percent+label",
+            texttemplate="%{label}<br>%{percent:.1%}",
+            hovertemplate="<b>Niveau</b> %{label}<br><b>%{value}</b> ramassages",
         )
 
         # préparation du dataframe et figure releves types de déchets
@@ -248,14 +274,29 @@ if st.session_state["authentication_status"]:
         df_type_dechet_counts_sorted = df_type_dechet_counts.sort_values(
             by="counts", ascending=False
         )
+
         fig2_actions = px.bar(
             df_type_dechet_counts_sorted,
             y="counts",
             x="TYPE_DECHET",
-            title="Nombre de relevés par types de déchets",
+            title="Nombre de relevés par type de déchets",
             text="counts",
         )
-        fig2_actions.update_layout(xaxis_title="", yaxis_title="")
+
+        fig2_actions.update_layout(
+            uniformtext_minsize=8,
+            yaxis_title=None,
+            xaxis_title=None,
+            separators=", ",  # Formatte les nombres en français (séparateur décimale, séparateur milliers)
+        )
+
+        fig2_actions.update_traces(
+            texttemplate="%{text:,.0f}",
+            textfont_size=12,
+            hovertemplate="<b>Type de déchets</b> : %{label}<br><b>%{y}</b> ramassages",
+        )
+
+        fig2_actions.update_yaxes(tickfont=dict(size=12))
 
         l3_col1, l3_col2 = st.columns(2)
         cell4 = l3_col1.container(border=True)
@@ -288,11 +329,25 @@ if st.session_state["authentication_status"]:
             df_milieux_counts_sorted,
             y="TYPE_MILIEU",
             x="counts",
-            title="Nombre de relevés par types de milieux",
+            title="Nombre de relevés par type de milieux",
             text="counts",
             orientation="h",
         )
-        fig3_actions.update_layout(xaxis_title="", yaxis_title="")
+
+        fig3_actions.update_layout(
+            uniformtext_minsize=8,
+            yaxis_title=None,
+            xaxis_title=None,
+            separators=", ",  # Formatte les nombres en français (séparateur décimale, séparateur milliers)
+        )
+
+        fig3_actions.update_traces(
+            texttemplate="%{text:,.0f}",
+            textfont_size=12,
+            hovertemplate="<b>Type de milieux</b> : %{label}<br><b>%{x}</b> ramassages",
+        )
+
+        fig3_actions.update_yaxes(tickfont=dict(size=12))
 
         # préparation du dataframe et figure releves types de lieux 2
         df_type_lieu2 = df_other_filtre.copy()
@@ -313,11 +368,25 @@ if st.session_state["authentication_status"]:
             df_type_lieu2_counts_sorted,
             y="counts",
             x="TYPE_LIEU2",
-            title="Nombre de relevés par types de lieu",
+            title="Nombre de relevés par type de lieu",
             text="counts",
         )
-        fig4_actions.update_layout(xaxis_title="", yaxis_title="")
+
+        fig4_actions.update_layout(
+            uniformtext_minsize=8,
+            yaxis_title=None,
+            xaxis_title=None,
+            separators=", ",  # Formatte les nombres en français (séparateur décimale, séparateur milliers)
+        )
+
+        fig4_actions.update_traces(
+            texttemplate="%{text:,.0f}",
+            textfont_size=12,
+            hovertemplate="<b>Type de lieu</b> : %{label}<br><b>%{y}</b> ramassages",
+        )
+
         fig4_actions.update_xaxes(tickangle=45)
+        fig4_actions.update_yaxes(tickfont=dict(size=12))
 
         l4_col1, l4_col2 = st.columns(2)
         cell6 = l4_col1.container(border=True)
@@ -333,7 +402,7 @@ if st.session_state["authentication_status"]:
         # préparation du dataframe et figure volume + nb collectes volume + nb collectes par mois
         # Créer une liste ordonnée des noms de mois dans l'ordre souhaité
         mois_ordre = [
-            str.capitalize(format_date(dt, format="MMMM", locale=locale))
+            str.capitalize(format_date(dt, format="MMMM", locale=bbl_locale))
             for dt in pd.date_range(start="2022-01-01", end="2022-12-01", freq="MS")
         ]
 
@@ -350,7 +419,21 @@ if st.session_state["authentication_status"]:
             title="Nombre de relevés par mois",
             text="counts",
         )
-        fig5_actions.update_layout(xaxis_title="", yaxis_title="")
+
+        fig5_actions.update_layout(
+            uniformtext_minsize=8,
+            yaxis_title=None,
+            xaxis_title=None,
+            separators=", ",  # Formatte les nombres en français (séparateur décimale, séparateur milliers)
+        )
+
+        fig5_actions.update_traces(
+            texttemplate="%{text:,.0f}",
+            textfont_size=12,
+            hovertemplate="<b>Mois</b> : %{label}<br><b>%{y}</b> ramassages",
+        )
+
+        fig5_actions.update_yaxes(tickfont=dict(size=12))
         # Utiliser la liste mois_ordre comme étiquettes sur l'axe x
         fig5_actions.update_xaxes(tickvals=list(range(1, 13)), ticktext=mois_ordre)
 
@@ -404,12 +487,12 @@ if st.session_state["authentication_status"]:
                         <div style="color: gray; font-size: 10px;">
                             {row.TYPE_EVENEMENT}
                         </div>
-                        <div style="font-family: MONTSERRAT BOLD; font-weight: bold; font-size: 14px;">
+                        <div style="font-weight: bold; font-size: 14px;">
                             {row.NOM_EVENEMENT}
                         </div>
                         <br>
                         <div style="font-weight: bold; color: gray;">
-                            {str.capitalize(format_date(row.DATE, format="full", locale=locale))}
+                            {str.capitalize(format_date(row.DATE, format="full", locale=bbl_locale))}
                         </div>
                     </p>
                     <p>
@@ -419,8 +502,11 @@ if st.session_state["authentication_status"]:
                 </div>
             """
 
-            iframe = folium.IFrame(html=html, width=300, height=120)
-            popup = folium.Popup(iframe, parse_html=True, max_width=300)
+            # Adapte la hauteur du popup par iFrame
+            iframe_height = 140 if event_envg else 120
+
+            iframe = folium.IFrame(html=html, width=300, height=iframe_height)
+            popup = folium.Popup(iframe, parse_html=True)
 
             folium.Marker(
                 location=[row.COORD_GPS_Y, row.COORD_GPS_X],
@@ -451,7 +537,7 @@ if st.session_state["authentication_status"]:
                 for idx, row in df_events_a_venir.iterrows():
                     with st.container(border=True):
                         # Bloc contenant la date
-                        date_block = f"<div style='font-weight:bold; color:{color_ZDS_rouge}; text-align: center;'>{row.DATE.day}<br>{str.capitalize(locale.months['format']['wide'][row.DATE.month - 1])}</div>"
+                        date_block = f"<div style='font-weight:bold; color:{color_ZDS_rouge}; text-align: center;'>{row.DATE.day}<br>{str.capitalize(bbl_locale.months['format']['abbreviated'][row.DATE.month])}</div>"
                         # Bloc contenant le nom de l'événement
                         event_block = (
                             f"<div style='font-weight:bold;'>{row.NOM_EVENEMENT}</div>"
