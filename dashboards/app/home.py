@@ -35,7 +35,7 @@ authenticator = stauth.Authenticate(
     config["cookie"]["expiry_days"],
     config["pre-authorized"],
 )
-authenticator.login(
+name, authentication_status, username = authenticator.login(
     fields={
         "Form name": "Connexion",
         "Username": "Identifiant",
@@ -44,7 +44,16 @@ authenticator.login(
     },
 )
 
-if st.session_state["authentication_status"]:
+if (st.session_state["authentication_status"]) and (name in config["admin"]["users"]):
+    show_pages(
+        [
+            Page("home.py", "Accueil", "🏠"),
+            Page("pages/upload_files.py", "Dépôt de fichiers", "📁"),
+        ],
+    )
+    authenticator.logout()
+
+elif st.session_state["authentication_status"]:
     show_pages(
         [
             Page("home.py", "Accueil", "🏠"),
@@ -173,7 +182,6 @@ if st.session_state["authentication_status"]:
                 Page("pages/actions.py", "Actions", "👊"),
                 Page("pages/data.py", "Data", "🔍"),
                 Page("pages/hotspots.py", "Hotspots", "🔥"),
-                Page("pages/upload_files.py", "Dépôt de fichiers", "📁"),
             ],
         )
 
