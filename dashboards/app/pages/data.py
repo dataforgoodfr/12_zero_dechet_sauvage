@@ -34,7 +34,7 @@ tab1, tab2, tab3 = st.tabs(
 )
 
 # Définir les paramètres linguistiques FR pour l'affichage des nombres
-locale.setlocale(locale.LC_NUMERIC, "fr_FR")
+locale.setlocale(locale.LC_NUMERIC, "fr_FR.utf8")
 
 # Fonction pour améliorer l'affichage des nombres (milliers, millions, milliards)
 def french_format(x: int) -> str:
