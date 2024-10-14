@@ -12,7 +12,7 @@ expected_files = ["COLLECTES.csv", "STRUCTURES.csv", "SPOTS.csv"]
 
 st.markdown(
     f"""# 📁 Dépôt de fichiers
-*Déposez un fichier et lancer son traitement !*
+*Déposez un fichier et lancez son traitement !*
 
 **Veuillez respecter les noms de fichiers suivant** :
 - {expected_files[0]}
