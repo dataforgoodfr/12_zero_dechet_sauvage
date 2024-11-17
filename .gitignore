@@ -172,3 +172,6 @@ TG_sauv
 
 # Streamlit: credentials
 dashboards/app/.credentials.yml
+
+# For obvious reasons
+/etl/.mysql_root_password
