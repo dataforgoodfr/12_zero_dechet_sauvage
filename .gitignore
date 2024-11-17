@@ -102,7 +102,7 @@ ipython_config.py
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 #   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
+poetry.lock
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
@@ -139,6 +139,7 @@ venv*
 .spyproject
 
 # VS Code
+12_zero_dechet_sauvage.code-workspace
 .vscode
 
 # Rope project settings
@@ -171,3 +172,6 @@ TG_sauv
 
 # Streamlit: credentials
 dashboards/app/.credentials.yml
+
+# For obvious reasons
+/etl/.mysql_root_password
