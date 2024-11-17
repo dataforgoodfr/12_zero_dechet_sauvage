@@ -9,7 +9,7 @@ if "test" not in globals():
 @data_loader
 def load_data_from_api(*args, **kwargs):
     """Read the Zero Dechet Sauvage dataset Corrected by MerTerre"""
-    dataset_path = "/home/merterre/zds/inputs/data_zds_20240315_Corrigé.xlsx"
+    dataset_path = "/home/merterre/zds/inputs/RELEVES.xlsx"
     df = pd.read_excel(dataset_path)
 
     return df

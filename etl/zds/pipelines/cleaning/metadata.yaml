@@ -38,7 +38,6 @@ blocks:
   configuration: {}
   downstream_blocks:
   - cleaning/data_corrected/update_optional2
-  - cleaning/data_corrected/update_optional3
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -184,15 +183,14 @@ blocks:
   language: python
   name: cleaning/data_corrected/update_optional3
   retry_config: null
-  status: failed
+  status: executed
   timeout: null
   type: transformer
   upstream_blocks:
-  - cleaning/data_corrected/split_other_data
   - cleaning/data_corrected/update_optional2
   - zds_files/read_dechets
   uuid: cleaning/data_corrected/update_optional3
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -209,7 +207,7 @@ blocks:
   upstream_blocks:
   - cleaning/data_corrected/update_optional3
   uuid: cleaning/data_corrected/update_01
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -226,7 +224,7 @@ blocks:
   upstream_blocks:
   - cleaning/data_corrected/update_01
   uuid: cleaning/data_corrected/update_etiqbout
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -243,7 +241,7 @@ blocks:
   upstream_blocks:
   - cleaning/data_corrected/update_etiqbout
   uuid: cleaning/data_corrected/update_dcsmm
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -260,7 +258,7 @@ blocks:
   upstream_blocks:
   - cleaning/data_corrected/update_dcsmm
   uuid: cleaning/data_corrected/get_nb_dechet
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration:
     file_source:
@@ -273,7 +271,7 @@ blocks:
   language: python
   name: cleaning/nb_dechets/melt_table
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: transformer
   upstream_blocks:
@@ -392,7 +390,7 @@ blocks:
   language: python
   name: mysql_zds/export_nb_dechets
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: data_exporter
   upstream_blocks:

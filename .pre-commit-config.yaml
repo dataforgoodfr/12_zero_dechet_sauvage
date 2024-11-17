@@ -1,3 +1,5 @@
+exclude: 'etl/zds/.*'
+
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     # Ruff version.

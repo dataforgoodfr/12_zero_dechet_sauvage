@@ -10,7 +10,7 @@ def transform(data, *args, **kwargs):
     Used to prevent the dateime loading issue at the Geodataframe creaction
     """
 
-    data = data[["ID_RELEVE", "LIEU_PAYS", "LIEU_COORD_GPS_X", "LIEU_COORD_GPS_Y"]]
+    data = data[["ID_RELEVE", "LIEU_PAYS", "LIEU_COORD_GPS_LON", "LIEU_COORD_GPS_LAT"]]
 
     return data
 
