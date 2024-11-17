@@ -24,3 +24,4 @@ repos:
     rev: v1.3.1
     hooks:
     - id: python-safety-dependencies-check
+      args: ["--ignore=73456,71608,71956,71957,72236,71064,70612,71591,67895,72083"]

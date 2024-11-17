@@ -102,7 +102,7 @@ ipython_config.py
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 #   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
+poetry.lock
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
@@ -131,6 +131,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv*
 venv*
 
 # Spyder project settings
@@ -138,8 +139,8 @@ venv*
 .spyproject
 
 # VS Code
-.vscode
 12_zero_dechet_sauvage.code-workspace
+.vscode
 
 # Rope project settings
 .ropeproject
@@ -164,8 +165,10 @@ cython_debug/
 # Precommit hooks: ruff cache
 .ruff_cache
 
-# Files too bigs
-COMMUNE.shp
-**/COMMUNE.shp
+etl/zds/.file_versions/*
 
-etl/zds/.file_versions/
+# Dossier sauvegarde Thibaut
+TG_sauv
+
+# Streamlit: credentials
+dashboards/app/.credentials.yml
