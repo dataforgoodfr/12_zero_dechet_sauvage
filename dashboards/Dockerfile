@@ -6,6 +6,7 @@ de données du projet Zéro Dechet Sauvage de l'association MerTerre"
 
 RUN apt-get update
 RUN mkdir zds
+RUN mkdir data
 WORKDIR zds
 
 RUN apt-get install -y locales
