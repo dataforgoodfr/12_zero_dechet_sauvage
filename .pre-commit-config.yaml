@@ -1,4 +1,4 @@
-exclude: 'zds/.*'
+exclude: 'zds/backend/.*'
 
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
