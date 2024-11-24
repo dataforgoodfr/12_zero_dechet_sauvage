@@ -2,7 +2,7 @@ services:
   mage:
     container_name: zds-mage
     build:
-      context: .
+      context: mage
       dockerfile: Dockerfile
       args:
         ADMINEXPRESSURL: https://data.geopf.fr/telechargement/download/ADMIN-EXPRESS/ADMIN-EXPRESS_3-2__SHP_LAMB93_FXX_2024-02-15/ADMIN-EXPRESS_3-2__SHP_LAMB93_FXX_2024-02-15.7z
@@ -12,9 +12,9 @@ services:
       - 6789:6789
     restart: always
     volumes:
-      - ./zds:/home/merterre/zds
+      - ./mage/zds:/home/merterre/zds
     env_file:
-      - path: ./.env_mage
+      - path: ./mage/.env_mage
 
   db:
     container_name: zds-db
