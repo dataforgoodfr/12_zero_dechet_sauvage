@@ -44,7 +44,7 @@ services:
 
 secrets:
   mysql_root_password:
-    file: ./.mysql_root_password
+    file: ./db/.mysql_root_password
 
 networks:
   backend:
