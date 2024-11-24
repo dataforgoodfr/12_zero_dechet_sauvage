@@ -1,21 +1,6 @@
-```
- _____                                                                   YAao,
-|__  /___ _ __ ___                                                        Y8888b,
-  / // _ \ '__/ _ \                                                     ,oA8888888b,
- / /|  __/ | | (_) |                                              ,aaad8888888888888888bo,
-/____\___|_|  \___/  _          _                              ,d888888888888888888888888888b,
-    |  _ \  ___  ___| |__   ___| |_                          ,888888888888888888888888888888888b,
-    | | | |/ _ \/ __| '_ \ / _ \ __|                        d8888888888888888888888888888888888888,
-    | |_| |  __/ (__| | | |  __/ |_                        d888888888888888888888888888888888888888b
-    |____/_\___|\___|_| |_|\___|\__|                      d888888P'                    `Y888888888888,
-        / ___|  __ _ _   ___   ____ _  __ _  ___          88888P'                    Ybaaaa8888888888l
-        \___ \ / _` | | | \ \ / / _` |/ _` |/ _ \        a8888'                      `Y8888P' `V888888
-         ___) | (_| | |_| |\ V / (_| | (_| |  __/      d8888888a                                `Y8888
-        |____/ \__,_|\__,_| \_/ \__,_|\__, |\___|     AY/'' `\Y8b                                 ``Y8b
-                                      |___/           Y'      `YP                                    ~~
-```
+![](./media/zds_banner.png)
 
-# Zéro Déchat Sauvage
+# Zéro Déchet Sauvage
 ## À propos
 [Zéro Déchet Sauvage](http://zds-app.duckdns.org/) (ZDS) est une application de visualisation de données de déchets diffus et collectés au cours d'évènements de collectes. Il s'agit d'une plateforme appartenant à l'association [MerTerre](https://mer-terre.org/) et développée par des bénévoles de l'association Data For Good.
 
