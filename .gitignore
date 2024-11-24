@@ -174,4 +174,4 @@ TG_sauv
 dashboards/app/.credentials.yml
 
 # For obvious reasons
-zds/etl/.mysql_root_password
+**/.mysql_root_password
