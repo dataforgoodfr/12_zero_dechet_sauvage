@@ -1,0 +1,62 @@
+from office365.sharepoint.client_context import ClientContext
+from office365.runtime.auth.authentication_context import AuthenticationContext
+from office365.sharepoint.folders.folder import Folder
+from office365.sharepoint.files.file import File
+
+if 'custom' not in globals():
+    from mage_ai.data_preparation.decorators import custom
+if 'test' not in globals():
+    from mage_ai.data_preparation.decorators import test
+
+
+@custom
+def transform_custom(*args, **kwargs):
+    """
+    args: The output from any upstream parent blocks (if applicable)
+    https://subash-mishra.medium.com/sharepoint-with-python-a-comprehensive-guide-to-working-sharepoint-online-file-and-folders-using-ce2778cdf8f3
+
+    Returns:
+        Anything (e.g. data frame, dictionary, array, int, str, etc.)
+    """
+
+    # SharePoint Credentials
+    client_id = "ddd127c2-1138-4091-aa4d-91fc8412c875"
+    client_secret = "1WC6a/4ANFY6109qLhSTiuHgVo0+Rl8YVYvVJxtGQiY="
+    team  = "TdBColter"
+
+    try:
+        # SharePoint site URL based on the company's domain name and team
+        # https://merterre13.sharepoint.com/:f:/r/sites/TdBColter/Documents%20partages/Fichiers%20d%27extraction?csf=1&web=1&e=22hPj8
+        url = f"https://merterre13.sharepoint.com/teams/{team}"
+        # Authentication context using client_id and client_secret
+        context_auth = AuthenticationContext(site_url)
+        web = ctx.web
+        ctx.load(web)
+        ctx.execute_query()
+        # Download file content
+        out = io.BytesIO()
+        f = (
+            ctx.web.get_file_by_server_relative_url(f"/Shared Documents/{file_path}")
+            .download(out)
+            .execute_query()
+        )
+        if context_auth.acquire_token_for_app(
+            client_id=client_id, client_secret=client_secret
+        ):
+            # Create SharePoint client context
+            ctx = ClientContext(site_url, context_auth)
+            return ctx
+    except Exception as e:
+        # Print error message if an exception occurs during SharePoint context establishment
+        print(f"Error: {type(e).__name__} {e}")
+        return None
+
+    return {}
+
+
+@test
+def test_output(output, *args) -> None:
+    """
+    Template code for testing the output of the block.
+    """
+    assert output is not None, 'The output is undefined'
