@@ -1,11 +1,25 @@
 from pathlib import Path
 
+import mysql.connector
 import pandas as pd
 import streamlit as st
 import streamlit_authenticator as stauth
 import yaml
 from st_pages import Page, show_pages
 from yaml.loader import SafeLoader
+
+
+def connect_db() -> mysql.connector.connection.MySQLConnection:
+    with Path.open(".mysql_merterre_password") as f:
+        pwd = f.read()
+    cnx = mysql.connector.connect(
+        user="merterre",
+        password=pwd,
+        host="db",
+        database="zero_dechet_sauvage",
+    )
+    return cnx
+
 
 # Configuration de la page
 st.set_page_config(
@@ -76,12 +90,10 @@ elif st.session_state["authentication_status"]:
     # Chargement des données et filtre géographique à l'arrivée sur le dashboard
     # Table des volumes par matériaux
     @st.cache_data
-    def load_df_other() -> pd.DataFrame:
-        df = pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-            "sation/data/data_zds_enriched.csv",
-        )
+    def load_df_other(cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
+        query = "SELECT * FROM data_enriched;"
+        df = pd.read_sql(query, cnx)
+        #     "sation/data/data_zds_enriched.csv",
         # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE
         # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
         df["DEP_CODE_NOM"] = df["DEP"] + " - " + df["DEPARTEMENT"]
@@ -132,7 +144,8 @@ elif st.session_state["authentication_status"]:
         )
 
     # Appel des fonctions pour charger les données
-    df_other = load_df_other()
+    cnx = connect_db()
+    df_other = load_df_other(cnx)
     df_structures = load_structures()
     df_events = load_df_events_clean()
 
