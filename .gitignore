@@ -175,3 +175,4 @@ dashboards/app/.credentials.yml
 
 # For obvious reasons
 **/.mysql_root_password
+**/.mysql_merterre_password
