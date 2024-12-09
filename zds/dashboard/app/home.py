@@ -11,7 +11,7 @@ from yaml.loader import SafeLoader
 
 def connect_db() -> mysql.connector.connection.MySQLConnection:
     with Path.open(".mysql_merterre_password", "r") as f:
-        pwd = f.read()
+        pwd = f.read().rstrip('\n')
     cnx = mysql.connector.connect(
         user="merterre",
         password=pwd,
