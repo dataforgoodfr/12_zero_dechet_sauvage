@@ -90,14 +90,14 @@ elif st.session_state["authentication_status"]:
     # Chargement des données et filtre géographique à l'arrivée sur le dashboard
     # Table des volumes par matériaux
     @st.cache_data
-    def load_df_other(cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
+    def load_df_other(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
         query = "SELECT * FROM data_enriched;"
-        df = pd.read_sql(query, cnx)
+        df = pd.read_sql(query, _cnx)
         #     "sation/data/data_zds_enriched.csv",
         # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE
         # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
-        df["DEP_CODE_NOM"] = df["DEP"] + " - " + df["DEPARTEMENT"]
-        df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["commune"]
+        df["DEP_CODE_NOM"] = df["dep"] + " - " + df["departement"]
+        df["COMMUNE_CODE_NOM"] = df["insee_com"] + " - " + df["commune"]
         return df
 
     # Table des structures
