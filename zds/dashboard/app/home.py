@@ -10,7 +10,7 @@ from yaml.loader import SafeLoader
 
 
 def connect_db() -> mysql.connector.connection.MySQLConnection:
-    with Path.open(".mysql_merterre_password") as f:
+    with Path.open(".mysql_merterre_password", "r") as f:
         pwd = f.read()
     cnx = mysql.connector.connect(
         user="merterre",
