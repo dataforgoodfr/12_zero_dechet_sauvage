@@ -98,6 +98,7 @@ elif st.session_state["authentication_status"]:
         # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
         df["DEP_CODE_NOM"] = df["dep"] + " - " + df["departement"]
         df["COMMUNE_CODE_NOM"] = df["insee_com"] + " - " + df["commune"]
+        df.columns = [c.upper() for c in df.columns]
         return df
 
     # Table des structures
@@ -118,6 +119,7 @@ elif st.session_state["authentication_status"]:
     def load_df_nb_dechet(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
         query = "SELECT * FROM nb_dechets;"
         df = pd.read_sql(query, _cnx)
+        df.columns = [c.upper() for c in df.columns]
         return df
 
     @st.cache_data
@@ -134,6 +136,7 @@ elif st.session_state["authentication_status"]:
         """
         query = "SELECT * FROM export_events_cleaned;"
         df = pd.read_sql(query, _cnx)
+        df.columns = [c.upper() for c in df.columns]
         return df
 
     # Appel des fonctions pour charger les données
@@ -147,9 +150,9 @@ elif st.session_state["authentication_status"]:
 
     # Création du filtre par niveau géographique : correspondance labels et variables du df
     niveaux_admin_dict = {
-        "Région": "reg",
+        "Région": "REG",
         "Département": "DEP_CODE_NOM",
-        "EPCI": "libepci",
+        "EPCI": "LIBEPCI",
         "Commune": "COMMUNE_CODE_NOM",
     }
 
