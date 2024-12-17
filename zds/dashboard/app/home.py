@@ -93,7 +93,7 @@ elif st.session_state["authentication_status"]:
     def load_df_other(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
         query = "SELECT * FROM data_enriched;"
         df = pd.read_sql(query, _cnx)
-        #     "sation/data/data_zds_enriched.csv",
+
         # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE
         # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
         df["DEP_CODE_NOM"] = df["dep"] + " - " + df["departement"]
@@ -102,32 +102,27 @@ elif st.session_state["authentication_status"]:
 
     # Table des structures
     @st.cache_data
-    def load_structures() -> pd.DataFrame:
-        df = pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/4-"
-            "onglet-structures/Exploration_visuali"
-            "sation/data/structures_export_cleaned.csv",
-            index_col=0,
-        )
+    def load_structures(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
+        query = "SELECT * FROM structures_export_cleaned;"
+        df = pd.read_sql(query, _cnx)
+        
         # Ajout des colonnes DEP_CODE_NOM et COMMUNE_CODE_NOM qui concatenent le numéro INSEE
         # et le nom de l'entité géographique (ex : 13 - Bouches du Rhône)
         df["DEP_CODE_NOM"] = df["dep"] + " - " + df["departement"]
-        df["COMMUNE_CODE_NOM"] = df["INSEE_COM"] + " - " + df["COMMUNE"]
+        df["COMMUNE_CODE_NOM"] = df["insee_com"] + " - " + df["commune"]
         df.columns = [c.upper() for c in df.columns]
         return df
 
     # Table du nb de déchets
     @st.cache_data
-    def load_df_nb_dechet() -> pd.DataFrame:
-        return pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-            "sation/data/data_releve_nb_dechet.csv",
-        )
+    def load_df_nb_dechet(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
+        query = "SELECT * FROM nb_dechets;"
+        df = pd.read_sql(query, _cnx)
+        return df
 
     @st.cache_data
     # Définition d'une fonction pour charger les evenements à venir
-    def load_df_events_clean() -> pd.DataFrame:
+    def load_df_events_clean(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
         """Chargement du dataset 'export_event_cleaned.csv'
 
         Les 'évenements à venir' sont dans un autre dataset que data_zds
@@ -137,26 +132,24 @@ elif st.session_state["authentication_status"]:
         Returns:
             pd.DataFrame: DF des événements à venir nettoyé
         """
-        return pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-            "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-            "sation/data/export_events_cleaned.csv",
-        )
+        query = "SELECT * FROM export_events_cleaned;"
+        df = pd.read_sql(query, _cnx)
+        return df
 
     # Appel des fonctions pour charger les données
     cnx = connect_db()
     df_other = load_df_other(cnx)
-    df_structures = load_structures()
-    df_events = load_df_events_clean()
+    df_structures = load_structures(cnx)
+    df_events = load_df_events_clean(cnx)
 
     # Création du filtre par niveau géographique : correspondance labels et variables
-    df_nb_dechets = load_df_nb_dechet()
+    df_nb_dechets = load_df_nb_dechet(cnx)
 
     # Création du filtre par niveau géographique : correspondance labels et variables du df
     niveaux_admin_dict = {
-        "Région": "REGION",
+        "Région": "reg",
         "Département": "DEP_CODE_NOM",
-        "EPCI": "LIBEPCI",
+        "EPCI": "libepci",
         "Commune": "COMMUNE_CODE_NOM",
     }
 
@@ -215,6 +208,9 @@ elif st.session_state["authentication_status"]:
                 Page("pages/hotspots.py", "Hotspots", "🔥"),
             ],
         )
+
+        # Enregistrer la connexion à la bdd
+        st.session_state["cnx"] = cnx
 
         # Filtrer et enregistrer le DataFrame dans un session state pour la suite
         colonne_filtre = niveaux_admin_dict[select_niveauadmin]
