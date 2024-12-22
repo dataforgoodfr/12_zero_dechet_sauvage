@@ -1,4 +1,5 @@
 import streamlit as st
+import mysql.connector
 
 # import altair as alt # Unused for now
 import pandas as pd
@@ -53,20 +54,6 @@ NIVEAU_ADMIN_COL = NIVEAUX_ADMIN_DICT[NIVEAU_ADMIN]
 # The value selected for the "niveau_admin" column fetch from the session state
 NIVEAU_ADMIN_SELECTION = st.session_state["collectivite"]
 
-# Data path for the df_nb_dechets
-NB_DECHETS_PATH = (
-    "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-    "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-    "sation/data/data_releve_nb_dechet.csv"
-)
-
-# Data path for the data_zds path
-DATA_ZDS_PATH = (
-    "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/2-"
-    "nettoyage-et-augmentation-des-donn%C3%A9es/Exploration_visuali"
-    "sation/data/data_zds_enriched.csv"
-)
-
 # Root data path for the France administrative levels geojson
 NIVEAUX_ADMIN_GEOJSON_ROOT_PATH = (
     "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
@@ -82,11 +69,11 @@ NIVEAUX_ADMIN_GEOJSON_PATH_DICT = {
 }
 
 # Data path for Correction
-CORRECTION = (
-    "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/"
-    "1-exploration-des-donn%C3%A9es/Exploration_visualisation/data/"
-    "releves_corrects_surf_lineaire.xlsx"
-)
+def load_df_correction(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
+    query = "SELECT * FROM releves_corrects_surf_lineaire;"
+    df = pd.read_sql(query, _cnx)
+    df.columns = [c.upper() for c in df.columns]
+    return df
 
 # Data path for Data Spot
 DATA_SPOT = (
@@ -336,18 +323,12 @@ def construct_admin_lvl_boundaries(
 # Load all regions from the GeoJSON file
 # regions = gpd.read_file(REGION_GEOJSON_PATH) # Unused, keep as archive
 
-# nb dechets : Unused for now
-# df_nb_dechets = pd.read_csv(NB_DECHETS_PATH)
-
-# data_zds : main source of data for the hotspots tab
-# /!\ Already loaded from the streamlit session state defined in the home tab
-# data_zds = pd.read_csv(DATA_ZDS_PATH)
-
 # spot:
 # spot = pd.read_excel(DATA_SPOT)
 
 # correction : corrected data for density map
-correction = pd.read_excel(CORRECTION)
+cnx = st.session_state["cnx"]
+correction = load_df_correction(cnx)
 
 # Fusion and correction
 data_correct = pd.merge(data_zds, correction, on="ID_RELEVE", how="left")
