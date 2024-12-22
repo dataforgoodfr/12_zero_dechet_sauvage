@@ -59,7 +59,7 @@ if st.session_state["authentication_status"]:
     # Onglet 1 : Evènements
     with tab1:
         # Convertit la colonne de date en datetime
-        df_other["DATE"] = pd.to_datetime(df_other["DATE"])
+        df_other["_DATE"] = pd.to_datetime(df_other["_DATE"])
 
         # Liste des années pour le filtre
         annee_liste = sorted(df_other["ANNEE"].unique().tolist(), reverse=True)
@@ -91,7 +91,7 @@ if st.session_state["authentication_status"]:
 
             # Liste des mois uniques pour l'année sélectionnée
             mois_liste = sorted(
-                df_other[df_other["ANNEE"] == annee_choisie]["DATE"]
+                df_other[df_other["ANNEE"] == annee_choisie]["_DATE"]
                 .dt.strftime("%B")
                 .unique()
                 .tolist(),
@@ -122,7 +122,7 @@ if st.session_state["authentication_status"]:
                 mois_choisi = mois_liste[mois_choisi_index - 1]
                 df_other_filtre = df_other[
                     (df_other["ANNEE"] == annee_choisie)
-                    & (df_other["DATE"].dt.month == mois_dict[mois_choisi])
+                    & (df_other["_DATE"].dt.month == mois_dict[mois_choisi])
                 ].copy()
             else:  # que l'année choisie
                 df_other_filtre = df_other[df_other["ANNEE"] == annee_choisie].copy()
@@ -210,7 +210,7 @@ if st.session_state["authentication_status"]:
                             </div>
                             <br>
                             <div style="font-weight: bold;">
-                                Date : <span style="color: gray;">{row.DATE.strftime("%d/%m/%Y")}</span>
+                                Date : <span style="color: gray;">{row._DATE.strftime("%d/%m/%Y")}</span>
                             </div>
                             <div style="font-weight: bold;">
                                 Nombre de participants : <span style="color: gray;">{format_participants}</span>
@@ -407,8 +407,8 @@ if st.session_state["authentication_status"]:
         ]
 
         df_mois = df_other_filtre.copy()
-        df_mois["DATE"] = pd.to_datetime(df_mois["DATE"])
-        df_mois["MOIS"] = df_mois["DATE"].dt.month
+        df_mois["_DATE"] = pd.to_datetime(df_mois["_DATE"])
+        df_mois["MOIS"] = df_mois["_DATE"].dt.month
         df_mois_counts = df_mois["MOIS"].value_counts().reset_index()
         df_mois_counts.columns = ["MOIS", "counts"]
 
@@ -447,15 +447,15 @@ if st.session_state["authentication_status"]:
         df_events_a_venir = df_events.copy()
 
         # Convertit la col DATE en datetime pour formatage
-        df_events_a_venir.DATE = pd.to_datetime(df_events.DATE)
+        df_events_a_venir._DATE = pd.to_datetime(df_events._DATE)
 
         # Filtrer les événements à venir (jour de consultation -5 jours: pour afficher les possibles evenements en cours)
         df_events_a_venir = df_events_a_venir[
-            df_events_a_venir.DATE > (datetime.now() - timedelta(days=5))
+            df_events_a_venir._DATE > (datetime.now() - timedelta(days=5))
         ]
 
         # Trie les events par date
-        df_events_a_venir.sort_values(by="DATE", inplace=True)
+        df_events_a_venir.sort_values(by="_DATE", inplace=True)
 
         # Coord approximatives du centre de la France
         coord_centre_france = [46.603354, 1.888334]
@@ -492,7 +492,7 @@ if st.session_state["authentication_status"]:
                         </div>
                         <br>
                         <div style="font-weight: bold; color: gray;">
-                            {str.capitalize(format_date(row.DATE, format="full", locale=bbl_locale))}
+                            {str.capitalize(format_date(row._DATE, format="full", locale=bbl_locale))}
                         </div>
                     </p>
                     <p>
@@ -537,7 +537,7 @@ if st.session_state["authentication_status"]:
                 for idx, row in df_events_a_venir.iterrows():
                     with st.container(border=True):
                         # Bloc contenant la date
-                        date_block = f"<div style='font-weight:bold; color:{color_ZDS_rouge}; text-align: center;'>{row.DATE.day}<br>{str.capitalize(bbl_locale.months['format']['abbreviated'][row.DATE.month])}</div>"
+                        date_block = f"<div style='font-weight:bold; color:{color_ZDS_rouge}; text-align: center;'>{row._DATE.day}<br>{str.capitalize(bbl_locale.months['format']['abbreviated'][row._DATE.month])}</div>"
                         # Bloc contenant le nom de l'événement
                         event_block = (
                             f"<div style='font-weight:bold;'>{row.NOM_EVENEMENT}</div>"
