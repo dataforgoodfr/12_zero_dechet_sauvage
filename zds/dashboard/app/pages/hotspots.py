@@ -679,7 +679,7 @@ def plot_adopted_waste_spots(
 
             # Create a folium iframe for the popup window
             iframe = folium.IFrame(
-                f"Zone: {row['NOM_ZONE']}<br>Date: {row['DATE']}<br>Volume: {row['VOLUME_TOTAL']} litres<br>Structure: {row['NOM_STRUCTURE']}"
+                f"Zone: {row['NOM_ZONE']}<br>Date: {row['_DATE']}<br>Volume: {row['VOLUME_TOTAL']} litres<br>Structure: {row['NOM_STRUCTURE']}"
             )
 
             # Create the popup window based on the iframe
