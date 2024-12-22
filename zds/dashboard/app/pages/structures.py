@@ -64,12 +64,12 @@ else:
     st.write(f"Votre territoire : {filtre_niveau} {filtre_collectivite}")
 
 # On constitue la table qu'on va afficher en bas en combinant la table des structures et des relevés
-dict_agg_df_releves = {"DATE": "max", "ID_RELEVE": "count"}
+dict_agg_df_releves = {"_DATE": "max", "ID_RELEVE": "count"}
 df_releve_structure = (
     df_releves.groupby(["ID_STRUCTURE"]).agg(dict_agg_df_releves).reset_index()
 )
 df_releve_structure.rename(
-    columns={"DATE": "Date dernière collecte", "ID_RELEVE": "Nombre de relevés"},
+    columns={"_DATE": "Date dernière collecte", "ID_RELEVE": "Nombre de relevés"},
     inplace=True,
 )
 
@@ -134,9 +134,9 @@ with st.container():
 
     df_aggType = duckdb.query(
         (
-            "SELECT TYPE, count(TYPE) AS nb_structures "
+            "SELECT _TYPE, count(_TYPE) AS nb_structures "
             "FROM df_structures_territoire "
-            "GROUP BY TYPE "
+            "GROUP BY _TYPE "
             "ORDER BY nb_structures DESC;"
         )
     ).to_df()
@@ -145,10 +145,10 @@ with st.container():
     fig = px.pie(
         df_aggType,
         values="nb_structures",
-        names="TYPE",
+        names="_TYPE",
         title="Répartition des types de structures",
         hole=0.4,
-        color="TYPE",
+        color="_TYPE",
     )
 
     # Amélioration de l'affichage
@@ -242,7 +242,7 @@ with st.container():
         (
             """SELECT 
                     NOM_STRUCTURE as Nom, 
-                    TYPE as Type, 
+                    _TYPE as Type, 
                     "Nombre de relevés",
                     A1S_NB_SPO as 'Nombre de spots adoptés',
                     "Date dernière collecte"
