@@ -1,4 +1,5 @@
 import streamlit as st
+import mysql.connector
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -84,15 +85,15 @@ if st.session_state["authentication_status"]:
                 icon="🌍",
             )
     # Définition d'une fonction pour charger les données du nombre de déchets@st.cache_data
-    def load_df_dict_corr_dechet_materiau():
-        return pd.read_csv(
-            "https://github.com/dataforgoodfr/12_zero_dechet_sauvage/raw/1-"
-            "exploration-des-donn%C3%A9es/Exploration_visualisation/data/dict_de"
-            "chet_groupe_materiau.csv"
-        )
+    def load_df_dict_corr_dechet_materiau(_cnx: mysql.connector.connection.MySQLConnection) -> pd.DataFrame:
+        query="SELECT * FROM dict_dechet_groupe_materiau;"
+        df = pd.read_sql(query, _cnx)
+        df.columns = [c.upper() for c in df.columns]
+        return df
 
     # Appel des fonctions pour charger les données
-    df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau()
+    cnx = st.session_state["cnx"] 
+    df_dict_corr_dechet_materiau = load_df_dict_corr_dechet_materiau(cnx)
 
     # Appeler les dataframes volumes et nb_dechets filtré depuis le session state
     if ("df_other_filtre" not in st.session_state) or (
@@ -706,8 +707,8 @@ if st.session_state["authentication_status"]:
 
         # Calcul du nombre total de déchets catégorisés sur le territoier
         nb_total_dechets = df_top_dechets[
-            (df_top_dechets["type_regroupement"] == "GROUPE")
-        ]["nb_dechet"].sum()
+            (df_top_dechets["TYPE_REGROUPEMENT"] == "GROUPE")
+        ]["NB_DECHET"].sum()
 
         nb_collec_top = df_top_dechets["ID_RELEVE"].nunique()
 
@@ -734,19 +735,19 @@ if st.session_state["authentication_status"]:
 
         # Filtre sur les données au niveau "GROUPE" uniquement
         df_top_dechets = df_top_dechets[
-            df_top_dechets["type_regroupement"].isin(["GROUPE"])
+            df_top_dechets["TYPE_REGROUPEMENT"].isin(["GROUPE"])
         ]
         # Grouper par catégorie et ne garder que le top10 déchets en nombre cumulé
         df_top10_dechets = (
-            df_top_dechets.groupby("categorie")
-            .agg({"nb_dechet": "sum"})
-            .sort_values(by="nb_dechet", ascending=False)
+            df_top_dechets.groupby("CATEGORIE")
+            .agg({"NB_DECHET": "sum"})
+            .sort_values(by="NB_DECHET", ascending=False)
             .head(10)
         )
 
         # Preparation des datas pour l'onglet 3# ajout de la colonne materiau
         df_top10_dechets = df_top10_dechets.merge(
-            df_dict_corr_dechet_materiau, on="categorie", how="left"
+            df_dict_corr_dechet_materiau, on="CATEGORIE", how="left"
         )
         # Preparation de la figure barplot
         df_top10_dechets.reset_index(inplace=True)
@@ -755,17 +756,17 @@ if st.session_state["authentication_status"]:
 
         fig5 = px.bar(
             df_top10_dechets,
-            y="categorie",
-            x="nb_dechet",
+            y="CATEGORIE",
+            x="NB_DECHET",
             labels={
-                "categorie": "Dechet",
-                "nb_dechet": "Nombre total de déchets (échelle logarithmique)",
+                "CATEGORIE": "Dechet",
+                "NB_DECHET": "Nombre total de déchets (échelle logarithmique)",
             },
             title="Top 10 des déchets ramassés",
-            text="nb_dechet",
-            color="Materiau",
+            text="NB_DECHET",
+            color="MATERIAU",
             color_discrete_map=colors_map,
-            category_orders={"categorie": df_top10_dechets["categorie"].tolist()},
+            category_orders={"categorie": df_top10_dechets["CATEGORIE"].tolist()},
         )
 
         fig5.update_layout(
@@ -798,7 +799,7 @@ if st.session_state["authentication_status"]:
         )  # Template de l'infobulle, fait référence à x et y définis dans px.bar.
 
         # Suppression de la colonne categorie
-        del df_top10_dechets["Materiau"]
+        del df_top10_dechets["MATERIAU"]
 
         with st.container(border=True):
             st.plotly_chart(fig5, use_container_width=True)
@@ -816,12 +817,12 @@ if st.session_state["authentication_status"]:
             # Ajout de la selectbox
             selected_dechet = st.selectbox(
                 "Choisir un type de déchet :",
-                df_top10_dechets["categorie"].unique().tolist(),
+                df_top10_dechets["CATEGORIE"].unique().tolist(),
                 index=0,
             )
 
             # Filtration sur le dechet top 10 sélectionné
-            df_map_data = df_top_dechets[df_top_dechets["categorie"] == selected_dechet]
+            df_map_data = df_top_dechets[df_top_dechets["CATEGORIE"] == selected_dechet]
 
             # Création de la carte centrée autour d'une localisation
             # Initialisation du zoom sur la carte
@@ -851,15 +852,15 @@ if st.session_state["authentication_status"]:
             for index, row in df_map_data.iterrows():
 
                 #    Calcul du rayon du marqueur en log base 2 pour réduire les écarts
-                if row["nb_dechet"] > 1:
-                    radius = math.log2(row["nb_dechet"] / 10) * 2
+                if row["NB_DECHET"] > 1:
+                    radius = math.log2(row["NB_DECHET"] / 10) * 2
 
                 else:
                     radius = 0.001
 
                 # Formatter les valeurs avec séparateurs de miliers
                 formatted_nb_dechet = locale.format_string(
-                    "%.0f", row["nb_dechet"], grouping=True
+                    "%.0f", row["NB_DECHET"], grouping=True
                 )
 
                 folium.CircleMarker(
@@ -868,7 +869,7 @@ if st.session_state["authentication_status"]:
                     popup=folium.Popup(
                         html=f"""
                                     Quantité : <b>{formatted_nb_dechet} </b><br>
-                                    Date : <b>{row['DATE']}</b><br>
+                                    Date : <b>{row['_DATE']}</b><br>
                                     Commune : <b>{row['LIEU_VILLE']}</b><br>
                                     Zone : <b>{row['NOM_ZONE']}</b><br>
                                     """,
@@ -985,21 +986,21 @@ if st.session_state["authentication_status"]:
             (
                 "SELECT * "
                 "FROM df_init "
-                "WHERE type_regroupement='SECTEUR' AND NIVEAU_CARAC = 4 AND categorie NOT IN ('VIDE', 'INDÉTERMINÉ');"
+                "WHERE TYPE_REGROUPEMENT='SECTEUR' AND NIVEAU_CARAC = 4 AND CATEGORIE NOT IN ('VIDE', 'INDÉTERMINÉ');"
             )
         ).to_df()
 
         # Calcul du nombre de secteurs VIDE et INDETERMINE
         nb_vide_indetermine = duckdb.query(
             (
-                "SELECT sum(nb_dechet)"
+                "SELECT sum(NB_DECHET)"
                 "FROM df_init "
-                "WHERE type_regroupement='SECTEUR' AND NIVEAU_CARAC = 4 AND categorie IN ('VIDE', 'INDÉTERMINÉ');"
+                "WHERE TYPE_REGROUPEMENT='SECTEUR' AND NIVEAU_CARAC = 4 AND CATEGORIE IN ('VIDE', 'INDÉTERMINÉ');"
             )
         ).fetchone()[0]
 
         top_secteur_df = (
-            secteur_df.groupby("categorie")["nb_dechet"]
+            secteur_df.groupby("CATEGORIE")["NB_DECHET"]
             .sum()
             .sort_values(ascending=True)
         )
@@ -1019,21 +1020,21 @@ if st.session_state["authentication_status"]:
             (
                 "SELECT * "
                 "FROM df_init "
-                "WHERE type_regroupement='REP' AND NIVEAU_CARAC = 4 AND categorie NOT IN ('VIDE', 'INDÉTERMINÉ');"
+                "WHERE TYPE_REGROUPEMENT='REP' AND NIVEAU_CARAC = 4 AND CATEGORIE NOT IN ('VIDE', 'INDÉTERMINÉ');"
             )
         ).to_df()  # Filtre sur le regroupement REP et le niveau 4, exclusion des vides et indeterminés
 
         # Calcul du nombre de secteurs VIDE et INDETERMINE
         nb_vide_indetermine_REP = duckdb.query(
             (
-                "SELECT sum(nb_dechet)"
+                "SELECT sum(NB_DECHET)"
                 "FROM df_init "
-                "WHERE type_regroupement='REP' AND NIVEAU_CARAC = 4 AND categorie IN ('VIDE', 'INDÉTERMINÉ');"
+                "WHERE TYPE_REGROUPEMENT='REP' AND NIVEAU_CARAC = 4 AND CATEGORIE IN ('VIDE', 'INDÉTERMINÉ');"
             )
         ).fetchone()[0]
 
         top_rep_df = (
-            rep_df.groupby("categorie")["nb_dechet"].sum().sort_values(ascending=True)
+            rep_df.groupby("CATEGORIE")["NB_DECHET"].sum().sort_values(ascending=True)
         )
         top_rep_df = top_rep_df.reset_index()
         top_rep_df.columns = ["Responsabilité élargie producteur", "Nombre de déchets"]
@@ -1043,21 +1044,21 @@ if st.session_state["authentication_status"]:
             (
                 "SELECT * "
                 "FROM df_init "
-                "WHERE type_regroupement='MARQUE' AND NIVEAU_CARAC >= 2 AND categorie NOT IN ('VIDE', 'INDÉTERMINÉ');"
+                "WHERE TYPE_REGROUPEMENT='MARQUE' AND NIVEAU_CARAC >= 2 AND CATEGORIE NOT IN ('VIDE', 'INDÉTERMINÉ');"
             )
         ).to_df()  # Filtre sur le regroupement REP et le niveau 4, exclusion des vides et indeterminés
 
         # Calcul du nombre de secteurs VIDE et INDETERMINE
         nb_vide_indetermine_marque = duckdb.query(
             (
-                "SELECT sum(nb_dechet)"
+                "SELECT sum(NB_DECHET)"
                 "FROM df_init "
-                "WHERE type_regroupement='MARQUE' AND NIVEAU_CARAC = 4 AND categorie IN ('VIDE', 'INDÉTERMINÉ');"
+                "WHERE TYPE_REGROUPEMENT='MARQUE' AND NIVEAU_CARAC = 4 AND CATEGORIE IN ('VIDE', 'INDÉTERMINÉ');"
             )
         ).fetchone()[0]
 
         top_marque_df = (
-            marque_df.groupby("categorie")["nb_dechet"]
+            marque_df.groupby("CATEGORIE")["NB_DECHET"]
             .sum()
             .sort_values(ascending=True)
         )
@@ -1068,18 +1069,18 @@ if st.session_state["authentication_status"]:
         )
 
         # Chiffres clés secteurs
-        nb_dechet_secteur = secteur_df["nb_dechet"].sum()
-        nb_secteurs = secteur_df["categorie"].nunique()
+        nb_dechet_secteur = secteur_df["NB_DECHET"].sum()
+        nb_secteurs = secteur_df["CATEGORIE"].nunique()
         collectes_sect = secteur_df["ID_RELEVE"].nunique()
 
         # Chiffres clés filières REP
-        nb_dechet_rep = rep_df["nb_dechet"].sum()
+        nb_dechet_rep = rep_df["NB_DECHET"].sum()
         collectes_rep = rep_df["ID_RELEVE"].nunique()
-        nb_rep = rep_df["categorie"].nunique()
+        nb_rep = rep_df["CATEGORIE"].nunique()
 
         # Chiffres clés marques
-        nb_dechet_marque = marque_df["nb_dechet"].sum()
-        nb_marques = marque_df["categorie"].nunique()
+        nb_dechet_marque = marque_df["NB_DECHET"].sum()
+        nb_marques = marque_df["CATEGORIE"].nunique()
         collectes_marque = marque_df["ID_RELEVE"].nunique()
 
         ### GRAPHIQUE PAR SECTEUR
