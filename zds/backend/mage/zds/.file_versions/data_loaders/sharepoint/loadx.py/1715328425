@@ -1,0 +1,43 @@
+import io, pandas as pd, tempfile
+from office365.sharepoint.client_context import ClientContext
+from office365.runtime.auth.authentication_context import AuthenticationContext
+from office365.sharepoint.folders.folder import Folder
+from office365.sharepoint.files.file import File
+
+if 'data_loader' not in globals():
+    from mage_ai.data_preparation.decorators import data_loader
+if 'test' not in globals():
+    from mage_ai.data_preparation.decorators import test
+
+
+@data_loader
+def load_data_from_api(*args, **kwargs):
+    """
+    Template for loading data from API
+    """
+    # SharePoint Credentials
+    sharepoint_clientId = "ddd127c2-1138-4091-aa4d-91fc8412c875"
+    sharepoint_clientsecret = "1WC6a/4ANFY6109qLhSTiuHgVo0+Rl8YVYvVJxtGQiY="
+
+    try:
+        # SharePoint site URL based on the company's domain name and team
+        # https://merterre13.sharepoint.com/:f:/r/sites/TdBColter/Documents%20partages/Fichiers%20d%27extraction?csf=1&web=1&e=22hPj8
+        site_url = f"https://merterre13.sharepoint.com/teams/TdBColter"
+        # Authentication context using client_id and client_secret
+        context_auth = AuthenticationContext(site_url)
+        if context_auth.acquire_token_for_app(
+            client_id=client_id, client_secret=client_secret
+        ):
+            # Create SharePoint client context
+            ctx = ClientContext(site_url, context_auth)
+            return ctx
+
+    return pd.read_csv(io.StringIO(response.text), sep=',')
+
+
+@test
+def test_output(output, *args) -> None:
+    """
+    Template code for testing the output of the block.
+    """
+    assert output is not None, 'The output is undefined'

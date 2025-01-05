@@ -165,7 +165,7 @@ cython_debug/
 # Precommit hooks: ruff cache
 .ruff_cache
 
-etl/zds/.file_versions/*
+zds/backend/mage/zds/.file_versions/*
 
 # Dossier sauvegarde Thibaut
 TG_sauv
@@ -174,4 +174,5 @@ TG_sauv
 dashboards/app/.credentials.yml
 
 # For obvious reasons
-/etl/.mysql_root_password
+**/.mysql_root_password
+**/.mysql_merterre_password

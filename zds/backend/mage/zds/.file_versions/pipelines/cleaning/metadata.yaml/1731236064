@@ -1,0 +1,490 @@
+blocks:
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/drop_na_and_filter_france
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: zds_files/read_data_corrected
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_loader
+  upstream_blocks: []
+  uuid: zds_files/read_data_corrected
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_correted/split_for_geographic
+  - cleaning/data_corrected/split_other_data
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/drop_na_and_filter_france
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - zds_files/read_data_corrected
+  uuid: cleaning/data_corrected/drop_na_and_filter_france
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/update_optional2
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/split_other_data
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/drop_na_and_filter_france
+  uuid: cleaning/data_corrected/split_other_data
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/geo_dataframe/make_geo_df
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_correted/split_for_geographic
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/drop_na_and_filter_france
+  uuid: cleaning/data_correted/split_for_geographic
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/geo_dataframe/make_geo_df
+  - cleaning/full_table/get_closest_commune_to_geopoint
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: open_data/read_communes_shapefile
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_loader
+  upstream_blocks: []
+  uuid: open_data/read_communes_shapefile
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/full_table/get_closest_commune_to_geopoint
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/geo_dataframe/make_geo_df
+  retry_config: null
+  status: failed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_correted/split_for_geographic
+  - open_data/read_communes_shapefile
+  uuid: cleaning/geo_dataframe/make_geo_df
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/full_table/rename_columns
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/full_table/filter_rows_on_distance
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/full_table/get_closest_commune_to_geopoint
+  uuid: cleaning/full_table/filter_rows_on_distance
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/full_table/filter_rows_on_distance
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/full_table/get_closest_commune_to_geopoint
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - open_data/read_communes_shapefile
+  - cleaning/geo_dataframe/make_geo_df
+  uuid: cleaning/full_table/get_closest_commune_to_geopoint
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/full_table/merge_nb_dechets_administration
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/full_table/rename_columns
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/full_table/filter_rows_on_distance
+  uuid: cleaning/full_table/rename_columns
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/update_optional3
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/update_optional2
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/split_other_data
+  - zds_files/read_dechets
+  uuid: cleaning/data_corrected/update_optional2
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/update_01
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/update_optional3
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/update_optional2
+  - zds_files/read_dechets
+  uuid: cleaning/data_corrected/update_optional3
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/update_etiqbout
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/update_01
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/update_optional3
+  uuid: cleaning/data_corrected/update_01
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/update_dcsmm
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/update_etiqbout
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/update_01
+  uuid: cleaning/data_corrected/update_etiqbout
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/get_nb_dechet
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/update_dcsmm
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/update_etiqbout
+  uuid: cleaning/data_corrected/update_dcsmm
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/nb_dechets/melt_table
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/data_corrected/get_nb_dechet
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/update_dcsmm
+  uuid: cleaning/data_corrected/get_nb_dechet
+- all_upstream_blocks_executed: true
+  color: null
+  configuration:
+    file_source:
+      path: transformers/cleaning/nb_dechets/melt_table.py
+  downstream_blocks:
+  - cleaning/nb_dechets/make_type_regroupement
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/nb_dechets/melt_table
+  retry_config: null
+  status: updated
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/data_corrected/get_nb_dechet
+  uuid: cleaning/nb_dechets/melt_table
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/nb_dechets/clean_categories
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/nb_dechets/make_type_regroupement
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/nb_dechets/melt_table
+  - zds_files/read_dechets
+  uuid: cleaning/nb_dechets/make_type_regroupement
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/nb_dechets/drop_marque0
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/nb_dechets/clean_categories
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/nb_dechets/make_type_regroupement
+  uuid: cleaning/nb_dechets/clean_categories
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/nb_dechets/drop_sec0_lvlnot4
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/nb_dechets/drop_marque0
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/nb_dechets/clean_categories
+  uuid: cleaning/nb_dechets/drop_marque0
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/nb_dechets/drop_rep0_lvlnot4
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/nb_dechets/drop_sec0_lvlnot4
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/nb_dechets/drop_marque0
+  uuid: cleaning/nb_dechets/drop_sec0_lvlnot4
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/nb_dechets/keep_final_col
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/nb_dechets/drop_rep0_lvlnot4
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/nb_dechets/drop_sec0_lvlnot4
+  uuid: cleaning/nb_dechets/drop_rep0_lvlnot4
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - mysql_zds/export_nb_dechets
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/nb_dechets/keep_final_col
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/nb_dechets/drop_rep0_lvlnot4
+  uuid: cleaning/nb_dechets/keep_final_col
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks: []
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: mysql_zds/export_nb_dechets
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_exporter
+  upstream_blocks:
+  - cleaning/nb_dechets/keep_final_col
+  uuid: mysql_zds/export_nb_dechets
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - mysql_zds/export_full_table
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: cleaning/full_table/merge_nb_dechets_administration
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - cleaning/full_table/rename_columns
+  - zds_db/read_administrations
+  uuid: cleaning/full_table/merge_nb_dechets_administration
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks: []
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: mysql_zds/export_full_table
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_exporter
+  upstream_blocks:
+  - cleaning/full_table/merge_nb_dechets_administration
+  uuid: mysql_zds/export_full_table
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/full_table/merge_nb_dechets_administration
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: zds_db/read_administrations
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_loader
+  upstream_blocks: []
+  uuid: zds_db/read_administrations
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - cleaning/data_corrected/update_optional2
+  - cleaning/data_corrected/update_optional3
+  - cleaning/nb_dechets/make_type_regroupement
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: zds_files/read_dechets
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_loader
+  upstream_blocks: []
+  uuid: zds_files/read_dechets
+cache_block_output_in_memory: false
+callbacks: []
+concurrency_config: {}
+conditionals: []
+created_at: '2024-03-29 22:34:28.220701+00:00'
+data_integration: null
+description: null
+executor_config: {}
+executor_count: 1
+executor_type: null
+extensions: {}
+name: cleaning
+notification_config: {}
+remote_variables_dir: null
+retry_config: {}
+run_pipeline_in_one_process: false
+settings:
+  triggers: null
+spark_config: {}
+tags: []
+type: python
+uuid: cleaning
+variables_dir: /home/src/mage_data/zds
+widgets: []

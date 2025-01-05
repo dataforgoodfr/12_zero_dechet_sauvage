@@ -1,0 +1,64 @@
+services:
+  mage:
+    container_name: zds-mage
+    build:
+      context: ./backend/mage
+      dockerfile: Dockerfile
+      args:
+        ADMINEXPRESSURL: https://data.geopf.fr/telechargement/download/ADMIN-EXPRESS/ADMIN-EXPRESS_3-2__SHP_LAMB93_FXX_2024-02-15/ADMIN-EXPRESS_3-2__SHP_LAMB93_FXX_2024-02-15.7z
+    networks:
+      - zds_net
+    ports:
+      - 6789:6789
+    restart: always
+    volumes:
+      - ./backend/mage/zds:/home/merterre/zds
+    env_file:
+      - path: ./backend/mage/.env_mage
+
+  db:
+    container_name: zds-db
+    build:
+      context: ./backend/db
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - zds_net
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    secrets:
+      - mysql_root_password
+
+  adminer:
+    container_name: zds-adminer
+    image: adminer:4.8.1
+    restart: always
+    networks:
+      - zds_net
+    ports:
+      - 9257:8080
+    environment:
+      ADMINER_DESIGN: "pepa-linha"
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_AUTH: "true"
+
+  dashboard:
+    build:
+      context: ./dashboard/
+      dockerfile: Dockerfile
+    container_name: zds-app
+    restart: always
+    ports:
+      - 80:80
+    networks:
+      - zds_net
+    volumes:
+      - ./dashboard/app:/zds
+
+secrets:
+  mysql_root_password:
+    file: ./backend/db/.mysql_root_password
+
+networks:
+  zds_net:
+    driver: bridge
