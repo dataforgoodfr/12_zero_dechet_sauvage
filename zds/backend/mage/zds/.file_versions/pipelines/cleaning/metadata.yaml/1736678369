@@ -95,7 +95,7 @@ blocks:
   language: python
   name: cleaning/geo_dataframe/make_geo_df
   retry_config: null
-  status: updated
+  status: failed
   timeout: null
   type: transformer
   upstream_blocks:
