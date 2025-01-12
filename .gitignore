@@ -165,7 +165,7 @@ cython_debug/
 # Precommit hooks: ruff cache
 .ruff_cache
 
-zds/backend/mage/zds/.file_versions
+zds/backend/mage/zds/.file_versions/
 
 # Dossier sauvegarde Thibaut
 TG_sauv
