@@ -10,7 +10,9 @@ def transform(data, *args, **kwargs):
     Used to prevent the dateime loading issue at the Geodataframe creaction
     """
 
-    data = data[["ID_RELEVE", "LIEU_PAYS", "LIEU_COORD_GPS_LON", "LIEU_COORD_GPS_LAT"]]
+    cols = [c for c in data.columns if 'NB_DECHET_' not in c]
+
+    data = data[cols]
 
     return data
 
